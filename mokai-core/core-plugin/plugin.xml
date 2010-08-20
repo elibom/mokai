@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+<!DOCTYPE plugin PUBLIC "-//JPF//Java Plug-in Manifest 1.0" "http://jpf.sourceforge.net/plugin_1_0.dtd">
+<plugin id="org.mokai.core" version="1.0.0">
+	<extension-point id="acceptorType">
+		<parameter-def id="className" />
+	</extension-point>
+	
+	<extension-point id="receiverType">
+		<parameter-def id="className" />
+	</extension-point>
+	
+	<extension-point id="processorType">
+		<parameter-def id="className" />
+	</extension-point>
+</plugin>

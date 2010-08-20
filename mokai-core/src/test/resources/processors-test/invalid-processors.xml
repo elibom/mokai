@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<processors>
+	<processor id="test-1" priority="1">
+		<connector className="non.existent.Class">
+			<property name="config1">test1</property>
+			<property name="config2">3</property>
+		</connector>
+	</processor>
+</processors>

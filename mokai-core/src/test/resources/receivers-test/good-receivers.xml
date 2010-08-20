@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<receivers>
+  <receiver id="test-1">
+  	<connector className="org.mokai.types.mock.MockConnector" />
+  	<post-receiving-actions>
+  		<action className="org.mokai.types.mock.MockAction" />
+  	</post-receiving-actions>
+  </receiver>
+  
+  <receiver id="test-2">
+  	<connector className="org.mokai.types.mock.MockConfigurableConnector">
+  		<property name="config1">test</property>
+  		<property name="config2">2</property>
+  	</connector>
+  	<post-receiving-actions>
+  		<action className="org.mokai.types.mock.MockConfigurableAction">
+  			<property name="config1">test</property>
+  			<property name="config2">2</property>
+  		</action>
+  	</post-receiving-actions>
+  </receiver>
+</receivers>

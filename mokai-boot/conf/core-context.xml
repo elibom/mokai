@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:camel="http://camel.apache.org/schema/spring"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+			http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+			http://www.springframework.org/schema/jdbc
+			http://www.springframework.org/schema/jdbc/spring-jdbc-3.0.xsd
+			http://camel.apache.org/schema/spring 
+			http://camel.apache.org/schema/spring/camel-spring.xsd">
+	
+	<!-- Routing Engine -->
+	<bean id="routingEngine" class="org.mokai.impl.camel.CamelRoutingEngine" 
+			init-method="start" destroy-method="stop">
+		<constructor-arg ref="jmsComponent" />	
+		<property name="messageStore"><ref bean="messageStore" /></property>
+	</bean>
+	
+	<!-- Object Type Registry -->
+	<!-- <bean id="objectTypeRegistry" class="org.mokai.type.impl.ObjectTypeRegistryImpl" />
+	
+	<bean id="objectTypeConfiguration" class="org.mokai.config.jpf.ObjectTypeConfiguration" 
+			init-method="load" depends-on="extensionService">
+		<property name="objectTypeRegistry"><ref bean="objectTypeRegistry" /></property>
+		<property name="extensionService"><ref bean="extensionService" /></property>
+	</bean>
+	<bean id="extensionService" class="org.mokai.config.jpf.ExtensionService" init-method="init" /> -->
+	
+	<bean id="receiverConfiguration" class="org.mokai.config.xml.ReceiverConfiguration" init-method="load">
+		<property name="routingEngine"><ref bean="routingEngine" /></property>
+	</bean>
+	
+	<bean id="processorConfiguration" class="org.mokai.config.xml.ProcessorConfiguration" init-method="load">
+		<property name="routingEngine"><ref bean="routingEngine" /></property>
+	</bean> 
+	
+	<!-- <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+    	<property name="driverClassName" value="org.apache.derby.jdbc.EmbeddedDriver"/>
+    	<property name="url" value="jdbc:derby:data\\derby\\messages;create=true"/>
+    	<property name="username" value=""/>
+    	<property name="password" value=""/> 
+	</bean> -->
+	
+	<!-- <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+    	<property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+    	<property name="url" value="jdbc:mysql://localhost:3306/mokai?autoReconnect=true"/>
+    	<property name="username" value="root"/>
+    	<property name="password" value="mobile745"/>  
+	</bean> -->
+	
+	<!-- <bean id="mySqlInitializer" class="org.mokai.persist.jdbc.util.MySqlInitializer" init-method="init">
+		<property name="dataSource"><ref bean="dataSource" /></property>
+	</bean> -->
+	
+	<!-- <bean id="messageStore" class="org.mokai.persist.jdbc.JdbcMessageStore">
+		<property name="dataSource"><ref bean="dataSource" /></property>
+	</bean> -->
+	<bean id="messageStore" class="org.mokai.persist.impl.DefaultMessageStore" />
+	
+	<bean id="activeMQConnectionFactory" class="org.apache.activemq.pool.PooledConnectionFactory">
+		<constructor-arg value="vm://broker1" />
+		<property name="maxConnections" value="8" />
+		<property name="maximumActive" value="500" />
+	</bean>
+	
+	<bean id="jmsTransactionManager" class="org.springframework.jms.connection.JmsTransactionManager">
+		<constructor-arg><ref bean="activeMQConnectionFactory" /></constructor-arg>
+	</bean>
+	
+	<bean id="jmsConfiguration" class="org.apache.camel.component.jms.JmsConfiguration">
+		<property name="deliveryPersistent" value="true" />
+		<property name="transacted" value="true" />
+		<property name="transactionManager" ref="jmsTransactionManager" />
+		<property name="connectionFactory" ref="activeMQConnectionFactory" />
+	</bean>
+	
+	<bean id="jmsComponent" class="org.apache.camel.component.jms.JmsComponent">
+		<constructor-arg><ref bean="jmsConfiguration" /></constructor-arg>
+	</bean>
+</beans>

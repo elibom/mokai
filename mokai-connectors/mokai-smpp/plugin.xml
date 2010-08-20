@@ -1,0 +1,22 @@
+<?xml version="1.0" ?>
+<!DOCTYPE plugin PUBLIC "-//JPF//Java Plug-in Manifest 1.0" "http://jpf.sourceforge.net/plugin_1_0.dtd">
+<plugin id="org.mokai.smpp" version="1.0.0">
+	<requires>
+		<import plugin-id="org.mokai.core" />
+	</requires>
+	
+	<runtime>
+		<library id="core" path="classes/" type="code">
+			<export prefix="*" />
+		</library>
+		<library id="camel-smpp" path="lib/camel-smpp-2.4.0.jar" type="code" />
+		<library id="jsmpp" path="lib/org.apache.servicemix.bundles.jsmpp-2.1.0_1.jar" type="code" />
+		<library id="slf4j-api" path="lib/slf4j-api-1.6.0.jar" type="code" />
+		<library id="slf4j-log4j" path="lib/slf4j-log4j12-1.6.0.jar" type="code" />
+		<library id="log4j" path="lib/log4j-1.2.14.jar" type="code" />
+	</runtime>
+	
+	<!-- <extension plugin-id="org.mokai.core" point-id="processorType" id="smpp-processor">
+		<parameter id="className" value="org.mokai.connector.smpp.SmppProcessorType" />
+	</extension> -->
+</plugin>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<processors>
+  <processor id="comcel" priority="1000">
+  	<connector className="org.mokai.connector.smpp.SmppConnector">
+  		<property name="host">localhost</property>
+  		<property name="port">8321</property>
+  		<property name="systemId">test</property>
+  		<property name="password">test</property>
+  	</connector>
+    <acceptors>
+      <acceptor className="org.mokai.acceptor.RegExpAcceptor">
+        <property name="field">to</property>
+        <property name="regexp">(57)?(300)(\d){7}</property>
+      </acceptor>
+    </acceptors>
+  </processor>
+</processors>

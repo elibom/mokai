@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<receivers>
+  <receiver id="test-1">
+  	<connector className="non.existent.Class" />
+  	<post-receiving-actions>
+  		<action className="another.non.existent.Class" />
+  	</post-receiving-actions>
+  </receiver>
+  
+</receivers>

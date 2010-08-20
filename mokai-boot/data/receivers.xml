@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<receivers>
+  
+  <receiver id="jetty">
+  	<connector className="org.mokai.connector.camel.jetty.JettyConnector">
+   		<property name="port">9080</property>
+    	<property name="context">test</property>
+    </connector>
+  </receiver>
+  
+</receivers>

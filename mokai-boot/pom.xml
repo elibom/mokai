@@ -1,0 +1,50 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<artifactId>mokai-parent</artifactId>
+		<groupId>org.mokai</groupId>
+		<version>0.1.0-SNAPSHOT</version>
+	</parent>
+	
+	<groupId>org.mokai</groupId>
+	<artifactId>mokai-boot</artifactId>
+	<version>0.1.0-SNAPSHOT</version>
+	
+	<name>Mokia Bootstrap</name>
+	<description>Mokai Bootstrap Module</description>
+	
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+		</dependency>
+		
+		<!-- <dependency>
+			<groupId>org.mokai</groupId>
+			<artifactId>mokai-admin</artifactId>
+			<version>${project.version}</version>
+		</dependency>  -->
+		
+		<dependency>
+			<groupId>org.mokai</groupId>
+			<artifactId>mokai-core</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		
+		<!-- Provided connectors - only for testing -->
+		<dependency>
+			<groupId>org.mokai</groupId>
+			<artifactId>mokai-camel-jetty</artifactId>
+			<version>${project.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.mokai</groupId>
+			<artifactId>mokai-smpp</artifactId>
+			<version>${project.version}</version>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+</project>

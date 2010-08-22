@@ -1,7 +1,7 @@
 package org.mokai.connector.smpp;
 
-import org.mokai.spi.type.annotation.Label;
-import org.mokai.spi.type.annotation.Required;
+import org.mokai.ui.annotation.Label;
+import org.mokai.ui.annotation.Required;
 
 public class SmppConfiguration {
 

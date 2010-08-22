@@ -2,7 +2,7 @@ package org.mokai;
 
 import java.util.List;
 
-import org.mokai.spi.Processor;
+import org.mokai.Processor;
 
 /**
  * Accounts represents applications with the ability to identify themselves when

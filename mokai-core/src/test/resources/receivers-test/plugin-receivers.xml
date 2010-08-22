@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<receivers>
+  <receiver id="test">
+  	<connector className="org.mokai.types.mock.MockConnector" />
+  	<post-receiving-actions>
+  		<action className="org.mokai.types.mock.MockAction" />
+  	</post-receiving-actions>
+  </receiver>
+</receivers>

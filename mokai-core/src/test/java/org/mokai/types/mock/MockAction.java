@@ -1,7 +1,7 @@
 package org.mokai.types.mock;
 
-import org.mokai.spi.Action;
-import org.mokai.spi.Message;
+import org.mokai.Action;
+import org.mokai.Message;
 
 public class MockAction implements Action {
 

@@ -2,8 +2,8 @@ package org.mokai.impl.camel;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
+import org.mokai.Message;
 import org.mokai.persist.MessageStore;
-import org.mokai.spi.Message;
 
 /**
  * The persistence processor receiving a {@link CamelRoutingEngine} so that the

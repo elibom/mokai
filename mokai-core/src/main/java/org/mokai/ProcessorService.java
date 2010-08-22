@@ -2,9 +2,9 @@ package org.mokai;
 
 import java.util.List;
 
-import org.mokai.spi.Acceptor;
-import org.mokai.spi.Action;
-import org.mokai.spi.Processor;
+import org.mokai.Acceptor;
+import org.mokai.Action;
+import org.mokai.Processor;
 
 /**
  * 

@@ -1,9 +1,6 @@
 <?xml version="1.0" ?>
 <!DOCTYPE plugin PUBLIC "-//JPF//Java Plug-in Manifest 1.0" "http://jpf.sourceforge.net/plugin_1_0.dtd">
 <plugin id="org.mokai.smpp" version="1.0.0">
-	<requires>
-		<import plugin-id="org.mokai.core" />
-	</requires>
 	
 	<runtime>
 		<library id="core" path="classes/" type="code">
@@ -16,7 +13,4 @@
 		<library id="log4j" path="lib/log4j-1.2.14.jar" type="code" />
 	</runtime>
 	
-	<!-- <extension plugin-id="org.mokai.core" point-id="processorType" id="smpp-processor">
-		<parameter id="className" value="org.mokai.connector.smpp.SmppProcessorType" />
-	</extension> -->
 </plugin>

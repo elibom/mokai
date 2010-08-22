@@ -17,30 +17,25 @@
 		<property name="messageStore"><ref bean="messageStore" /></property>
 	</bean>
 	
-	<!-- Object Type Registry -->
-	<!-- <bean id="objectTypeRegistry" class="org.mokai.type.impl.ObjectTypeRegistryImpl" />
-	
-	<bean id="objectTypeConfiguration" class="org.mokai.config.jpf.ObjectTypeConfiguration" 
-			init-method="load" depends-on="extensionService">
-		<property name="objectTypeRegistry"><ref bean="objectTypeRegistry" /></property>
-		<property name="extensionService"><ref bean="extensionService" /></property>
-	</bean>
-	<bean id="extensionService" class="org.mokai.config.jpf.ExtensionService" init-method="init" /> -->
+	<bean id="pluginMechanism" class="org.mokai.plugin.jpf.JpfPluginMechanism" init-method="configure" 
+			destroy-method="destroy" />
 	
 	<bean id="receiverConfiguration" class="org.mokai.config.xml.ReceiverConfiguration" init-method="load">
 		<property name="routingEngine"><ref bean="routingEngine" /></property>
+		<property name="pluginMechanism"><ref bean="pluginMechanism" /></property>
 	</bean>
 	
 	<bean id="processorConfiguration" class="org.mokai.config.xml.ProcessorConfiguration" init-method="load">
 		<property name="routingEngine"><ref bean="routingEngine" /></property>
+		<property name="pluginMechanism"><ref bean="pluginMechanism" /></property>
 	</bean> 
 	
-	<!-- <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
     	<property name="driverClassName" value="org.apache.derby.jdbc.EmbeddedDriver"/>
     	<property name="url" value="jdbc:derby:data\\derby\\messages;create=true"/>
     	<property name="username" value=""/>
     	<property name="password" value=""/> 
-	</bean> -->
+	</bean>
 	
 	<!-- <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
     	<property name="driverClassName" value="com.mysql.jdbc.Driver"/>
@@ -53,10 +48,14 @@
 		<property name="dataSource"><ref bean="dataSource" /></property>
 	</bean> -->
 	
-	<!-- <bean id="messageStore" class="org.mokai.persist.jdbc.JdbcMessageStore">
+	<bean id="derbyInitializer" class="org.mokai.persist.jdbc.util.DerbyInitializer" init-method="init">
 		<property name="dataSource"><ref bean="dataSource" /></property>
-	</bean> -->
-	<bean id="messageStore" class="org.mokai.persist.impl.DefaultMessageStore" />
+	</bean>
+	
+	<bean id="messageStore" class="org.mokai.persist.jdbc.JdbcMessageStore">
+		<property name="dataSource"><ref bean="dataSource" /></property>
+	</bean>
+	<!-- <bean id="messageStore" class="org.mokai.persist.impl.DefaultMessageStore" /> -->
 	
 	<bean id="activeMQConnectionFactory" class="org.apache.activemq.pool.PooledConnectionFactory">
 		<constructor-arg value="vm://broker1" />

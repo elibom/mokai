@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.mokai.spi.Message.Status;
+import org.mokai.Message.Status;
 
 public class MessageCriteria implements Serializable {
 	

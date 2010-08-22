@@ -13,18 +13,18 @@ import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.mockito.Mockito;
+import org.mokai.Acceptor;
+import org.mokai.Action;
+import org.mokai.Configurable;
+import org.mokai.ExecutionException;
+import org.mokai.Message;
+import org.mokai.MessageProducer;
+import org.mokai.Processor;
 import org.mokai.Service;
+import org.mokai.Serviceable;
+import org.mokai.annotation.Resource;
 import org.mokai.impl.camel.CamelProcessorService;
-import org.mokai.spi.Acceptor;
-import org.mokai.spi.Action;
-import org.mokai.spi.Configurable;
-import org.mokai.spi.ExecutionException;
-import org.mokai.spi.Message;
-import org.mokai.spi.MessageProducer;
-import org.mokai.spi.Processor;
-import org.mokai.spi.Serviceable;
-import org.mokai.spi.annotation.Resource;
-import org.mokai.spi.message.SmsMessage;
+import org.mokai.message.SmsMessage;
 import org.testng.annotations.Test;
 
 /**

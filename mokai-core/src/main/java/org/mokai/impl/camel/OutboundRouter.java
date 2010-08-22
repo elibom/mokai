@@ -4,10 +4,10 @@ import java.util.List;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.RecipientList;
+import org.mokai.Acceptor;
+import org.mokai.Message;
 import org.mokai.ProcessorService;
 import org.mokai.RoutingEngine;
-import org.mokai.spi.Acceptor;
-import org.mokai.spi.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<processors>
+	<processor id="test" priority="10000">
+		<connector className="org.mokai.types.mock.MockConnector" />
+		
+		<acceptors>
+			<acceptor className="org.mokai.types.mock.MockAcceptor" />
+		</acceptors>
+		
+		<pre-processing-actions>
+			<action className="org.mokai.types.mock.MockAction" />
+		</pre-processing-actions>
+		
+		<post-processing-actions>
+			<action className="org.mokai.types.mock.MockAction" />
+		</post-processing-actions>
+		
+		<post-receiving-actions>
+			<action className="org.mokai.types.mock.MockAction" />
+		</post-receiving-actions>
+	</processor>
+</processors>

@@ -1,6 +1,6 @@
-package org.mokai.spi.message;
+package org.mokai.message;
 
-import org.mokai.spi.Message;
+import org.mokai.Message;
 
 public class SmsMessage extends Message {
 	

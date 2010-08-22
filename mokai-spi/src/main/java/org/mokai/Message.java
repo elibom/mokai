@@ -1,4 +1,4 @@
-package org.mokai.spi;
+package org.mokai;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -28,7 +28,7 @@ public class Message implements Serializable {
 			this.id = (byte) id;
 		}
 		
-		public byte getId() {
+		public byte value() {
 			return id;
 		}
 		
@@ -55,7 +55,7 @@ public class Message implements Serializable {
 			this.id = (byte) id;
 		}
 		
-		public byte getId() {
+		public byte value() {
 			return id;
 		}
 		
@@ -80,7 +80,7 @@ public class Message implements Serializable {
 			this.id = (byte) id;
 		}
 		
-		public byte getId() {
+		public byte value() {
 			return id;
 		}
 		
@@ -108,7 +108,7 @@ public class Message implements Serializable {
 			this.id = (byte) id;
 		}
 		
-		public byte getId() {
+		public byte value() {
 			return id;
 		}
 		

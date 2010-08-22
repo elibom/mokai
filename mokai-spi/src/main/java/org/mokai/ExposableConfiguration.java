@@ -1,4 +1,4 @@
-package org.mokai.spi;
+package org.mokai;
 
 public interface ExposableConfiguration<T> {
 

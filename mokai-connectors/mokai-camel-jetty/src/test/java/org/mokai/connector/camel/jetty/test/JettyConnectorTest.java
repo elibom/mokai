@@ -8,13 +8,13 @@ import junit.framework.Assert;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.mokai.ExecutionException;
+import org.mokai.Message;
+import org.mokai.MessageProducer;
+import org.mokai.annotation.Resource;
 import org.mokai.connector.camel.jetty.JettyConfiguration;
 import org.mokai.connector.camel.jetty.JettyConnector;
-import org.mokai.spi.ExecutionException;
-import org.mokai.spi.Message;
-import org.mokai.spi.MessageProducer;
-import org.mokai.spi.annotation.Resource;
-import org.mokai.spi.message.SmsMessage;
+import org.mokai.message.SmsMessage;
 import org.testng.annotations.Test;
 
 public class JettyConnectorTest {

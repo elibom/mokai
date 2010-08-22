@@ -14,11 +14,15 @@ import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+import org.mokai.Action;
+import org.mokai.Receiver;
 import org.mokai.ReceiverService;
 import org.mokai.RoutingEngine;
 import org.mokai.config.ConfigurationException;
 import org.mokai.config.xml.ReceiverConfiguration;
-import org.mokai.spi.Action;
+import org.mokai.plugin.PluginMechanism;
 import org.mokai.types.mock.MockAction;
 import org.mokai.types.mock.MockConfigurableAction;
 import org.mokai.types.mock.MockConfigurableConnector;
@@ -37,10 +41,10 @@ public class ReceiverConfigurationTest {
 		
 		RoutingEngine routingEngine = Mockito.mock(RoutingEngine.class);
 		Mockito
-			.when(routingEngine.createReceiver(Mockito.eq("test-1"), Mockito.anyObject()))
+			.when(routingEngine.createReceiver(Mockito.eq("test-1"), Mockito.any(Receiver.class)))
 			.thenReturn(receiverService1);
 		Mockito
-			.when(routingEngine.createReceiver(Mockito.eq("test-2"), Mockito.anyObject()))
+			.when(routingEngine.createReceiver(Mockito.eq("test-2"), Mockito.any(Receiver.class)))
 			.thenReturn(receiverService2);
 		
 		ReceiverConfiguration config = new ReceiverConfiguration();
@@ -50,12 +54,67 @@ public class ReceiverConfigurationTest {
 		config.load();
 		
 		// check that we have created 2 receivers
-		Mockito.verify(routingEngine, Mockito.times(2)).createReceiver(Mockito.anyString(), Mockito.anyObject());
+		Mockito.verify(routingEngine, Mockito.times(2)).createReceiver(Mockito.anyString(), Mockito.any(Receiver.class));
 				
 		Mockito.verify(receiverService2).addPostReceivingAction(Mockito.any(Action.class));
 		
 		Action testAction = new MockConfigurableAction("test", 2);
 		Mockito.verify(receiverService2).addPostReceivingAction(testAction);
+	}
+	
+	@Test
+	public void testLoadFileWithPluginMechanism() throws Exception {
+		String path = "src/test/resources/receivers-test/plugin-receivers.xml";
+		
+		ReceiverService receiverService = Mockito.mock(ReceiverService.class);
+		
+		RoutingEngine routingEngine = Mockito.mock(RoutingEngine.class);
+		Mockito
+			.when(routingEngine.createReceiver(Mockito.anyString(), Mockito.any(Receiver.class)))
+			.thenReturn(receiverService);
+		
+		PluginMechanism pluginMechanism = mockPluginMechanism();
+		
+		ReceiverConfiguration config = new ReceiverConfiguration();
+		config.setPath(path);
+		config.setRoutingEngine(routingEngine);
+		config.setPluginMechanism(pluginMechanism);
+		
+		config.load();
+		
+		Mockito.verify(pluginMechanism).loadClass(Mockito.endsWith("MockConnector"));
+		Mockito.verify(pluginMechanism).loadClass(Mockito.endsWith("MockAction"));
+		
+	}
+	
+	private PluginMechanism mockPluginMechanism() {
+		PluginMechanism pluginMechanism = Mockito.mock(PluginMechanism.class);
+		
+		Mockito
+			.when(pluginMechanism.loadClass(Mockito.endsWith("MockConnector")))
+			.thenAnswer(new Answer<Class<?>>() {
+
+				@Override
+				public Class<?> answer(InvocationOnMock invocation)
+						throws Throwable {
+					return MockConnector.class;
+				}
+				
+			});
+		
+		Mockito
+		.when(pluginMechanism.loadClass(Mockito.endsWith("MockAction")))
+		.thenAnswer(new Answer<Class<?>>() {
+
+			@Override
+			public Class<?> answer(InvocationOnMock invocation)
+					throws Throwable {
+				return MockAction.class;
+			}
+			
+		});
+		
+		return pluginMechanism;
 	}
 	
 	@Test(expectedExceptions=ConfigurationException.class)
@@ -359,7 +418,7 @@ public class ReceiverConfigurationTest {
 		}.validate();
 	}
 	
-	private ReceiverService mockReceiverService(String id, Object connector, List<Action> actions) {
+	private ReceiverService mockReceiverService(String id, Receiver receiver, List<Action> actions) {
 		ReceiverService receiverService = Mockito.mock(ReceiverService.class);
 		
 		Mockito
@@ -368,7 +427,7 @@ public class ReceiverConfigurationTest {
 		
 		Mockito
 			.when(receiverService.getReceiver())
-			.thenReturn(connector);
+			.thenReturn(receiver);
 
 		Mockito
 			.when(receiverService.getPostReceivingActions())

@@ -1,11 +1,11 @@
 package org.mokai.acceptor;
 
-import org.mokai.spi.Acceptor;
-import org.mokai.spi.ExposableConfiguration;
-import org.mokai.spi.Message;
-import org.mokai.spi.message.SmsMessage;
-import org.mokai.spi.type.annotation.Label;
-import org.mokai.spi.type.annotation.List;
+import org.mokai.Acceptor;
+import org.mokai.ExposableConfiguration;
+import org.mokai.Message;
+import org.mokai.message.SmsMessage;
+import org.mokai.ui.annotation.Label;
+import org.mokai.ui.annotation.List;
 
 public class ExactMatchAcceptor implements Acceptor, ExposableConfiguration<ExactMatchAcceptor> {
 

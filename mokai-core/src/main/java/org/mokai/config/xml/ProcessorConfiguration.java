@@ -11,20 +11,23 @@ import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
+import org.mokai.Acceptor;
+import org.mokai.Action;
+import org.mokai.ExposableConfiguration;
+import org.mokai.Processor;
 import org.mokai.ProcessorService;
 import org.mokai.RoutingEngine;
 import org.mokai.config.Configuration;
 import org.mokai.config.ConfigurationException;
-import org.mokai.spi.Acceptor;
-import org.mokai.spi.Action;
-import org.mokai.spi.ExposableConfiguration;
-import org.mokai.spi.Processor;
+import org.mokai.plugin.PluginMechanism;
 
 public class ProcessorConfiguration implements Configuration {
 	
 	private String path = "data/processors.xml";
 	
 	private RoutingEngine routingEngine;
+	
+	private PluginMechanism pluginMechanism;
 
 	@Override
 	public void load() {
@@ -120,7 +123,13 @@ public class ProcessorConfiguration implements Configuration {
 	private Processor buildProcessorConnector(Element element) throws Exception {
 		String className = element.attributeValue("className");
 		
-		Class<? extends Processor> processorClass = (Class<? extends Processor>) Class.forName(className);
+		Class<? extends Processor> processorClass = null;
+		
+		if (pluginMechanism != null) {
+			processorClass = (Class<? extends Processor>) pluginMechanism.loadClass(className);
+		} else {
+			processorClass = (Class<? extends Processor>) Class.forName(className);
+		}
 		Processor processorConnector = processorClass.newInstance();
 		
 		if (ExposableConfiguration.class.isInstance(processorConnector)) {
@@ -143,8 +152,13 @@ public class ProcessorConfiguration implements Configuration {
 			Element acceptorElement = (Element) iterator.next();
 			
 			// create acceptor instance
-			Class<? extends Acceptor> acceptorClass = 
-				(Class<? extends Acceptor>) Class.forName(acceptorElement.attributeValue("className"));
+			String className = acceptorElement.attributeValue("className");
+			Class<? extends Acceptor> acceptorClass = null;
+			if (pluginMechanism != null) {
+				acceptorClass = (Class<? extends Acceptor>) pluginMechanism.loadClass(className);
+			} else {
+				acceptorClass = (Class<? extends Acceptor>) Class.forName(className);
+			}
 			Acceptor acceptor = acceptorClass.newInstance();
 			
 			if (ExposableConfiguration.class.isInstance(acceptor)) {
@@ -169,8 +183,13 @@ public class ProcessorConfiguration implements Configuration {
 			Element actionElement = (Element) iterator.next();
 			
 			// create action instance
-			Class<? extends Action> actionClass = 
-				(Class<? extends Action>) Class.forName(actionElement.attributeValue("className"));
+			String className = actionElement.attributeValue("className");
+			Class<? extends Action> actionClass = null;
+			if (pluginMechanism != null) {
+				actionClass = (Class<? extends Action>) pluginMechanism.loadClass(className);
+			} else {
+				actionClass = (Class<? extends Action>) Class.forName(className);
+			}
 			Action action = actionClass.newInstance();
 			
 			if (ExposableConfiguration.class.isInstance(action)) {
@@ -277,6 +296,10 @@ public class ProcessorConfiguration implements Configuration {
 
 	public void setRoutingEngine(RoutingEngine routingEngine) {
 		this.routingEngine = routingEngine;
+	}
+
+	public void setPluginMechanism(PluginMechanism pluginMechanism) {
+		this.pluginMechanism = pluginMechanism;
 	}
 	
 }

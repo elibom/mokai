@@ -2,10 +2,10 @@ package org.mokai.persist.impl;
 
 import java.util.Collection;
 
+import org.mokai.Message;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.MessageStore;
 import org.mokai.persist.StoreException;
-import org.mokai.spi.Message;
 
 public class DefaultMessageStore implements MessageStore {
 	

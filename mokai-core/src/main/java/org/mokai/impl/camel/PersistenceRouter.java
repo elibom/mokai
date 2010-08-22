@@ -2,7 +2,7 @@ package org.mokai.impl.camel;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.RecipientList;
-import org.mokai.spi.Message;
+import org.mokai.Message;
 
 public class PersistenceRouter {
 

@@ -3,7 +3,7 @@ package org.mokai;
 import java.util.Collection;
 import java.util.List;
 
-import org.mokai.spi.Processor;
+import org.mokai.Processor;
 
 /**
  * 
@@ -31,7 +31,7 @@ public interface RoutingEngine {
 	
 	/**
 	 * Retrieves the {@link ProcessorService} identified by the id argument.
-	 * @param id the fixed id (should not contain white spaces or)
+	 * @param id the fixed id (should not contain white spaces and it must be lower case)
 	 * @return the {@link ProcessorService} instance or null if not found.
 	 */
 	ProcessorService getProcessor(String id);
@@ -42,7 +42,7 @@ public interface RoutingEngine {
 	 */
 	List<ProcessorService> getProcessors();
 	
-	ReceiverService createReceiver(String id, Object connector) 
+	ReceiverService createReceiver(String id, Receiver receiver) 
 			throws IllegalArgumentException, ObjectAlreadyExistsException;
 	
 	RoutingEngine removeReceiver(String id) throws IllegalArgumentException, 

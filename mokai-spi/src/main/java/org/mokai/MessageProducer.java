@@ -1,4 +1,4 @@
-package org.mokai.spi;
+package org.mokai;
 
 /**
  * Used to produce messages from the connectors. 

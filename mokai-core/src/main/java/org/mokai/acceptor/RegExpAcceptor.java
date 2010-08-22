@@ -3,12 +3,12 @@ package org.mokai.acceptor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.mokai.spi.Acceptor;
-import org.mokai.spi.ExposableConfiguration;
-import org.mokai.spi.Message;
-import org.mokai.spi.message.SmsMessage;
-import org.mokai.spi.type.annotation.Label;
-import org.mokai.spi.type.annotation.List;
+import org.mokai.Acceptor;
+import org.mokai.ExposableConfiguration;
+import org.mokai.Message;
+import org.mokai.message.SmsMessage;
+import org.mokai.ui.annotation.Label;
+import org.mokai.ui.annotation.List;
 
 public class RegExpAcceptor implements Acceptor, ExposableConfiguration<RegExpAcceptor> {
 	

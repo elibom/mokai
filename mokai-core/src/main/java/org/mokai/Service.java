@@ -1,6 +1,6 @@
 package org.mokai;
 
-import org.mokai.spi.ExecutionException;
+import org.mokai.ExecutionException;
 
 /**
  * 

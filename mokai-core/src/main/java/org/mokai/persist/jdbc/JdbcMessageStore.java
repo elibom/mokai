@@ -16,14 +16,17 @@ import java.util.Map.Entry;
 
 import javax.sql.DataSource;
 
+import org.mokai.Message;
 import org.mokai.ObjectNotFoundException;
+import org.mokai.Message.DestinationType;
+import org.mokai.Message.SourceType;
+import org.mokai.Message.Status;
+import org.mokai.Message.Type;
+import org.mokai.message.SmsMessage;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.MessageStore;
 import org.mokai.persist.StoreException;
 import org.mokai.persist.MessageCriteria.OrderType;
-import org.mokai.spi.Message;
-import org.mokai.spi.Message.Status;
-import org.mokai.spi.message.SmsMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,17 +60,8 @@ public class JdbcMessageStore implements MessageStore {
 		try {
 			conn = dataSource.getConnection();
 			
-			String strSQL = "INSERT INTO message (to_message, from_message, text_message, " +
-					"payload_message, status_message, creation_time) VALUES (?, ?, ?, ?, ?, ?)";
+			stmt = generateSaveStatement(conn, smsMessage);
 			
-			stmt = conn.prepareStatement(strSQL, Statement.RETURN_GENERATED_KEYS);
-			
-			stmt.setString(1, smsMessage.getTo());
-			stmt.setString(2, smsMessage.getFrom());
-			stmt.setString(3, smsMessage.getText());
-			stmt.setString(4, "");
-			stmt.setByte(5, smsMessage.getStatus().getId());
-			stmt.setTimestamp(6, new Timestamp(smsMessage.getCreationTime().getTime()));
 			stmt.executeUpdate();
 			
 			rsKeys = stmt.getGeneratedKeys();
@@ -78,7 +72,56 @@ public class JdbcMessageStore implements MessageStore {
 			
 		} catch (SQLException e) {
 			throw new StoreException(e);
+		} finally {
+			if (rsKeys != null) {
+				try { rsKeys.close(); } catch (SQLException e) {}
+			}
+			if (stmt != null) {
+				try { stmt.close(); } catch (SQLException e) {}
+			}
+			if (conn != null) {
+				try { conn.close(); } catch (SQLException e) {}
+			}
 		}
+	}
+	
+	protected PreparedStatement generateSaveStatement(Connection conn, SmsMessage smsMessage) throws SQLException {
+		String strSQL = "INSERT INTO message (" +
+				"account_message, " +
+				"reference_message, " +
+				"type_message, " +
+				"source_message, " +
+				"sourcetype_message, " +
+				"destination_message, " +
+				"destinationtype_message, " +
+				"status_message, " +
+				"to_message, " +
+				"from_message, " +
+				"text_message, " +
+				"messageid_message, " +
+				"commandstatus_message, " +
+				"creation_time) " +
+				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		
+		PreparedStatement stmt = conn.prepareStatement(strSQL, Statement.RETURN_GENERATED_KEYS);
+		
+		stmt.setString(1, smsMessage.getAccountId());
+		stmt.setString(2, smsMessage.getReference());
+		stmt.setByte(3, smsMessage.getType().value());
+		stmt.setString(4, smsMessage.getSource());
+		stmt.setByte(5, smsMessage.getSourceType().value());
+		stmt.setString(6, smsMessage.getDestination());
+		stmt.setByte(7, smsMessage.getDestinationType().value());
+		stmt.setByte(8, smsMessage.getStatus().value());
+		
+		stmt.setString(9, smsMessage.getTo());
+		stmt.setString(10, smsMessage.getFrom());
+		stmt.setString(11, smsMessage.getText());
+		stmt.setString(12, smsMessage.getMessageId());
+		stmt.setInt(13, smsMessage.getCommandStatus());
+		stmt.setTimestamp(14, new Timestamp(smsMessage.getCreationTime().getTime()));
+		
+		return stmt;
 	}
 	
 	private void update(SmsMessage smsMessage) throws StoreException {
@@ -91,7 +134,7 @@ public class JdbcMessageStore implements MessageStore {
 			String strSQL = "UPDATE message SET status_message = ? WHERE id_message = ?";
 			
 			stmt = conn.prepareStatement(strSQL);
-			stmt.setByte(1, smsMessage.getStatus().getId());
+			stmt.setByte(1, smsMessage.getStatus().value());
 			stmt.setLong(2, smsMessage.getId());
 			
 			int affected = stmt.executeUpdate();
@@ -135,7 +178,7 @@ public class JdbcMessageStore implements MessageStore {
 							strSQL += " or status_message = ?";
 						}
 						
-						params.put(i+1, st.getId());
+						params.put(i+1, st.value());
 						existsStatusCriteria = true;
 						
 						existsCriteria = true;
@@ -180,10 +223,22 @@ public class JdbcMessageStore implements MessageStore {
 			while (rs.next()) {
 				SmsMessage message = new SmsMessage();
 				message.setId(rs.getLong("id_message"));
+				message.setAccountId(rs.getString("account_message"));
+				message.setReference(rs.getString("reference_message"));
+				message.setType(Type.getType(rs.getByte("type_message")));
+				message.setSource(rs.getString("source_message"));
+				message.setSourceType(SourceType.getSourceType(rs.getByte("sourcetype_message")));
+				message.setDestination(rs.getString("destination_message"));
+				message.setDestinationType(DestinationType.getDestinationType(rs.getByte("destinationtype_message")));
 				message.setStatus(Status.getSatus(rs.getByte("status_message")));
+				
 				message.setTo(rs.getString("to_message"));
 				message.setFrom(rs.getString("from_message"));
 				message.setText(rs.getString("text_message"));
+				message.setMessageId(rs.getString("messageid_message"));
+				message.setCommandStatus(rs.getInt("commandstatus_message"));
+				
+				message.setCreationTime(rs.getTimestamp("creation_time"));
 				
 				messages.add(message);
 			}

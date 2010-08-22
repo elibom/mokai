@@ -11,13 +11,14 @@ import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
+import org.mokai.Action;
+import org.mokai.ExposableConfiguration;
+import org.mokai.Receiver;
 import org.mokai.ReceiverService;
 import org.mokai.RoutingEngine;
 import org.mokai.config.Configuration;
 import org.mokai.config.ConfigurationException;
-import org.mokai.spi.Action;
-import org.mokai.spi.ExecutionException;
-import org.mokai.spi.ExposableConfiguration;
+import org.mokai.plugin.PluginMechanism;
 
 
 public class ReceiverConfiguration implements Configuration {
@@ -25,6 +26,8 @@ public class ReceiverConfiguration implements Configuration {
 	private String path = "data/receivers.xml";
 	
 	private RoutingEngine routingEngine;
+	
+	private PluginMechanism pluginMechanism;
 
 	@Override
 	public void load() throws ConfigurationException {
@@ -48,6 +51,14 @@ public class ReceiverConfiguration implements Configuration {
 		
 	}
 	
+	private InputStream searchFromFile(String path) {
+		try {
+			return new FileInputStream(path);
+		} catch (FileNotFoundException e) {
+			return null;
+		}
+	}
+	
 	@SuppressWarnings("unchecked")
 	public void load(InputStream inputStream) throws Exception {
 			
@@ -67,23 +78,15 @@ public class ReceiverConfiguration implements Configuration {
 		
 	}
 	
-	private InputStream searchFromFile(String path) {
-		try {
-			return new FileInputStream(path);
-		} catch (FileNotFoundException e) {
-			return null;
-		}
-	}
-	
 	private void handleReceiverElement(Element receiverElement) throws Exception {
 		
 		// build the receiver connector
 		Element connectorElement = receiverElement.element("connector");
-		Object connector = buildReceiverConnector(connectorElement);
+		Receiver receiver = buildReceiverConnector(connectorElement);
 		
 		// create the receiver service
 		String id = receiverElement.attributeValue("id");
-		ReceiverService receiverService = routingEngine.createReceiver(id, connector);
+		ReceiverService receiverService = routingEngine.createReceiver(id, receiver);
 		
 		// handle 'post-receiving' actions element
 		Element postReceivingActionsElement = 
@@ -92,6 +95,28 @@ public class ReceiverConfiguration implements Configuration {
 			handlePostReceivingActionsElement(postReceivingActionsElement, receiverService);
 		}
 		
+	}
+	
+	@SuppressWarnings("unchecked")
+	private Receiver buildReceiverConnector(Element element) throws Exception {
+		String className = element.attributeValue("className");
+		
+		Class<? extends Receiver> receiverClass = null;
+		if (pluginMechanism != null) {
+			receiverClass = (Class<? extends Receiver>) pluginMechanism.loadClass(className);
+		} else {
+			receiverClass = (Class<? extends Receiver>) Class.forName(className);
+		}
+		Receiver receiverConnector = receiverClass.newInstance();
+		
+		if (ExposableConfiguration.class.isInstance(receiverConnector)) {
+			ExposableConfiguration<?> configurableConnector = 
+				(ExposableConfiguration<?>) receiverConnector;
+			
+			XmlUtils.setConfigurationFields(element, configurableConnector.getConfiguration(), routingEngine);
+		}
+		
+		return receiverConnector;
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -105,7 +130,12 @@ public class ReceiverConfiguration implements Configuration {
 			Element postReceivingAction = (Element) postReceivingActions.next();
 			String className = postReceivingAction.attributeValue("className");
 			
-			Class<? extends Action> actionClass = (Class<? extends Action>) Class.forName(className);
+			Class<? extends Action> actionClass = null;
+			if (pluginMechanism != null) {
+				actionClass = (Class<? extends Action>) pluginMechanism.loadClass(className);
+			} else {
+				actionClass = (Class<? extends Action>) Class.forName(className);
+			}
 			Action action = actionClass.newInstance();
 			
 			if (ExposableConfiguration.class.isInstance(action)) {
@@ -117,22 +147,6 @@ public class ReceiverConfiguration implements Configuration {
 			receiverService.addPostReceivingAction(action);
 			
 		}
-	}
-	
-	private Object buildReceiverConnector(Element element) throws Exception {
-		String className = element.attributeValue("className");
-		
-		Class<?> receiverClass = (Class<?>) Class.forName(className);
-		Object receiverConnector = receiverClass.newInstance();
-		
-		if (ExposableConfiguration.class.isInstance(receiverConnector)) {
-			ExposableConfiguration<?> configurableConnector = 
-				(ExposableConfiguration<?>) receiverConnector;
-			
-			XmlUtils.setConfigurationFields(element, configurableConnector.getConfiguration(), routingEngine);
-		}
-		
-		return receiverConnector;
 	}
 
 	@Override
@@ -199,6 +213,10 @@ public class ReceiverConfiguration implements Configuration {
 
 	public void setRoutingEngine(RoutingEngine routingEngine) {
 		this.routingEngine = routingEngine;
+	}
+
+	public void setPluginMechanism(PluginMechanism pluginMechanism) {
+		this.pluginMechanism = pluginMechanism;
 	}
 
 }

@@ -10,8 +10,8 @@ import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.XMLWriter;
+import org.mokai.Processor;
 import org.mokai.RoutingEngine;
-import org.mokai.spi.Processor;
 
 
 public class XmlUtils {

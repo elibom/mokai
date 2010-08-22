@@ -1,4 +1,4 @@
-package org.mokai.spi.annotation;
+package org.mokai.annotation;
 
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;

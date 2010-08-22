@@ -1,35 +1,48 @@
 package org.mokai.type;
 
-import java.util.Collection;
+import java.util.Set;
 
-import org.mokai.spi.Acceptor;
-import org.mokai.spi.Processor;
-import org.mokai.spi.type.AcceptorType;
-import org.mokai.spi.type.ReceiverType;
-import org.mokai.spi.type.ProcessorType;
+import org.mokai.Acceptor;
+import org.mokai.Action;
+import org.mokai.Processor;
+import org.mokai.Receiver;
 
 /**
+ * Mantains a 
  * 
  * @author German Escobar
  */
-public interface ObjectTypeRegistry {
+public interface TypeRegistry {
 	
-	void addReceiverType(ReceiverType receiverType) throws IllegalArgumentException;
+	ReceiverType getReceiverType(Class<? extends Receiver> receiverClass) throws IllegalArgumentException;
 	
-	ReceiverType getReceiverType(Class<?> receiverClass) throws IllegalArgumentException;
-	
-	Collection<ReceiverType> getReceiverTypes();
-	
-	void addAcceptorType(AcceptorType acceptorType) throws IllegalArgumentException;
+	Set<ReceiverType> getReceiverTypes();
 
 	AcceptorType getAcceptorType(Class<? extends Acceptor> acceptorClass) throws IllegalArgumentException;
 	
-	Collection<AcceptorType> getAcceptorsTypes();
-	
-	void addProcessorType(ProcessorType processorType) throws IllegalArgumentException;
+	Set<AcceptorType> getAcceptorsTypes();
 
 	ProcessorType getProcessorType(Class<? extends Processor> processorClass) throws IllegalArgumentException;
 	
-	Collection<ProcessorType> getProcessorTypes();
+	Set<ProcessorType> getProcessorTypes();
 	
+	ActionType getActionType(Class<? extends Action> actionClass) throws IllegalArgumentException;
+	
+	Set<ActionType> getActionTypes();
+	
+	/**
+	 * Reloads the types from the {@link TypeLoader}s. 
+	 * 
+	 * Usually, implementations of this interface will use a caching mechanism to 
+	 * store the types and avoid calling the {@TypeLoader}s every time, which is a 
+	 * costly operation. This method will clear the cache (if exists) and reload 
+	 * the types. 
+	 */
+	void reload();
+	
+	void addTypeLoader(TypeLoader typeLoader) throws IllegalArgumentException;
+	
+	void removeTypeLoader(TypeLoader typeLoader) throws IllegalArgumentException;
+	
+	Set<TypeLoader> getTypeLoaders();
 }

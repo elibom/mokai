@@ -5,17 +5,19 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.impl.DefaultCamelContext;
-import org.mokai.spi.Configurable;
-import org.mokai.spi.ExposableConfiguration;
-import org.mokai.spi.MessageProducer;
-import org.mokai.spi.annotation.Resource;
-import org.mokai.spi.message.SmsMessage;
+import org.mokai.Configurable;
+import org.mokai.ExposableConfiguration;
+import org.mokai.MessageProducer;
+import org.mokai.Receiver;
+import org.mokai.annotation.Resource;
+import org.mokai.message.SmsMessage;
 
 /**
  * 
  * @author German Escobar
  */
-public class JettyConnector implements Configurable, ExposableConfiguration<JettyConfiguration> {
+public class JettyConnector implements Receiver, Configurable, 
+		ExposableConfiguration<JettyConfiguration> {
 	
 	@Resource
 	private MessageProducer messageProducer;

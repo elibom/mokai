@@ -8,16 +8,17 @@ import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.mockito.Mockito;
+import org.mokai.Action;
+import org.mokai.Configurable;
+import org.mokai.ExecutionException;
+import org.mokai.Message;
+import org.mokai.MessageProducer;
+import org.mokai.Receiver;
 import org.mokai.Service;
+import org.mokai.Serviceable;
+import org.mokai.annotation.Resource;
 import org.mokai.impl.camel.CamelReceiverService;
-import org.mokai.spi.Action;
-import org.mokai.spi.Configurable;
-import org.mokai.spi.ExecutionException;
-import org.mokai.spi.Message;
-import org.mokai.spi.MessageProducer;
-import org.mokai.spi.Serviceable;
-import org.mokai.spi.annotation.Resource;
-import org.mokai.spi.message.SmsMessage;
+import org.mokai.message.SmsMessage;
 import org.testng.annotations.Test;
 
 /**
@@ -192,22 +193,22 @@ public class CamelReceiverServiceTest extends CamelBaseTest {
 	
 	@Test
 	public void testServiceableConnector() throws Exception {
-		Serviceable receiver = Mockito.mock(Serviceable.class);
+		Receiver receiver = Mockito.mock(Receiver.class, Mockito.withSettings().extraInterfaces(Serviceable.class));
 		CamelReceiverService receiverService = new CamelReceiverService("test", receiver, camelContext);
 		
 		// test start
 		receiverService.start();
-		Mockito.verify(receiver).doStart();
+		Mockito.verify((Serviceable) receiver).doStart();
 		
 		// test stop
 		receiverService.stop();
-		Mockito.verify(receiver).doStop();
+		Mockito.verify((Serviceable) receiver).doStop();
 	}
 	
 	@Test(expectedExceptions=ExecutionException.class)
 	public void shoudFailExceptionOnConnectorStart() throws Exception {
-		Serviceable receiver = Mockito.mock(Serviceable.class);
-		Mockito.doThrow(new NullPointerException()).when(receiver).doStart();
+		Receiver receiver = Mockito.mock(Receiver.class, Mockito.withSettings().extraInterfaces(Serviceable.class));
+		Mockito.doThrow(new NullPointerException()).when((Serviceable) receiver).doStart();
 		
 		CamelReceiverService receiverService = new CamelReceiverService("test", receiver, camelContext);
 		receiverService.start();
@@ -215,8 +216,8 @@ public class CamelReceiverServiceTest extends CamelBaseTest {
 	
 	@Test(expectedExceptions=ExecutionException.class)
 	public void shouldFailExceptionOnConnectorStop() throws Exception {
-		Serviceable receiver = Mockito.mock(Serviceable.class);
-		Mockito.doThrow(new NullPointerException()).when(receiver).doStop();
+		Receiver receiver = Mockito.mock(Receiver.class, Mockito.withSettings().extraInterfaces(Serviceable.class));
+		Mockito.doThrow(new NullPointerException()).when((Serviceable) receiver).doStop();
 		
 		CamelReceiverService receiverService = new CamelReceiverService("test", receiver, camelContext);
 		receiverService.start();
@@ -225,16 +226,16 @@ public class CamelReceiverServiceTest extends CamelBaseTest {
 	
 	@Test
 	public void testConfigurableConnector() throws Exception {
-		Configurable receiver = Mockito.mock(Configurable.class);
+		Receiver receiver = Mockito.mock(Receiver.class, Mockito.withSettings().extraInterfaces(Configurable.class));
 		CamelReceiverService receiverService = new CamelReceiverService("test", receiver, camelContext);
 		
 		// verify
-		Mockito.verify(receiver).configure();
+		Mockito.verify((Configurable) receiver).configure();
 		
 		receiverService.destroy();
 		
 		// verify
-		Mockito.verify(receiver).destroy();
+		Mockito.verify((Configurable) receiver).destroy();
 	}
 	
 	/**
@@ -257,7 +258,7 @@ public class CamelReceiverServiceTest extends CamelBaseTest {
 	 * 
 	 * @author German Escobar
 	 */
-	protected class SimpleReceiver {
+	protected class SimpleReceiver implements Receiver {
 		
 		@Resource
 		private MessageProducer messageProducer;

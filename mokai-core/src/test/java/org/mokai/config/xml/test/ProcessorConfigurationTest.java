@@ -14,13 +14,16 @@ import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+import org.mokai.Acceptor;
+import org.mokai.Action;
+import org.mokai.Processor;
 import org.mokai.ProcessorService;
 import org.mokai.RoutingEngine;
 import org.mokai.config.ConfigurationException;
 import org.mokai.config.xml.ProcessorConfiguration;
-import org.mokai.spi.Acceptor;
-import org.mokai.spi.Action;
-import org.mokai.spi.Processor;
+import org.mokai.plugin.PluginMechanism;
 import org.mokai.types.mock.MockAcceptor;
 import org.mokai.types.mock.MockAction;
 import org.mokai.types.mock.MockConfigurableAcceptor;
@@ -69,6 +72,73 @@ public class ProcessorConfigurationTest {
 		Mockito.verify(processorService2).addPreProcessingAction(new MockConfigurableAction("t1", 1));
 		Mockito.verify(processorService2).addPostProcessingAction(new MockConfigurableAction("t2", 2));
 		Mockito.verify(processorService2).addPostReceivingAction(new MockConfigurableAction("t3", 3));
+	}
+	
+	@Test
+	public void testLoadFileWithPluginMechanism() throws Exception {
+		String path = "src/test/resources/processors-test/plugin-processors.xml";
+		
+		ProcessorService processorService = Mockito.mock(ProcessorService.class);
+		
+		RoutingEngine routingEngine = Mockito.mock(RoutingEngine.class);
+		Mockito
+			.when(routingEngine.createProcessor(Mockito.anyString(), Mockito.anyInt(), Mockito.any(Processor.class)))
+			.thenReturn(processorService);
+		
+		PluginMechanism pluginMechanism = mockPluginMechanism();
+		
+		ProcessorConfiguration config = new ProcessorConfiguration();
+		config.setRoutingEngine(routingEngine);
+		config.setPluginMechanism(pluginMechanism);
+		config.setPath(path);
+		
+		config.load();
+		
+		Mockito.verify(pluginMechanism).loadClass(Mockito.endsWith("MockConnector"));
+		Mockito.verify(pluginMechanism).loadClass(Mockito.endsWith("MockAcceptor"));
+		Mockito.verify(pluginMechanism, Mockito.times(3)).loadClass(Mockito.endsWith("MockAction"));
+	}
+	
+	private PluginMechanism mockPluginMechanism() {
+		PluginMechanism pluginMechanism = Mockito.mock(PluginMechanism.class);
+		
+		Mockito
+			.when(pluginMechanism.loadClass(Mockito.endsWith("MockConnector")))
+			.thenAnswer(new Answer<Class<?>>() {
+
+				@Override
+				public Class<?> answer(InvocationOnMock invocation)
+						throws Throwable {
+					return MockConnector.class;
+				}
+				
+			});
+		
+		Mockito
+			.when(pluginMechanism.loadClass(Mockito.endsWith("MockAcceptor")))
+			.thenAnswer(new Answer<Class<?>>() {
+
+				@Override
+				public Class<?> answer(InvocationOnMock invocation)
+						throws Throwable {
+					return MockAcceptor.class;
+				}
+				
+			});
+		
+		Mockito
+		.when(pluginMechanism.loadClass(Mockito.endsWith("MockAction")))
+		.thenAnswer(new Answer<Class<?>>() {
+
+			@Override
+			public Class<?> answer(InvocationOnMock invocation)
+					throws Throwable {
+				return MockAction.class;
+			}
+			
+		});
+		
+		return pluginMechanism;
 	}
 	
 	@Test(expectedExceptions=ConfigurationException.class)

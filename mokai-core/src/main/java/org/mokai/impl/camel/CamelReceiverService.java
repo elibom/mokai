@@ -14,18 +14,19 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.RouteDefinition;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.mokai.Action;
+import org.mokai.Configurable;
+import org.mokai.ExecutionException;
+import org.mokai.Message;
+import org.mokai.MessageProducer;
 import org.mokai.ObjectAlreadyExistsException;
 import org.mokai.ObjectNotFoundException;
+import org.mokai.Receiver;
 import org.mokai.ReceiverService;
-import org.mokai.spi.Action;
-import org.mokai.spi.Configurable;
-import org.mokai.spi.ExecutionException;
-import org.mokai.spi.Message;
-import org.mokai.spi.MessageProducer;
-import org.mokai.spi.Serviceable;
-import org.mokai.spi.Message.SourceType;
-import org.mokai.spi.Message.Type;
-import org.mokai.spi.annotation.Resource;
+import org.mokai.Serviceable;
+import org.mokai.Message.SourceType;
+import org.mokai.Message.Type;
+import org.mokai.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +36,7 @@ public class CamelReceiverService implements ReceiverService {
 	
 	private String id;
 	
-	private Object connector;
+	private Receiver receiver;
 	
 	private List<Action> postReceivingActions;
 	
@@ -45,16 +46,16 @@ public class CamelReceiverService implements ReceiverService {
 	
 	private List<RouteDefinition> routes;
 	
-	public CamelReceiverService(String id, Object connector, CamelContext camelContext) 
+	public CamelReceiverService(String id, Receiver receiver, CamelContext camelContext) 
 			throws IllegalArgumentException, ExecutionException {
 		
 		Validate.notEmpty(id, "An Id must be provided");
-		Validate.notNull(connector, "A connector must be provided");
+		Validate.notNull(receiver, "A connector must be provided");
 		Validate.notNull(camelContext, "A CamelContext must be provided");
 		
 		id = StringUtils.lowerCase(id);
 		this.id = StringUtils.deleteWhitespace(id);
-		this.connector = connector;
+		this.receiver = receiver;
 	
 		this.status = Status.STOPPED;
 		this.postReceivingActions = new ArrayList<Action>();
@@ -66,13 +67,13 @@ public class CamelReceiverService implements ReceiverService {
 	
 	private void init() {
 		// add the message producer to connector
-		addMessageProducerToConnector(connector);		
+		addMessageProducerToConnector(receiver);		
 		
 		try {
 			
 			// configure connector
-			if (Configurable.class.isInstance(connector)) {
-				Configurable configurableConnector = (Configurable) connector;
+			if (Configurable.class.isInstance(receiver)) {
+				Configurable configurableConnector = (Configurable) receiver;
 				configurableConnector.configure();
 			}
 			
@@ -146,13 +147,13 @@ public class CamelReceiverService implements ReceiverService {
 	}
 	
 	@Override
-	public Object getReceiver() {
-		return this.connector;
+	public Receiver getReceiver() {
+		return this.receiver;
 	}
 
 	@Override
 	public boolean isServiceable() {
-		if (Serviceable.class.isInstance(connector)) {
+		if (Serviceable.class.isInstance(receiver)) {
 			return true;
 		}
 		
@@ -214,7 +215,7 @@ public class CamelReceiverService implements ReceiverService {
 			
 			// start the connector if is Serviceable
 			if (isServiceable()) {
-				Serviceable connectorService = (Serviceable) connector;
+				Serviceable connectorService = (Serviceable) receiver;
 				connectorService.doStart();
 			} else {
 				log.warn("Receiver " + id + " is not Serviceable, ignoring call");
@@ -238,7 +239,7 @@ public class CamelReceiverService implements ReceiverService {
 			}
 			
 			if (isServiceable()) {
-				Serviceable connectorService = (Serviceable) connector;
+				Serviceable connectorService = (Serviceable) receiver;
 				connectorService.doStop();
 			} else {
 				log.warn("Receiver " + id + " is not Serviceable, ignoring call");
@@ -258,8 +259,8 @@ public class CamelReceiverService implements ReceiverService {
 			stop();
 			
 			// invoke the remove method on the connector
-			if (Configurable.class.isInstance(connector)) {
-				Configurable configurableConnector = (Configurable) connector;
+			if (Configurable.class.isInstance(receiver)) {
+				Configurable configurableConnector = (Configurable) receiver;
 				configurableConnector.destroy();
 			}
 			

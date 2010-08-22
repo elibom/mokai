@@ -10,8 +10,8 @@ import java.util.Map;
 import org.mokai.Account;
 import org.mokai.ObjectAlreadyExistsException;
 import org.mokai.ObjectNotFoundException;
+import org.mokai.Processor;
 import org.mokai.ProcessorService;
-import org.mokai.spi.Processor;
 
 public class CamelAccount implements Account {
 	

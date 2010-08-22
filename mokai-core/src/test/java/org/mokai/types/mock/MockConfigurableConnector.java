@@ -1,10 +1,12 @@
 package org.mokai.types.mock;
 
-import org.mokai.spi.ExposableConfiguration;
-import org.mokai.spi.Message;
-import org.mokai.spi.Processor;
+import org.mokai.ExposableConfiguration;
+import org.mokai.Message;
+import org.mokai.Processor;
+import org.mokai.Receiver;
 
-public class MockConfigurableConnector implements Processor, ExposableConfiguration<MockConfigurableConnector> {
+public class MockConfigurableConnector implements Receiver, Processor, 
+		ExposableConfiguration<MockConfigurableConnector> {
 	
 	private String config1;
 	private int config2;

@@ -4,8 +4,8 @@ import java.util.List;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
-import org.mokai.spi.Action;
-import org.mokai.spi.Message;
+import org.mokai.Action;
+import org.mokai.Message;
 
 public class ActionsProcessor implements Processor {
 	

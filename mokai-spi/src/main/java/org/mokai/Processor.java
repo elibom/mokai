@@ -1,4 +1,4 @@
-package org.mokai.spi;
+package org.mokai;
 
 /**
  * <p>This interface is implemented by the connectors that want to process 

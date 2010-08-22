@@ -1,4 +1,4 @@
-package org.mokai.spi;
+package org.mokai;
 
 /**
  * Implemented by all the objects that can be started and stopped.

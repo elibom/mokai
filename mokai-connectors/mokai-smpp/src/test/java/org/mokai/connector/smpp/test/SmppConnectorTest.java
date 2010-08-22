@@ -5,13 +5,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.mokai.ExecutionException;
+import org.mokai.Message;
+import org.mokai.MessageProducer;
+import org.mokai.annotation.Resource;
 import org.mokai.connector.smpp.SmppConfiguration;
 import org.mokai.connector.smpp.SmppConnector;
-import org.mokai.spi.ExecutionException;
-import org.mokai.spi.Message;
-import org.mokai.spi.MessageProducer;
-import org.mokai.spi.annotation.Resource;
-import org.mokai.spi.message.SmsMessage;
+import org.mokai.message.SmsMessage;
 import org.smpp.smscsim.Simulator;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;

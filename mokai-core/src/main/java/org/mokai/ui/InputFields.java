@@ -7,9 +7,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.mokai.spi.ExposableConfiguration;
-import org.mokai.spi.type.annotation.ConnectorsList;
-import org.mokai.spi.type.annotation.Label;
+import org.mokai.ExposableConfiguration;
+import org.mokai.ui.annotation.ConnectorsList;
+import org.mokai.ui.annotation.Label;
 import org.mokai.ui.field.CheckBoxField;
 import org.mokai.ui.field.InputField;
 import org.mokai.ui.field.SelectConnectorsField;
@@ -41,7 +41,7 @@ public class InputFields {
 			boolean fieldCreated = false;
 			
 			// SelectValuesField
-			org.mokai.spi.type.annotation.List listAnnotation = classField.getAnnotation(org.mokai.spi.type.annotation.List.class);
+			org.mokai.ui.annotation.List listAnnotation = classField.getAnnotation(org.mokai.ui.annotation.List.class);
 			if (listAnnotation != null) {
 				fieldCreated = true;
 				

@@ -5,8 +5,8 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.impl.DefaultCamelContext;
-import org.mokai.spi.Action;
-import org.mokai.spi.Message;
+import org.mokai.Action;
+import org.mokai.Message;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 

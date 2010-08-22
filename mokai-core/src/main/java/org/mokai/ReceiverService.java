@@ -2,7 +2,7 @@ package org.mokai;
 
 import java.util.List;
 
-import org.mokai.spi.Action;
+import org.mokai.Action;
 
 /**
  * 
@@ -13,7 +13,7 @@ public interface ReceiverService extends Service {
 	
 	String getId();
 	
-	Object getReceiver();
+	Receiver getReceiver();
 	
 	boolean isServiceable();
 

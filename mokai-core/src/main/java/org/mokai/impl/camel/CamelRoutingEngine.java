@@ -20,9 +20,12 @@ import org.apache.camel.component.jms.JmsConfiguration;
 import org.apache.camel.impl.DefaultCamelContext;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.mokai.Message;
 import org.mokai.ObjectAlreadyExistsException;
 import org.mokai.ObjectNotFoundException;
+import org.mokai.Processor;
 import org.mokai.ProcessorService;
+import org.mokai.Receiver;
 import org.mokai.ReceiverService;
 import org.mokai.RoutingEngine;
 import org.mokai.Service;
@@ -31,8 +34,6 @@ import org.mokai.persist.MessageStore;
 import org.mokai.persist.StoreException;
 import org.mokai.persist.MessageCriteria.OrderType;
 import org.mokai.persist.impl.DefaultMessageStore;
-import org.mokai.spi.Message;
-import org.mokai.spi.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jms.connection.JmsTransactionManager;
@@ -247,7 +248,7 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 	}
 	
 	@Override
-	public ReceiverService createReceiver(String id, Object connector)
+	public ReceiverService createReceiver(String id, Receiver receiver)
 			throws IllegalArgumentException, ObjectAlreadyExistsException {
 		
 		// fix id
@@ -260,7 +261,7 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 		}
 		
 		// create and start the ReceiverService instance
-		CamelReceiverService receiverService = new CamelReceiverService(id, connector, camelContext);
+		CamelReceiverService receiverService = new CamelReceiverService(id, receiver, camelContext);
 		receiverService.start();
 		
 		// add to the map

@@ -1,4 +1,4 @@
-package org.mokai.spi;
+package org.mokai;
 
 /**
  * Performs an operation with a message. It is used after messages are

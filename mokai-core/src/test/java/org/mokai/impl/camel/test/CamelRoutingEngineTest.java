@@ -10,19 +10,20 @@ import junit.framework.Assert;
 
 import org.apache.camel.ProducerTemplate;
 import org.mockito.Mockito;
+import org.mokai.Acceptor;
+import org.mokai.Message;
 import org.mokai.ObjectAlreadyExistsException;
 import org.mokai.ObjectNotFoundException;
+import org.mokai.Processor;
 import org.mokai.ProcessorService;
+import org.mokai.Receiver;
 import org.mokai.ReceiverService;
 import org.mokai.Service;
 import org.mokai.impl.camel.CamelRoutingEngine;
+import org.mokai.message.SmsMessage;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.MessageStore;
 import org.mokai.persist.StoreException;
-import org.mokai.spi.Acceptor;
-import org.mokai.spi.Message;
-import org.mokai.spi.Processor;
-import org.mokai.spi.message.SmsMessage;
 import org.testng.annotations.Test;
 
 public class CamelRoutingEngineTest {
@@ -140,7 +141,7 @@ public class CamelRoutingEngineTest {
 		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
 		routingEngine.start();
 		
-		Object receiver = Mockito.mock(Object.class);
+		Receiver receiver = Mockito.mock(Receiver.class);
 		
 		ReceiverService rs1 = 
 			routingEngine.createReceiver("test1", receiver);
@@ -184,7 +185,7 @@ public class CamelRoutingEngineTest {
 		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
 		routingEngine.start();
 		
-		Object receiver = Mockito.mock(Object.class);
+		Receiver receiver = Mockito.mock(Receiver.class);
 		
 		// create a receiver service
 		ReceiverService receiverService = routingEngine.createReceiver("test", receiver);
@@ -204,7 +205,7 @@ public class CamelRoutingEngineTest {
 	public void shouldFailToModifyReturnedReceivers() throws Exception {
 		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
 		
-		Object receiver = Mockito.mock(Object.class);
+		Receiver receiver = Mockito.mock(Receiver.class);
 		ReceiverService rs1 = 
 			routingEngine.createReceiver("test", receiver);
 		
@@ -224,7 +225,7 @@ public class CamelRoutingEngineTest {
 	public void shouldFailToAddExistingReceiver() throws Exception {
 		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
 		
-		Object receiver = Mockito.mock(Object.class);
+		Receiver receiver = Mockito.mock(Receiver.class);
 		
 		// create a receiver service
 		routingEngine.createReceiver("test", receiver);

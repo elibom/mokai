@@ -33,6 +33,8 @@ public class XmlUtils {
 			return Long.valueOf(value);
 		} else if (Boolean.class.equals(clazz) || boolean.class.equals(clazz)) {
 			return Boolean.valueOf(value);
+		} else if (Byte.class.equals(clazz) || byte.class.equals(clazz)) {
+			return Byte.valueOf(value);
 		}
 
 		return value;

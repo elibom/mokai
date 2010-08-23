@@ -58,6 +58,22 @@ public class SmppConnectorTest {
 	}
 	
 	@Test
+	public void testBindNPITON() throws Exception {
+		SmppConfiguration configuration = new SmppConfiguration();
+		configuration.setHost("localhost");
+		configuration.setPort(8321);
+		configuration.setSystemId("test");
+		configuration.setPassword("test");
+		configuration.setSourceTON("3");
+		configuration.setSourceNPI("10");
+		
+		SmppConnector connector = new SmppConnector(configuration);
+		connector.doStart();
+		
+		connector.doStop();
+	}
+	
+	@Test
 	public void testReceiveMessage() throws Exception {
 		MockMessageProducer messageProducer = new MockMessageProducer();
 		

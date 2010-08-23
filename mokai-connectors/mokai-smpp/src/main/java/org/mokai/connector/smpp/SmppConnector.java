@@ -66,6 +66,16 @@ public class SmppConnector implements Processor, Serviceable,
 		
 		session = new SMPPSession();
 		
+		TypeOfNumber ton = TypeOfNumber.UNKNOWN;
+		if (configuration.getSourceTON() != null && !"".equals(configuration.getSourceTON())) {
+			ton = TypeOfNumber.valueOf(Byte.decode(configuration.getSourceTON()));
+		}
+		
+		NumberingPlanIndicator npi = NumberingPlanIndicator.UNKNOWN;
+		if (configuration.getSourceNPI() != null && !"".equals(configuration.getSourceNPI())) {
+			npi = NumberingPlanIndicator.valueOf(Byte.valueOf(configuration.getSourceNPI()));
+		}
+		
 		session.setEnquireLinkTimer(configuration.getEnquireLinkTimer());
 		session.connectAndBind(
                 configuration.getHost(),
@@ -75,8 +85,8 @@ public class SmppConnector implements Processor, Serviceable,
                         configuration.getSystemId(),
                         configuration.getPassword(), 
                         configuration.getSystemType(),
-                        TypeOfNumber.UNKNOWN,
-                        NumberingPlanIndicator.UNKNOWN,
+                        ton,
+                        npi,
                         ""));
 		
 		session.setMessageReceiverListener(new MessageReceiverListener() {

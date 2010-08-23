@@ -302,7 +302,6 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 		return this;
 	}
 
-	@Override
 	public void retryFailedMessages() {
 		log.debug("running ... ");
 		
@@ -330,7 +329,6 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 		}
 	}
 
-	@Override
 	public void retryUnRoutableMessages() {
 		
 	}

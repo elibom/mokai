@@ -52,8 +52,4 @@ public interface RoutingEngine {
 	
 	Collection<ReceiverService> getReceivers();
 	
-	void retryFailedMessages();
-	
-	void retryUnRoutableMessages();
-	
 }

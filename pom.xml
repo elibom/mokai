@@ -109,6 +109,22 @@
 			</plugin>
 		</plugins>
 	</build>
+	
+	<distributionManagement>  
+ 		<!-- Publish the versioned releases here -->  
+ 		<repository>  
+  			<id>elibom-nexus</id>  
+  			<name>Elibom Nexus</name>  
+  			<url>dav:http://localhost:8081/nexus/content/repositories/releases</url>  
+ 		</repository>  
+  
+ 		<!-- Publish the versioned releases here -->  
+ 		<snapshotRepository>  
+  			<id>elibom-nexus</id>  
+  			<name>Elibom Nexus</name>  
+  			<url>dav:http://localhost:8081/nexus/content/repositories/snapshots</url>  
+ 		</snapshotRepository>  
+	</distributionManagement>
 
 	<repositories>
 		<repository>
@@ -132,6 +148,19 @@
 			<id>jboss</id>
 			<url>http://repository.jboss.org/maven2/</url>
 		</repository>
+		
+		<repository>  
+  			<id>elibom-nexus</id>  
+  			<name>Elibom</name>  
+  			<url>http://192.168.0.99:8081/nexus/content/groups/public</url>  
+  			<releases>  
+   				<enabled>true</enabled>  
+  			</releases>  
+  			<snapshots>  
+   				<enabled>true</enabled>  
+  			</snapshots>  
+ 		</repository>  
+ 		
 	</repositories>
 
 </project>

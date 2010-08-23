@@ -3,12 +3,11 @@ package org.mokai;
 /**
  * <p>This interface is implemented by the connectors that want to process 
  * messages. Processors usually send messages out of the framework to 
- * operators or applications.</p>
+ * operators, integrators or other applications.</p>
  * 
- * When a processor is added to the the {@link RoutingEngine} or to an
- * {@link Account}, it is wrapped into a {@link ProcessorService} which
- * contains a queue, acceptors, pre-processing actions, post-processing
- * actions and post-receiving actions.
+ * <p>When a processor is added to the the {@link RoutingEngine}, it is wrapped 
+ * into a {@link ProcessorService} which contains a queue, acceptors, 
+ * pre-processing actions, post-processing actions and post-receiving actions.</p>
  * 
  * @author German Escobar
  */

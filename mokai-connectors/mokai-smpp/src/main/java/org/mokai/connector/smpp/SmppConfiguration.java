@@ -40,6 +40,12 @@ public class SmppConfiguration {
 	@Label("Destination TON")
 	private String destTON;
 	
+	@Label("Initial Reconnect Delay")
+	private long initialReconnectDelay = 5000;
+	
+	@Label("Reconnect Delay")
+    private long reconnectDelay = 5000;
+	
 	public String getHost() {
 		return host;
 	}
@@ -118,6 +124,22 @@ public class SmppConfiguration {
 
 	public void setDestTON(String destTON) {
 		this.destTON = destTON;
+	}
+
+	public long getInitialReconnectDelay() {
+		return initialReconnectDelay;
+	}
+
+	public void setInitialReconnectDelay(long initialReconnectDelay) {
+		this.initialReconnectDelay = initialReconnectDelay;
+	}
+
+	public long getReconnectDelay() {
+		return reconnectDelay;
+	}
+
+	public void setReconnectDelay(long reconnectDelay) {
+		this.reconnectDelay = reconnectDelay;
 	}
 	
 }

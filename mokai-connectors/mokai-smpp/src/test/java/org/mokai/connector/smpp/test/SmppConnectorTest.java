@@ -8,6 +8,7 @@ import java.util.List;
 import org.mokai.ExecutionException;
 import org.mokai.Message;
 import org.mokai.MessageProducer;
+import org.mokai.Monitorable.Status;
 import org.mokai.annotation.Resource;
 import org.mokai.connector.smpp.SmppConfiguration;
 import org.mokai.connector.smpp.SmppConnector;
@@ -19,6 +20,8 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 public class SmppConnectorTest {
+	
+	private final long DEFAULT_TIMEOUT = 3000;
 	
 	private Simulator simulator;
 	
@@ -33,6 +36,34 @@ public class SmppConnectorTest {
 	public void stopSimulator() throws Exception {
 		simulator.stop();
 	}
+	
+	@Test
+	public void testStatus() throws Exception {
+		SmppConfiguration configuration = new SmppConfiguration();
+		configuration.setHost("localhost");
+		configuration.setPort(8321);
+		configuration.setSystemId("test");
+		configuration.setPassword("test");
+		configuration.setInitialReconnectDelay(500);
+		configuration.setReconnectDelay(500);
+		
+		SmppConnector connector = new SmppConnector(configuration);
+		Assert.assertEquals(connector.getStatus(), Status.UNKNOWN);
+		
+		connector.doStart();
+		waitUntilStatus(connector, DEFAULT_TIMEOUT, Status.OK);
+		Assert.assertEquals(connector.getStatus(), Status.OK);
+		
+		stopSimulator();
+		waitUntilStatus(connector, DEFAULT_TIMEOUT, Status.FAILED);		
+		Assert.assertEquals(connector.getStatus(), Status.FAILED);
+		
+		startSimulator();
+		waitUntilStatus(connector, DEFAULT_TIMEOUT, Status.OK);
+		
+		Assert.assertEquals(connector.getStatus(), Status.OK);
+		
+	}
 
 	@Test
 	public void testProcessMessage() throws Exception {
@@ -44,6 +75,7 @@ public class SmppConnectorTest {
 		
 		SmppConnector connector = new SmppConnector(configuration);
 		connector.doStart();
+		waitUntilStatus(connector, DEFAULT_TIMEOUT, Status.OK);
 		
 		SmsMessage message = new SmsMessage();
 		message.setTo("3002175604");
@@ -87,6 +119,8 @@ public class SmppConnectorTest {
 		addMessageProducer(messageProducer, connector);
 		connector.doStart();
 		
+		waitUntilStatus(connector, DEFAULT_TIMEOUT, Status.OK);
+		
 		String to = "3542";
 		String from = "3002175604";
 		String text = "this is a test";
@@ -106,6 +140,26 @@ public class SmppConnectorTest {
 		connector.doStop();
 	}
 	
+	private boolean waitUntilStatus(SmppConnector connector, long timeout, Status status) {
+		boolean started = false;
+		
+		long startTime = new Date().getTime();
+		long actualTime = new Date().getTime();
+		while (!started && (actualTime - startTime) <= timeout) {
+			if (connector.getStatus() == status) {
+				started = true;
+			} else {
+				synchronized (this) {
+					try { this.wait(200); } catch (Exception e) {}
+				}	
+			}
+			
+			actualTime = new Date().getTime();
+		}
+		
+		return started;
+	}
+	
 	private boolean receiveMessage(MockMessageProducer messageProducer, long timeout) {
 		boolean received = false;
 		
@@ -116,9 +170,11 @@ public class SmppConnectorTest {
 				received = true;
 			} else {
 				synchronized (this) {
-					try { this.wait(100); } catch (Exception e) {}
+					try { this.wait(200); } catch (Exception e) {}
 				}	
 			}
+			
+			actualTime = new Date().getTime();
 		}
 		
 		return received;

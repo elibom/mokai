@@ -1,5 +1,7 @@
 package org.mokai.connector.smpp;
 
+import java.io.IOException;
+
 import org.jsmpp.bean.AlertNotification;
 import org.jsmpp.bean.Alphabet;
 import org.jsmpp.bean.BindType;
@@ -14,15 +16,19 @@ import org.jsmpp.bean.SMSCDeliveryReceipt;
 import org.jsmpp.bean.SubmitSm;
 import org.jsmpp.bean.TypeOfNumber;
 import org.jsmpp.extra.ProcessRequestException;
+import org.jsmpp.extra.SessionState;
 import org.jsmpp.session.BindParameter;
 import org.jsmpp.session.DataSmResult;
 import org.jsmpp.session.MessageReceiverListener;
 import org.jsmpp.session.SMPPSession;
 import org.jsmpp.session.Session;
+import org.jsmpp.session.SessionStateListener;
 import org.mokai.ExecutionException;
 import org.mokai.ExposableConfiguration;
 import org.mokai.Message;
 import org.mokai.MessageProducer;
+import org.mokai.MonitorStatusBuilder;
+import org.mokai.Monitorable;
 import org.mokai.Processor;
 import org.mokai.Serviceable;
 import org.mokai.annotation.Description;
@@ -39,7 +45,7 @@ import org.slf4j.LoggerFactory;
  */
 @Name("SMPP")
 @Description("Sends and receives messages using SMPP protocol")
-public class SmppConnector implements Processor, Serviceable, 
+public class SmppConnector implements Processor, Serviceable, Monitorable, 
 		ExposableConfiguration<SmppConfiguration> {
 	
 	private Logger log = LoggerFactory.getLogger(SmppConnector.class);
@@ -50,6 +56,10 @@ public class SmppConnector implements Processor, Serviceable,
 	private SMPPSession session = new SMPPSession();
 	
 	private SmppConfiguration configuration;
+	
+	private boolean started = false;
+	
+	private Status status = MonitorStatusBuilder.unknown();
 	
 	public SmppConnector() {
 		this(new SmppConfiguration());
@@ -64,30 +74,15 @@ public class SmppConnector implements Processor, Serviceable,
 		
 		log.debug("starting SmppConnector ... ");
 		
+		started = true;
+		
+		connect(0);
+	}
+	
+	private SMPPSession createSession() throws IOException {
 		session = new SMPPSession();
 		
-		TypeOfNumber ton = TypeOfNumber.UNKNOWN;
-		if (configuration.getSourceTON() != null && !"".equals(configuration.getSourceTON())) {
-			ton = TypeOfNumber.valueOf(Byte.decode(configuration.getSourceTON()));
-		}
-		
-		NumberingPlanIndicator npi = NumberingPlanIndicator.UNKNOWN;
-		if (configuration.getSourceNPI() != null && !"".equals(configuration.getSourceNPI())) {
-			npi = NumberingPlanIndicator.valueOf(Byte.valueOf(configuration.getSourceNPI()));
-		}
-		
 		session.setEnquireLinkTimer(configuration.getEnquireLinkTimer());
-		session.connectAndBind(
-                configuration.getHost(),
-                configuration.getPort(),
-                new BindParameter(
-                        BindType.BIND_TRX,
-                        configuration.getSystemId(),
-                        configuration.getPassword(), 
-                        configuration.getSystemType(),
-                        ton,
-                        npi,
-                        ""));
 		
 		session.setMessageReceiverListener(new MessageReceiverListener() {
 
@@ -98,7 +93,7 @@ public class SmppConnector implements Processor, Serviceable,
 
 			@Override
 			public void onAcceptDeliverSm(DeliverSm pdu) throws ProcessRequestException {
-				log.debug("received deliverSm: " + pdu);
+				log.info("received deliverSm: " + pdu);
 				
 				if (pdu.isSmscDeliveryReceipt()) {
 					log.warn("DeliveryReceipt not supported yet!");
@@ -125,15 +120,66 @@ public class SmppConnector implements Processor, Serviceable,
 			}
 			
 		});
+		
+		session.addSessionStateListener(new SessionStateListener() { 
+            public void onStateChange(SessionState newState, SessionState oldState, Object source) {
+                if (newState.equals(SessionState.CLOSED)) {
+                    log.warn("loosing connection to: " + getConfiguration().getHost() + " - trying to reconnect...");
+                    
+                    status = MonitorStatusBuilder.failed("connection lost");
+                    
+                    session.close();
+                    connect(configuration.getInitialReconnectDelay());
+                }
+            }
+        });
+		
+		TypeOfNumber ton = TypeOfNumber.UNKNOWN;
+		if (configuration.getSourceTON() != null && !"".equals(configuration.getSourceTON())) {
+			ton = TypeOfNumber.valueOf(Byte.decode(configuration.getSourceTON()));
+		}
+		
+		NumberingPlanIndicator npi = NumberingPlanIndicator.UNKNOWN;
+		if (configuration.getSourceNPI() != null && !"".equals(configuration.getSourceNPI())) {
+			npi = NumberingPlanIndicator.valueOf(Byte.valueOf(configuration.getSourceNPI()));
+		}
+		
+		session.connectAndBind(
+                configuration.getHost(),
+                configuration.getPort(),
+                new BindParameter(
+                        BindType.BIND_TRX,
+                        configuration.getSystemId(),
+                        configuration.getPassword(), 
+                        configuration.getSystemType(),
+                        ton,
+                        npi,
+                        ""));
+		
+		return session;
 	}
 
 	@Override
 	public void doStop() throws Exception {
+		
+		started = false;
+		
 		session.unbindAndClose();
+		
+		status = MonitorStatusBuilder.unknown();
+	}
+
+	@Override
+	public Status getStatus() {
+		return status;
 	}
 
 	@Override
 	public void process(Message message) {
+		if (!status.equals(Status.OK)) {
+			throw new IllegalStateException("SMPP client not connected.");
+		}
+		
 		SmsMessage smsMessage = (SmsMessage) message;
 
 		try {
@@ -212,5 +258,36 @@ public class SmppConnector implements Processor, Serviceable,
 		
 		return false;
 	}
+	
+	private void connect(final long initialReconnectDelay) {
+        new Thread() {
+            @Override
+            public void run() {
+                log.info("schedule connect after " + initialReconnectDelay + " millis");
+                try {
+                    Thread.sleep(initialReconnectDelay);
+                } catch (InterruptedException e) {
+                }
 
+                int attempt = 0;
+                while (started && (session == null || session.getSessionState().equals(SessionState.CLOSED))) {
+                    try {
+                        log.info("trying to connect to " + getConfiguration().getHost() + " - attempt #" + (++attempt) + "...");
+                        session = createSession();
+                        
+                        status = MonitorStatusBuilder.ok();
+                        
+                    } catch (IOException e) {
+                        log.info("failed to connect to " + getConfiguration().getHost());
+                        session.close();
+                        try {
+                            Thread.sleep(configuration.getReconnectDelay());
+                        } catch (InterruptedException ee) {
+                        }
+                    }
+                }
+            }
+        }.start();
+
+	}
 }

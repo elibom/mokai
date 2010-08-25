@@ -41,7 +41,7 @@ public class CamelRoutingEngineTest {
 		
 		// check that the processor service was created successfully
 		Assert.assertNotNull(ps1);
-		Assert.assertEquals(Service.Status.STARTED, ps1.getStatus());
+		Assert.assertEquals(Service.State.STARTED, ps1.getState());
 		
 		// check that there is only one processor
 		List<ProcessorService> processorServices = routingEngine.getProcessors();
@@ -148,7 +148,7 @@ public class CamelRoutingEngineTest {
 		
 		// check that the receiver service was created successfully
 		Assert.assertNotNull(rs1);
-		Assert.assertEquals(Service.Status.STARTED, rs1.getStatus());
+		Assert.assertEquals(Service.State.STARTED, rs1.getState());
 		
 		// check that there is only one receiver
 		Collection<ReceiverService> receivers = routingEngine.getReceivers();

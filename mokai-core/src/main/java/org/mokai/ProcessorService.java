@@ -2,9 +2,7 @@ package org.mokai;
 
 import java.util.List;
 
-import org.mokai.Acceptor;
-import org.mokai.Action;
-import org.mokai.Processor;
+import org.mokai.Monitorable.Status;
 
 /**
  * 
@@ -19,7 +17,9 @@ public interface ProcessorService extends Service {
 	
 	Processor getProcessor();
 	
-	boolean isServiceable();
+	int getNumQueuedMessages();
+	
+	Status getProcessorStatus();
 	
 	ProcessorService addAcceptor(Acceptor acceptor) throws IllegalArgumentException, ObjectAlreadyExistsException;
 	

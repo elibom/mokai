@@ -8,7 +8,6 @@ import java.util.concurrent.TimeoutException;
 
 import junit.framework.Assert;
 
-import org.apache.camel.CamelExecutionException;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
@@ -19,9 +18,11 @@ import org.mokai.Configurable;
 import org.mokai.ExecutionException;
 import org.mokai.Message;
 import org.mokai.MessageProducer;
+import org.mokai.Monitorable;
 import org.mokai.Processor;
 import org.mokai.Service;
 import org.mokai.Serviceable;
+import org.mokai.Monitorable.Status;
 import org.mokai.annotation.Resource;
 import org.mokai.impl.camel.CamelProcessorService;
 import org.mokai.message.SmsMessage;
@@ -39,21 +40,22 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 	public void testProcessMessage() throws Exception {
 		
 		// add processed validation
-		addOutboundValidationRoute();
-		
-		// expected results
-		MockEndpoint resultEndpoint = camelContext.getEndpoint("mock:validate", MockEndpoint.class);
-		resultEndpoint.expectedMessageCount(1);
+		MockEndpoint outboundEndpoint = addOutboundValidationRoute(1);
+		MockEndpoint failedEndpoint = addFailedValidationRoute(0);
 		
 		MockProcessor processor = new MockProcessor();
 		CamelProcessorService processorService = 
 			new CamelProcessorService("test", 0, processor, camelContext);
 		processorService.start();
 		
+		Assert.assertEquals(Status.UNKNOWN, processorService.getProcessorStatus());
+		
 		simulateMessage(new SmsMessage(), "activemq:processor-test");
 		
-		resultEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
+		outboundEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
+		failedEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
 		
+		Assert.assertEquals(Status.OK, processorService.getProcessorStatus());
 		Assert.assertEquals(1, processor.getCount());
 		
 		SmsMessage message = (SmsMessage) processor.getMessage(0);
@@ -62,16 +64,158 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 		Assert.assertEquals(Message.DestinationType.PROCESSOR, message.getDestinationType());
 	}
 	
+	/**
+	 * Tests that a failed processor recovers after it process a good message
+	 * @throws Exception
+	 */
+	@Test
+	public void testProcessorStatus() throws Exception {
+
+		// add failed validation
+		MockEndpoint outboundEndpoint = addOutboundValidationRoute(0);
+		MockEndpoint failedEndpoint = addFailedValidationRoute(1);
+		
+		Processor processor = Mockito.mock(Processor.class);
+		Message badMessage = new SmsMessage();
+		badMessage.setId(6);
+		Mockito
+			.doThrow(new NullPointerException())
+			.when(processor).process(Mockito.any(Message.class));
+		
+		CamelProcessorService processorService = 
+			new CamelProcessorService("test", 0, processor, camelContext);
+		processorService.start();
+		
+		// check that the status is UNKNOWN
+		Assert.assertEquals(Status.UNKNOWN, processorService.getProcessorStatus());
+		
+		// simulate the message
+		simulateMessage(badMessage, "activemq:processor-test");
+		
+		// wait until the message fails
+		failedEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
+		outboundEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
+		
+		// check that the status is FAILED
+		Assert.assertEquals(Status.FAILED, processorService.getProcessorStatus());
+		
+		// add processed validation
+		outboundEndpoint.reset();
+		outboundEndpoint.expectedMessageCount(1);
+		failedEndpoint.reset();
+		failedEndpoint.expectedMessageCount(0);
+		
+		Mockito.doNothing()
+			.when(processor)
+			.process(Mockito.any(Message.class));
+
+		// simulate the message
+		simulateMessage(new SmsMessage(), "activemq:processor-test"); 
+		
+		// wait until the message is processed
+		outboundEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
+		failedEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
+		
+		// check that the status is OK
+		Assert.assertEquals(Status.OK, processorService.getProcessorStatus());
+	}
+	
+	/**
+	 * Tests a Monitorable Processor with an OK status. 
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void testMonitorableProcessorStatus() throws Exception {
+		
+		// add processed validation
+		MockEndpoint outboundEndpoint = addOutboundValidationRoute(1);
+		MockEndpoint failedEndpoint = addFailedValidationRoute(0);
+		
+		Processor processor = 
+			Mockito.mock(Processor.class, Mockito.withSettings().extraInterfaces(Monitorable.class));
+		Mockito
+			.when(((Monitorable) processor).getStatus())
+			.thenReturn(Status.OK);
+		
+		CamelProcessorService processorService = 
+			new CamelProcessorService("test", 0, processor, camelContext);
+		processorService.start();
+		
+		Assert.assertEquals(Status.OK, processorService.getProcessorStatus());
+		
+		// simulate the message
+		simulateMessage(new SmsMessage(), "activemq:processor-test");
+		
+		outboundEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
+		failedEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
+		
+		Assert.assertEquals(Status.OK, processorService.getProcessorStatus());
+	}
+	
+	@Test
+	public void testFailedMonitorableProcessorStatus() throws Exception {
+		
+		// add processed validation
+		MockEndpoint outboundEndpoint = addOutboundValidationRoute(1);
+		MockEndpoint failedEndpoint = addFailedValidationRoute(0);
+		
+		Processor processor = 
+			Mockito.mock(Processor.class, Mockito.withSettings().extraInterfaces(Monitorable.class));
+		Mockito
+			.when(((Monitorable) processor).getStatus())
+			.thenReturn(Status.FAILED);
+		
+		CamelProcessorService processorService = 
+			new CamelProcessorService("test", 0, processor, camelContext);
+		processorService.start();
+		
+		Assert.assertEquals(Status.FAILED, processorService.getProcessorStatus());
+		
+		// simulate the message
+		simulateMessage(new SmsMessage(), "activemq:processor-test");
+		
+		outboundEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
+		failedEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
+		
+		Assert.assertEquals(Status.FAILED, processorService.getProcessorStatus());
+	}
+	
+	@Test
+	public void testConflictMonitorableProcessorStatus() throws Exception {
+		// add failed validation
+		MockEndpoint outboundEndpoint = addOutboundValidationRoute(0);
+		MockEndpoint failedEndpoint = addFailedValidationRoute(1);
+		
+		Processor processor = 
+			Mockito.mock(Processor.class, Mockito.withSettings().extraInterfaces(Monitorable.class));
+		Mockito
+			.doThrow(new NullPointerException())
+			.when(processor).process(Mockito.any(Message.class));
+		Mockito
+			.when(((Monitorable) processor).getStatus())
+			.thenReturn(Status.OK);
+		
+		CamelProcessorService processorService = 
+			new CamelProcessorService("test", 0, processor, camelContext);
+		processorService.start();
+		Assert.assertEquals(Status.OK, processorService.getProcessorStatus());
+		
+		// simulate the message
+		simulateMessage(new SmsMessage(), "activemq:processor-test");
+		
+		failedEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
+		outboundEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
+		
+		Assert.assertEquals(Status.FAILED, processorService.getProcessorStatus());
+	}
+	
 	@Test
 	public void testReceiveMessage() throws Exception {
 		
 		// validation route
-		addInboundValidationRoute();
-		
-		// expected results
-		MockEndpoint resultEndpoint = camelContext.getEndpoint("mock:validate", MockEndpoint.class);
-		resultEndpoint.expectedMessageCount(1);
-		
+		MockEndpoint inboundEndpoint = addInboundValidationRoute(1);
+
 		SimpleReceiverProcessor processor = new SimpleReceiverProcessor();
 		new CamelProcessorService("test", 0, processor, camelContext).start();
 		
@@ -79,9 +223,9 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 		processor.receiveMessage(new SmsMessage());
 		
 		// validate results
-		resultEndpoint.assertIsSatisfied();
+		inboundEndpoint.assertIsSatisfied();
 		
-		Exchange exchange = resultEndpoint.getReceivedExchanges().iterator().next();
+		Exchange exchange = inboundEndpoint.getReceivedExchanges().iterator().next();
 		SmsMessage message = exchange.getIn().getBody(SmsMessage.class);
 		
 		Assert.assertNotNull(message.getReference());
@@ -97,11 +241,8 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 	@Test
 	public void testProcessingActions() throws Exception {
 		
-		addOutboundValidationRoute();
-		
-		// expected results
-		MockEndpoint resultEndpoint = camelContext.getEndpoint("mock:validate", MockEndpoint.class);
-		resultEndpoint.expectedMessageCount(1);
+		MockEndpoint outboundEndpoint = addOutboundValidationRoute(1);
+		MockEndpoint failedEndpoint = addFailedValidationRoute(0);
 		
 		MockProcessor processor = new MockProcessor();
 		CamelProcessorService processorService = 
@@ -141,7 +282,8 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 		
 		simulateMessage(new SmsMessage(), "activemq:processor-test");
 		
-		resultEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
+		outboundEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
+		failedEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
 		
 		Assert.assertEquals(1, processor.getCount());
 		Assert.assertEquals(1, preProcessingAction.getChanged());
@@ -155,11 +297,7 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 	@Test
 	public void testPostReceivingActions() throws Exception {
 		// validation route
-		addInboundValidationRoute();
-		
-		// expected results
-		MockEndpoint resultEndpoint = camelContext.getEndpoint("mock:validate", MockEndpoint.class);
-		resultEndpoint.expectedMessageCount(1);
+		MockEndpoint inboundEndpoint = addInboundValidationRoute(1);
 		
 		SimpleReceiverProcessor processor = new SimpleReceiverProcessor();
 		CamelProcessorService processorService = 
@@ -184,10 +322,10 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 		processor.receiveMessage(new SmsMessage());
 		
 		// validate results
-		resultEndpoint.assertIsSatisfied();
+		inboundEndpoint.assertIsSatisfied();
 		Assert.assertEquals(1, postReceivingAction.getChanged());
 		
-		Exchange exchange = resultEndpoint.getReceivedExchanges().iterator().next();
+		Exchange exchange = inboundEndpoint.getReceivedExchanges().iterator().next();
 		Message message = exchange.getIn().getBody(Message.class);
 		Assert.assertEquals("germanescobar", message.getAccountId());
 	}
@@ -254,11 +392,8 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 	 */
 	@Test
 	public void testProcessorException() throws Exception {
-		addFailedValidationRoute();
-		
-		// expected results
-		MockEndpoint resultEndpoint = camelContext.getEndpoint("mock:validate", MockEndpoint.class);
-		resultEndpoint.expectedMessageCount(1);
+		MockEndpoint outboundEndpoint = addOutboundValidationRoute(0);
+		MockEndpoint failedEndpoint = addFailedValidationRoute(1);
 		
 		CamelProcessorService processorService = new CamelProcessorService("test", 0, new Processor() {
 
@@ -277,9 +412,10 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 		
 		simulateMessage(new SmsMessage(), "activemq:processor-test");
 		
-		resultEndpoint.assertIsSatisfied();
+		failedEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
+		outboundEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
 		
-		Exchange exchange = resultEndpoint.getReceivedExchanges().iterator().next();
+		Exchange exchange = failedEndpoint.getReceivedExchanges().iterator().next();
 		SmsMessage smsMessage = exchange.getIn().getBody(SmsMessage.class);
 
 		Assert.assertEquals(Message.DestinationType.PROCESSOR, smsMessage.getDestinationType());
@@ -404,35 +540,33 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 	
 	@Test
 	public void testPreProcessingActionException() throws Exception {
-		addFailedValidationRoute();
-		
-		// expected results
-		MockEndpoint resultEndpoint = camelContext.getEndpoint("mock:validate", MockEndpoint.class);
-		resultEndpoint.expectedMessageCount(1);
+
+		MockEndpoint outboundEndpoint = addOutboundValidationRoute(0);
+		MockEndpoint failedEndpoint = addFailedValidationRoute(1);
 		
 		MockProcessor processor = new MockProcessor();
 		CamelProcessorService processorService = new CamelProcessorService("test", 0, processor, camelContext);
-		
-		SmsMessage message = new SmsMessage();
 
 		Action action = Mockito.mock(Action.class);
-		Mockito.doThrow(new NullPointerException()).when(action).execute(message);
+		Mockito.doThrow(new NullPointerException()).when(action).execute(Mockito.any(Message.class));
 		
 		processorService.addPreProcessingAction(action);
 
 		processorService.start();
 
-		simulateMessage(message, "activemq:processor-test");
+		simulateMessage(new SmsMessage(), "activemq:processor-test");
 		
-		resultEndpoint.assertIsSatisfied(3000);
+		failedEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
+		outboundEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
 		
-		Exchange exchange = resultEndpoint.getReceivedExchanges().iterator().next();
+		Exchange exchange = failedEndpoint.getReceivedExchanges().iterator().next();
 		SmsMessage smsMessage = exchange.getIn().getBody(SmsMessage.class);
 
 		Assert.assertEquals(Message.DestinationType.PROCESSOR, smsMessage.getDestinationType());
 		Assert.assertEquals("test", smsMessage.getDestination());
 		Assert.assertEquals(Message.Status.FAILED, smsMessage.getStatus());
 		
+		System.out.println("testPreProcessingActionException finished ...");
 	}
 	
 	@Test
@@ -442,10 +576,10 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 			new CamelProcessorService("test", 0, processor, camelContext);
 		
 		processorService.start();
-		Assert.assertEquals(Service.Status.STARTED, processorService.getStatus());
+		Assert.assertEquals(Service.State.STARTED, processorService.getState());
 		
 		processorService.stop();
-		Assert.assertEquals(Service.Status.STOPPED, processorService.getStatus());
+		Assert.assertEquals(Service.State.STOPPED, processorService.getState());
 	}
 	
 	@Test
@@ -460,13 +594,13 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 		processorService.start();
 		
 		// verify
-		Assert.assertEquals(Service.Status.STARTED, processorService.getStatus());
+		Assert.assertEquals(Service.State.STARTED, processorService.getState());
 		Mockito.verify((Serviceable) processor).doStart();
 		
 		processorService.stop();
 		
 		// verify
-		Assert.assertEquals(Service.Status.STOPPED, processorService.getStatus());
+		Assert.assertEquals(Service.State.STOPPED, processorService.getState());
 		Mockito.verify((Serviceable) processor).doStop();
 		
 	}
@@ -513,18 +647,15 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 		processorService.destroy();
 		
 		// verify
-		Assert.assertEquals(Service.Status.STOPPED, processorService.getStatus());
+		Assert.assertEquals(Service.State.STOPPED, processorService.getState());
 		Mockito.verify((Configurable) processor).destroy();
 	}
 	
 	@Test
 	public void testMessageStoppedProcessor() throws Exception {
 		
-		addOutboundValidationRoute();
-		
-		// expected results
-		MockEndpoint resultEndpoint = camelContext.getEndpoint("mock:validate", MockEndpoint.class);
-		resultEndpoint.expectedMessageCount(2);
+		MockEndpoint outboundEndpoint = addOutboundValidationRoute(2);
+		MockEndpoint failedEndpoint = addFailedValidationRoute(0);
 		
 		MockProcessor processor = new MockProcessor();
 		CamelProcessorService processorService = 
@@ -538,60 +669,83 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 			
 		}
 		
+		Assert.assertEquals(1, processorService.getNumQueuedMessages());
+		
 		Assert.assertEquals(0, processor.getCount());
 		
 		processorService.start();
 		
 		simulateMessage(new SmsMessage(), "activemq:processor-test");
 		
-		resultEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
+		outboundEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
+		failedEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
 		
 		Assert.assertEquals(2, processor.getCount());
+		
+		Assert.assertEquals(0, processorService.getNumQueuedMessages());
 	}
 	
 	/**
 	 * Helper method to create the route that validates the output of the receivers.
+	 * @return
 	 * @throws Exception
 	 */
-	private void addInboundValidationRoute() throws Exception {
+	private MockEndpoint addInboundValidationRoute(int expectedMessages) throws Exception {
 		camelContext.addRoutes(new RouteBuilder() {
 
 			@Override
 			public void configure() throws Exception {
-				from("activemq:inboundRouter").to("mock:validate");
+				from("activemq:inboundRouter").to("mock:validateInbound");
 			}
 			
 		});
+		
+		MockEndpoint ret = camelContext.getEndpoint("mock:validateInbound", MockEndpoint.class);
+		ret.expectedMessageCount(expectedMessages);
+		
+		return ret;
 	}
 	
 	/**
 	 * Helper method to create the route that validates the output of the processors.
+	 * @return
 	 * @throws Exception
 	 */
-	private void addOutboundValidationRoute() throws Exception {
+	private MockEndpoint addOutboundValidationRoute(int expectedMessages) throws Exception {
 		camelContext.addRoutes(new RouteBuilder() {
 
 			@Override
 			public void configure() throws Exception {
-				from("direct:processedmessages").to("mock:validate");
+				from("direct:processedmessages").to("mock:validateOutbound");
 			}
 			
 		});
+		
+		MockEndpoint ret = camelContext.getEndpoint("mock:validateOutbound", MockEndpoint.class);
+		ret.expectedMessageCount(expectedMessages);
+		
+		return ret;
 	}
 	
 	/**
 	 * Helper method to create the route that validates the failed messages.
+	 * @return
 	 * @throws Exception
 	 */
-	private void addFailedValidationRoute() throws Exception {
+	private MockEndpoint addFailedValidationRoute(int expectedMessages) throws Exception {
 		camelContext.addRoutes(new RouteBuilder() {
 
 			@Override
 			public void configure() throws Exception {
-				from("activemq:failedmessages").to("mock:validate");
+				from("activemq:failedmessages").to("mock:validateFailed");
 			}
 			
 		});
+		
+		MockEndpoint ret = camelContext.getEndpoint("mock:validateFailed", MockEndpoint.class);
+		ret.expectedMessageCount(expectedMessages);
+		
+		return ret;
 	}
 	
 	/**

@@ -8,7 +8,7 @@ import org.mokai.ExecutionException;
  */
 public interface Service {
 
-	public enum Status {
+	public enum State {
 		STARTED, STOPPED;
 		
 		public boolean isStartable() {
@@ -24,5 +24,5 @@ public interface Service {
 	
 	void stop() throws ExecutionException;
 	
-	Status getStatus();
+	State getState();
 }

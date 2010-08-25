@@ -184,11 +184,11 @@ public class CamelReceiverServiceTest extends CamelBaseTest {
 		
 		// test start
 		receiverService.start();
-		Assert.assertEquals(Service.Status.STARTED, receiverService.getStatus());
+		Assert.assertEquals(Service.State.STARTED, receiverService.getState());
 		
 		// test stop
 		receiverService.stop();
-		Assert.assertEquals(Service.Status.STOPPED, receiverService.getStatus());
+		Assert.assertEquals(Service.State.STOPPED, receiverService.getState());
 	}
 	
 	@Test

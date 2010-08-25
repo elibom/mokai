@@ -40,7 +40,7 @@ public class CamelReceiverService implements ReceiverService {
 	
 	private List<Action> postReceivingActions;
 	
-	private Status status;
+	private State state;
 	
 	private CamelContext camelContext;
 	
@@ -57,7 +57,7 @@ public class CamelReceiverService implements ReceiverService {
 		this.id = StringUtils.deleteWhitespace(id);
 		this.receiver = receiver;
 	
-		this.status = Status.STOPPED;
+		this.state = State.STOPPED;
 		this.postReceivingActions = new ArrayList<Action>();
 		
 		this.camelContext = camelContext;
@@ -151,8 +151,7 @@ public class CamelReceiverService implements ReceiverService {
 		return this.receiver;
 	}
 
-	@Override
-	public boolean isServiceable() {
+	private boolean isServiceable() {
 		if (Serviceable.class.isInstance(receiver)) {
 			return true;
 		}
@@ -196,8 +195,8 @@ public class CamelReceiverService implements ReceiverService {
 
 
 	@Override
-	public Status getStatus() {
-		return this.status;
+	public State getState() {
+		return this.state;
 	}
 
 	/**
@@ -208,7 +207,7 @@ public class CamelReceiverService implements ReceiverService {
 		
 		try {
 			
-			if (!status.isStartable()) {
+			if (!state.isStartable()) {
 				log.warn("Receiver " + id + " is already started, ignoring call");
 				return;
 			}
@@ -221,7 +220,7 @@ public class CamelReceiverService implements ReceiverService {
 				log.warn("Receiver " + id + " is not Serviceable, ignoring call");
 			}
 			
-			status = Status.STARTED;
+			state = State.STARTED;
 			
 		} catch (Exception e) {
 			throw new ExecutionException(e);
@@ -233,7 +232,7 @@ public class CamelReceiverService implements ReceiverService {
 	public void stop() throws ExecutionException {
 		try {
 			
-			if (!status.isStoppable()) {
+			if (!state.isStoppable()) {
 				log.warn("Receiver is already stopped, ignoring call");
 				return;
 			}
@@ -245,7 +244,7 @@ public class CamelReceiverService implements ReceiverService {
 				log.warn("Receiver " + id + " is not Serviceable, ignoring call");
 			}
 			
-			status = Status.STOPPED;
+			state = State.STOPPED;
 			
 		} catch (Exception e) {
 			throw new ExecutionException(e);

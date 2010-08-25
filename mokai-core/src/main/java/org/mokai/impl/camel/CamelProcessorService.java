@@ -11,6 +11,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.RouteDefinition;
+import org.apache.camel.spi.BrowsableEndpoint;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.mokai.Acceptor;
@@ -19,12 +20,15 @@ import org.mokai.Configurable;
 import org.mokai.ExecutionException;
 import org.mokai.Message;
 import org.mokai.MessageProducer;
+import org.mokai.MonitorStatusBuilder;
+import org.mokai.Monitorable;
 import org.mokai.ObjectAlreadyExistsException;
 import org.mokai.ObjectNotFoundException;
 import org.mokai.Processor;
 import org.mokai.ProcessorService;
 import org.mokai.Serviceable;
 import org.mokai.Message.DestinationType;
+import org.mokai.Monitorable.Status;
 import org.mokai.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,13 +53,17 @@ public class CamelProcessorService implements ProcessorService {
 	
 	private RedeliveryPolicy redeliveryPolicy;
 	
-	private Status status;
+	private State state;
 	
 	private CamelContext camelContext;
 	
 	private ProducerTemplate camelProducer;
 	
 	private List<RouteDefinition> routes;
+	
+	private Status status = Status.UNKNOWN;
+	
+	private int failedMessages;
 	
 	/**
 	 * Constructor. Removes spaces from id argument and lower case it.
@@ -80,7 +88,7 @@ public class CamelProcessorService implements ProcessorService {
 		this.priority = priority;
 		this.processor = processor;
 		
-		this.status = Status.STOPPED;
+		this.state = State.STOPPED;
 		
 		this.acceptors = new ArrayList<Acceptor>();
 	
@@ -159,10 +167,11 @@ public class CamelProcessorService implements ProcessorService {
 	public Processor getProcessor() {
 		return this.processor;
 	}
-
+	
 	@Override
-	public boolean isServiceable() {
-		return Serviceable.class.isInstance(processor);
+	public int getNumQueuedMessages() {
+		BrowsableEndpoint queueEndpoint = camelContext.getEndpoint("activemq:processor-" + id, BrowsableEndpoint.class);
+		return queueEndpoint.getExchanges().size();
 	}
 
 	@Override
@@ -302,14 +311,38 @@ public class CamelProcessorService implements ProcessorService {
 	}
 
 	@Override
-	public Status getStatus() {
-		return status;
+	public State getState() {
+		return state;
+	}
+
+	@Override
+	public Status getProcessorStatus() {
+		
+		Status retStatus = status; // the status we are returning
+		
+		// check if the processor is monitorable
+		if (Monitorable.class.isInstance(processor)) {
+			Monitorable monitorable = (Monitorable) processor;
+			retStatus = monitorable.getStatus();
+		}
+		
+		// resolve conflicts
+		if (retStatus.equals(Status.OK) && status.equals(Status.FAILED)) {
+			String message = status.getMessage();
+			message = "Processor is OK but " + message;
+			
+			status.setMessage(message);
+			
+			retStatus = status;
+		} 
+		
+		return retStatus;
 	}
 
 	@Override
 	public void start() throws ExecutionException {
 		
-		if (!status.isStartable()) {
+		if (!state.isStartable()) {
 			log.warn("Processor " + id + " is already started, ignoring call");
 			return;
 		}
@@ -401,7 +434,7 @@ public class CamelProcessorService implements ProcessorService {
 				
 			}
 			
-			status = Status.STARTED;
+			state = State.STARTED;
 		} catch (Exception e) {
 			throw new ExecutionException(e);
 		}
@@ -410,7 +443,7 @@ public class CamelProcessorService implements ProcessorService {
 	@Override
 	public void stop() {
 		try {
-			if (!status.isStoppable()) {
+			if (!state.isStoppable()) {
 				log.warn("Processor " + id + " is already stopped, ignoring call");
 				return;
 			}
@@ -426,7 +459,7 @@ public class CamelProcessorService implements ProcessorService {
 				camelContext.stopRoute(route);
 			}
 			
-			status = Status.STOPPED;
+			state = State.STOPPED;
 		} catch (Exception e) {
 			throw new ExecutionException(e);
 		}
@@ -472,47 +505,55 @@ public class CamelProcessorService implements ProcessorService {
 		@Override
 		public void process(Exchange exchange) throws Exception {
 			Message message = exchange.getIn().getBody(Message.class);
-			
-			if (processor.supports(message)) {
-				
-				process(message, 1);
-				
-			} else { // message not supported
-				
-				// TODO do we need a not supported status?
-				message.setStatus(Message.Status.FAILED);
-				camelProducer.sendBody("activemq:failedmessages", message);
+
+			// we know we support the message
+			boolean success = process(message, 1);
+			if (!success) {
+				exchange.setProperty(Exchange.ROUTE_STOP, true);
 			}
 		}
 		
-		private void process(Message message, int retry) {
+		private boolean process(Message message, int attempt) {
 			
 			try {
 				// try to process the message
 				processor.process(message);
 				message.setStatus(Message.Status.PROCESSED);
 				
+				status = MonitorStatusBuilder.ok();
+				failedMessages = 0;
+				
+				return true;
 			} catch (Exception e) {
 				
 				// only retry if we haven't exceeded the max redeliveries
 				int maxRetries = redeliveryPolicy.getMaxRedeliveries();
-				if (retry < maxRetries) {
-					log.warn("message failed, retrying " + retry + " of " + maxRetries);
+				if (attempt < maxRetries) {
+					log.warn("message failed, retrying " + attempt + " of " + maxRetries);
 					
 					// wait redelivery delay
 					long delay = redeliveryPolicy.getMaxRedeliveryDelay();
 					try { this.wait(delay); } catch (Exception f) { }
 					
 					// retry
-					retry++;
-					process(message, retry);
+					attempt++;
+					process(message, attempt);
 				} else {
 					log.error("message failed after " + maxRetries + " retries: " + e.getMessage(), e);
+					
+					// set the new status
+					failedMessages++;
+					String failMessage = failedMessages +
+						(failedMessages == 1 ? " message has " : " messages have") + "failed.";
+					status = MonitorStatusBuilder.failed(failMessage, e);
 					
 					// send to failed messages
 					message.setStatus(Message.Status.FAILED);
 					camelProducer.sendBody("activemq:failedmessages", message);
+					
 				}
+				
+				return false;
 				
 			}
 		}

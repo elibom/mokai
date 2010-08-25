@@ -14,8 +14,6 @@ public interface ReceiverService extends Service {
 	String getId();
 	
 	Receiver getReceiver();
-	
-	boolean isServiceable();
 
 	ReceiverService addPostReceivingAction(Action action) throws IllegalArgumentException, ObjectAlreadyExistsException;
 	

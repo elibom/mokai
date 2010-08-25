@@ -59,7 +59,7 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 	
 	private MessageStoreDelegate messageStoreDelegate;
 	
-	private Status state;
+	private State state;
 	
 	public CamelRoutingEngine() {
 		this.jmsComponent = defaultJmsComponent();
@@ -90,7 +90,7 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 	}
 	
 	@Override
-	public Status getStatus() {
+	public State getState() {
 		return state;
 	}
 

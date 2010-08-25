@@ -52,11 +52,9 @@ public class SmppConnectorTest {
 		
 		connector.doStart();
 		waitUntilStatus(connector, DEFAULT_TIMEOUT, Status.OK);
-		Assert.assertEquals(connector.getStatus(), Status.OK);
 		
 		stopSimulator();
 		waitUntilStatus(connector, DEFAULT_TIMEOUT, Status.FAILED);		
-		Assert.assertEquals(connector.getStatus(), Status.FAILED);
 		
 		startSimulator();
 		waitUntilStatus(connector, DEFAULT_TIMEOUT, Status.OK);
@@ -140,14 +138,35 @@ public class SmppConnectorTest {
 		connector.doStop();
 	}
 	
-	private boolean waitUntilStatus(SmppConnector connector, long timeout, Status status) {
-		boolean started = false;
+	@Test
+	public void testFailedConnectionOnStart() throws Exception {
+		stopSimulator();
+		
+		SmppConfiguration configuration = new SmppConfiguration();
+		configuration.setHost("localhost");
+		configuration.setPort(8321);
+		configuration.setSystemId("test");
+		configuration.setPassword("test");
+		configuration.setInitialReconnectDelay(500);
+		configuration.setReconnectDelay(500);
+		
+		SmppConnector connector = new SmppConnector(configuration);
+		connector.doStart();
+		
+		waitUntilStatus(connector, DEFAULT_TIMEOUT, Status.FAILED);
+		
+		startSimulator();
+		waitUntilStatus(connector, DEFAULT_TIMEOUT, Status.OK);
+	}
+	
+	private void waitUntilStatus(SmppConnector connector, long timeout, Status status) {
+		boolean isValid = false;
 		
 		long startTime = new Date().getTime();
 		long actualTime = new Date().getTime();
-		while (!started && (actualTime - startTime) <= timeout) {
+		while (!isValid && (actualTime - startTime) <= timeout) {
 			if (connector.getStatus() == status) {
-				started = true;
+				isValid = true;
 			} else {
 				synchronized (this) {
 					try { this.wait(200); } catch (Exception e) {}
@@ -157,7 +176,7 @@ public class SmppConnectorTest {
 			actualTime = new Date().getTime();
 		}
 		
-		return started;
+		Assert.assertEquals(connector.getStatus(), status);
 	}
 	
 	private boolean receiveMessage(MockMessageProducer messageProducer, long timeout) {

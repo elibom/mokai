@@ -279,7 +279,11 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
                         
                     } catch (IOException e) {
                         log.info("failed to connect to " + getConfiguration().getHost());
+                        
+                        status = MonitorStatusBuilder.failed("could not connect", e);
+                        
                         session.close();
+                        
                         try {
                             Thread.sleep(configuration.getReconnectDelay());
                         } catch (InterruptedException ee) {

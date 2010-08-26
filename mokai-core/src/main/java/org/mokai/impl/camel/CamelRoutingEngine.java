@@ -59,7 +59,7 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 	
 	private MessageStoreDelegate messageStoreDelegate;
 	
-	private State state;
+	private State state = State.STOPPED;
 	
 	public CamelRoutingEngine() {
 		this.jmsComponent = defaultJmsComponent();
@@ -96,17 +96,67 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 
 	@Override
 	public void start() {
+		
+		if (!state.isStartable()) {
+			return;
+		}
+		
 		try {
 			camelContext.start();
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+		
+		// start processors
+		for (ProcessorService processor : processors.values()) {
+			try {
+				processor.start();
+			} catch (Exception e) {
+				log.error("processor '" + processor.getId() + "' couldnt be started: "  + e.getMessage(), e);
+			}
+		}
+			
+		// start recievers
+		for (ReceiverService receiver : receivers.values()) {
+			try {
+				receiver.start();
+			} catch (Exception e) {
+				log.error("receiver '" + receiver.getId() + "' couldnt be started: " + e.getMessage(), e);
+			}
+		}
+			
+		state = State.STARTED;
 	}
 
 	@Override
 	public void stop() {
-		try {
+		
+		if (!state.isStoppable()) {
+			return;
+		}
+		
+		// stop processors
+		for (ProcessorService processor : processors.values()) {
+			try {
+				processor.stop();
+			} catch (Exception e) {
+				log.error("processor '" + processor.getId() + "' couldnt be stopped: "  + e.getMessage(), e);
+			}
+		}
+			
+		// stop receivers
+		for (ReceiverService receiver : receivers.values()) {
+			try {
+				receiver.stop();
+			} catch (Exception e) {
+				log.error("receiver '" + receiver.getId() + "' couldnt be stopped: " + e.getMessage(), e);
+			}
+		}
+			
+		try {	
 			camelContext.stop();
+			
+			state = State.STOPPED;
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -192,7 +242,9 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 		// create and start the ProcessorService instance
 		CamelProcessorService processorService = 
 			new CamelProcessorService(id, priority, processor, camelContext);
-		processorService.start();
+		if (state.equals(State.STARTED)) {
+			processorService.start();
+		}
 		
 		// add to the map
 		processors.put(id, processorService);
@@ -262,7 +314,9 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 		
 		// create and start the ReceiverService instance
 		CamelReceiverService receiverService = new CamelReceiverService(id, receiver, camelContext);
-		receiverService.start();
+		if (state.equals(State.STARTED)) {
+			receiverService.start();
+		}
 		
 		// add to the map
 		receivers.put(id, receiverService);

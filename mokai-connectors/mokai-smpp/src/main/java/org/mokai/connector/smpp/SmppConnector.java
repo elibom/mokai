@@ -144,11 +144,20 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			npi = NumberingPlanIndicator.valueOf(Byte.valueOf(configuration.getSourceNPI()));
 		}
 		
+		// bind type
+		BindType bindType = BindType.BIND_TRX;
+		if (configuration.getBindType().equals("r")) {
+			bindType = BindType.BIND_RX;
+		} else if (configuration.getBindType().equals("t")) {
+			bindType = BindType.BIND_TX;
+		}
+		
+		
 		session.connectAndBind(
                 configuration.getHost(),
                 configuration.getPort(),
                 new BindParameter(
-                        BindType.BIND_TRX,
+                        bindType,
                         configuration.getSystemId(),
                         configuration.getPassword(), 
                         configuration.getSystemType(),

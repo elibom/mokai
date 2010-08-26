@@ -28,6 +28,9 @@ public class SmppConfiguration {
 	@Label("Enquire Link Timer")
 	private int enquireLinkTimer = 9000;
 	
+	@Label("Bind Type")
+	private String bindType= "tr";
+	
 	@Label("Source NPI")
 	private String sourceNPI;
 	
@@ -92,6 +95,14 @@ public class SmppConfiguration {
 
 	public void setEnquireLinkTimer(int enquireLinkTimer) {
 		this.enquireLinkTimer = enquireLinkTimer;
+	}
+
+	public String getBindType() {
+		return bindType;
+	}
+
+	public void setBindType(String bindType) {
+		this.bindType = bindType;
 	}
 
 	public String getSourceNPI() {

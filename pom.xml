@@ -140,11 +140,6 @@
 		</repository>
 		
 		<repository>
-			<id>codehaus</id>
-			<url>http://snapshots.repository.codehaus.org</url>
-		</repository>
-		
-		<repository>
 			<id>jboss</id>
 			<url>http://repository.jboss.org/maven2/</url>
 		</repository>
@@ -159,8 +154,14 @@
   			<snapshots>  
    				<enabled>true</enabled>  
   			</snapshots>  
- 		</repository>  
- 		
+ 		</repository>   		
 	</repositories>
+	
+	<pluginRepositories>
+		<pluginRepository>
+			<id>codehaus.snapshots</id>
+			<url>http://snapshots.repository.codehaus.org</url>
+		</pluginRepository>
+	</pluginRepositories>
 
 </project>

@@ -24,20 +24,20 @@ public class ProcessorType implements Serializable {
 		this.processorClass = processorClass;
 	}
 
-	public String getName() {
+	public final String getName() {
 		return name;
 	}
 
-	public String getDescription() {
+	public final String getDescription() {
 		return description;
 	}
 
-	public Class<? extends Processor> getProcessorClass() {
+	public final Class<? extends Processor> getProcessorClass() {
 		return processorClass;
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public final boolean equals(Object obj) {
 		if (ProcessorType.class.isInstance(obj)) {
 			ProcessorType pt = (ProcessorType) obj;
 			
@@ -48,7 +48,7 @@ public class ProcessorType implements Serializable {
 	}
 
 	@Override
-	public int hashCode() {
+	public final int hashCode() {
 		return processorClass.hashCode();
 	}
 	

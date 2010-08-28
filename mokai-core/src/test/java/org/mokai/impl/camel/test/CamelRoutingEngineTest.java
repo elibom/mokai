@@ -20,7 +20,6 @@ import org.mokai.Receiver;
 import org.mokai.ReceiverService;
 import org.mokai.Service;
 import org.mokai.impl.camel.CamelRoutingEngine;
-import org.mokai.message.SmsMessage;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.MessageStore;
 import org.mokai.persist.StoreException;
@@ -247,7 +246,7 @@ public class CamelRoutingEngineTest {
 		
 		// send the message
 		ProducerTemplate producer = routingEngine.getCamelContext().createProducerTemplate();
-		producer.requestBody("activemq:outboundRouter", new SmsMessage());
+		producer.requestBody("activemq:outboundRouter", new Message());
 		
 		Assert.assertEquals(1, processor.getCount());
 		
@@ -293,7 +292,7 @@ public class CamelRoutingEngineTest {
 		
 		// send the message
 		ProducerTemplate producer = routingEngine.getCamelContext().createProducerTemplate();
-		producer.sendBody("activemq:outboundRouter", new SmsMessage());
+		producer.sendBody("activemq:outboundRouter", new Message());
 		
 		// wait
 		barrier.await(3, TimeUnit.SECONDS);
@@ -319,7 +318,7 @@ public class CamelRoutingEngineTest {
 
 		@Override
 		public boolean supports(Message message) {
-			if (SmsMessage.class.isInstance(message)) {
+			if (Message.class.isInstance(message)) {
 				return true;
 			}
 			

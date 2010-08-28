@@ -32,7 +32,7 @@ public class PluginTypeLoader implements TypeLoader {
 	}
 
 	@Override
-	public Set<AcceptorType> loadAcceptorTypes() {
+	public final Set<AcceptorType> loadAcceptorTypes() {
 		
 		Set<AcceptorType> acceptorTypes = new HashSet<AcceptorType>();
 		
@@ -46,7 +46,7 @@ public class PluginTypeLoader implements TypeLoader {
 	}
 
 	@Override
-	public Set<ActionType> loadActionTypes() {
+	public final Set<ActionType> loadActionTypes() {
 		
 		Set<ActionType> actionTypes = new HashSet<ActionType>();
 		
@@ -60,7 +60,7 @@ public class PluginTypeLoader implements TypeLoader {
 	}
 
 	@Override
-	public Set<ProcessorType> loadProcessorTypes() {
+	public final Set<ProcessorType> loadProcessorTypes() {
 		
 		Set<ProcessorType> processorTypes = new HashSet<ProcessorType>();
 		
@@ -74,7 +74,7 @@ public class PluginTypeLoader implements TypeLoader {
 	}
 
 	@Override
-	public Set<ReceiverType> loadReceiverTypes() {
+	public final Set<ReceiverType> loadReceiverTypes() {
 		
 		Set<ReceiverType> receiverTypes = new HashSet<ReceiverType>();
 		
@@ -87,11 +87,11 @@ public class PluginTypeLoader implements TypeLoader {
 		return receiverTypes;
 	}
 
-	public PluginMechanism getPluginMechanism() {
+	public final PluginMechanism getPluginMechanism() {
 		return pluginMechanism;
 	}
 
-	public void setPluginMechanism(PluginMechanism pluginMechanism) {
+	public final void setPluginMechanism(PluginMechanism pluginMechanism) {
 		this.pluginMechanism = pluginMechanism;
 	}
 }

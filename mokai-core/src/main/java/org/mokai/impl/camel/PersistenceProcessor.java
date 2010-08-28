@@ -6,8 +6,8 @@ import org.mokai.Message;
 import org.mokai.persist.MessageStore;
 
 /**
- * The persistence processor receiving a {@link CamelRoutingEngine} so that the
- * {@link MessageStore} can be changed dynamically.
+ * Camel Processor implementation used by the {@link CamelRoutingEngine} to 
+ * save or update messages.
  * 
  * @author German Escobar
  */

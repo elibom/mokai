@@ -9,14 +9,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
-import org.apache.activemq.camel.component.ActiveMQComponent;
-import org.apache.activemq.pool.PooledConnectionFactory;
 import org.apache.camel.CamelContext;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.JmsComponent;
-import org.apache.camel.component.jms.JmsConfiguration;
 import org.apache.camel.impl.DefaultCamelContext;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -36,7 +33,6 @@ import org.mokai.persist.MessageCriteria.OrderType;
 import org.mokai.persist.impl.DefaultMessageStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.jms.connection.JmsTransactionManager;
 
 /**
  * An Apache Camel based implementation of the {@link RoutingEngine}
@@ -90,12 +86,12 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 	}
 	
 	@Override
-	public State getState() {
+	public final State getState() {
 		return state;
 	}
 
 	@Override
-	public void start() {
+	public final void start() {
 		
 		if (!state.isStartable()) {
 			return;
@@ -129,7 +125,7 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 	}
 
 	@Override
-	public void stop() {
+	public final void stop() {
 		
 		if (!state.isStoppable()) {
 			return;
@@ -206,7 +202,7 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 		
 	}
 
-	@SuppressWarnings("unused")
+	/*@SuppressWarnings("unused")
 	private JmsComponent createActiveMQComponent() {
 		PooledConnectionFactory pooledActiveMQCF = new PooledConnectionFactory("vm://localhost?broker.persistent=true");
 		pooledActiveMQCF.setMaxConnections(8);
@@ -223,10 +219,10 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 		JmsComponent activeComponent = ActiveMQComponent.jmsComponent(configuration);
 		
 		return activeComponent;
-	}
+	}*/
 
 	@Override
-	public ProcessorService createProcessor(String id, int priority,
+	public final ProcessorService createProcessor(String id, int priority,
 			Processor processor) throws IllegalArgumentException,
 			ObjectAlreadyExistsException {
 		
@@ -253,7 +249,7 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 	}
 
 	@Override
-	public RoutingEngine removeProcessor(String id)
+	public final RoutingEngine removeProcessor(String id)
 			throws IllegalArgumentException, ObjectNotFoundException {
 		Validate.notEmpty(id);
 		
@@ -270,14 +266,14 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 	}
 
 	@Override
-	public ProcessorService getProcessor(String id) {
+	public final ProcessorService getProcessor(String id) {
 		Validate.notEmpty(id);
 		
 		return processors.get(id);
 	}
 
 	@Override
-	public List<ProcessorService> getProcessors() {
+	public final List<ProcessorService> getProcessors() {
 		List<ProcessorService> processorsList = 
 			new ArrayList<ProcessorService>(processors.values());
 		
@@ -300,7 +296,7 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 	}
 	
 	@Override
-	public ReceiverService createReceiver(String id, Receiver receiver)
+	public final ReceiverService createReceiver(String id, Receiver receiver)
 			throws IllegalArgumentException, ObjectAlreadyExistsException {
 		
 		// fix id
@@ -325,14 +321,14 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 	}
 
 	@Override
-	public ReceiverService getReceiver(String id) {
+	public final ReceiverService getReceiver(String id) {
 		Validate.notNull(id);
 		
 		return receivers.get(id);
 	}
 
 	@Override
-	public Collection<ReceiverService> getReceivers() {
+	public final Collection<ReceiverService> getReceivers() {
 		List<ReceiverService> receiversList = 
 			new ArrayList<ReceiverService>(receivers.values());
 		
@@ -340,7 +336,7 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 	}
 
 	@Override
-	public RoutingEngine removeReceiver(String id)
+	public final RoutingEngine removeReceiver(String id)
 			throws IllegalArgumentException, ObjectNotFoundException {
 		Validate.notEmpty(id);
 		
@@ -356,7 +352,7 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 		return this;
 	}
 
-	public void retryFailedMessages() {
+	public final void retryFailedMessages() {
 		log.debug("running ... ");
 		
 		ProducerTemplate producer = camelContext.createProducerTemplate();
@@ -383,27 +379,27 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 		}
 	}
 
-	public void retryUnRoutableMessages() {
+	public final void retryUnRoutableMessages() {
 		
 	}
 
-	public RedeliveryPolicy getRedeliveryPolicy() {
+	public final RedeliveryPolicy getRedeliveryPolicy() {
 		return redeliveryPolicy;
 	}
 
-	public void setRedeliveryPolicy(RedeliveryPolicy redeliveryPolicy) {
+	public final void setRedeliveryPolicy(RedeliveryPolicy redeliveryPolicy) {
 		this.redeliveryPolicy = redeliveryPolicy;
 	}
 
-	public MessageStore getMessageStore() {
+	public final MessageStore getMessageStore() {
 		return messageStoreDelegate.getDelegate();
 	}
 
-	public void setMessageStore(MessageStore messageStore) {
+	public final void setMessageStore(MessageStore messageStore) {
 		this.messageStoreDelegate.setDelegate(messageStore);
 	}
 
-	public CamelContext getCamelContext() {
+	public final CamelContext getCamelContext() {
 		return camelContext;
 	}
 	

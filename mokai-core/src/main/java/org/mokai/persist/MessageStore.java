@@ -5,6 +5,8 @@ import java.util.Collection;
 import org.mokai.Message;
 
 /**
+ * Implementations of this interface are responsible of saving, updating and
+ * retreiving {@link Message}s
  * 
  * @author German Escobar
  */

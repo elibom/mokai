@@ -1,5 +1,9 @@
 package org.mokai.ui.field;
 
+/**
+ * 
+ * @author German Escobar
+ */
 public abstract class InputField {
 
 	private String name;
@@ -15,19 +19,19 @@ public abstract class InputField {
 		this.label = label;
 	}
 
-	public String getName() {
+	public final String getName() {
 		return name;
 	}
 
-	public void setName(String name) {
+	public final void setName(String name) {
 		this.name = name;
 	}
 
-	public String getLabel() {
+	public final String getLabel() {
 		return label;
 	}
 
-	public void setLabel(String label) {
+	public final void setLabel(String label) {
 		this.label = label;
 	}
 

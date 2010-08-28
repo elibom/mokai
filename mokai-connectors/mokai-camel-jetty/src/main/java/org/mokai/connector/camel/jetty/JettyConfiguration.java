@@ -1,24 +1,41 @@
 package org.mokai.connector.camel.jetty;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class JettyConfiguration {
 
 	private String port = "9080";
 	
 	private String context = "test";
 	
-	public String getPort() {
+	private Map<String,String> mapper = new HashMap<String,String>();
+	
+	public final String getPort() {
 		return port;
 	}
 
-	public void setPort(String port) {
+	public final void setPort(String port) {
 		this.port = port;
 	}
 
-	public String getContext() {
+	public final String getContext() {
 		return context;
 	}
 
-	public void setContext(String context) {
+	public final void setContext(String context) {
 		this.context = context;
+	}
+
+	public final Map<String, String> getMapper() {
+		return mapper;
+	}
+
+	public final void setMapper(Map<String, String> mapper) {
+		this.mapper = mapper;
+	}
+	
+	public final void addMapper(String key, String value) {
+		mapper.put(key, value);
 	}
 }

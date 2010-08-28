@@ -4,6 +4,10 @@ import org.java.plugin.PluginManager;
 import org.java.plugin.registry.PluginDescriptor;
 import org.java.plugin.standard.StandardPluginClassLoader;
 
+/**
+ * 
+ * @author German Escobar
+ */
 public class CustomPluginClassLoader extends StandardPluginClassLoader {
 
 	public CustomPluginClassLoader(PluginManager aManager,

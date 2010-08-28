@@ -22,7 +22,7 @@ import org.mokai.type.TypeLoader;
 public class StandardTypeLoader implements TypeLoader {
 
 	@Override
-	public Set<AcceptorType> loadAcceptorTypes() {
+	public final Set<AcceptorType> loadAcceptorTypes() {
 		
 		Set<AcceptorType> acceptorTypes = new HashSet<AcceptorType>();
 		
@@ -38,7 +38,7 @@ public class StandardTypeLoader implements TypeLoader {
 	}
 
 	@Override
-	public Set<ActionType> loadActionTypes() {
+	public final Set<ActionType> loadActionTypes() {
 		
 		Set<ActionType> actionTypes = new HashSet<ActionType>();
 		
@@ -54,7 +54,7 @@ public class StandardTypeLoader implements TypeLoader {
 	}
 
 	@Override
-	public Set<ProcessorType> loadProcessorTypes() {
+	public final Set<ProcessorType> loadProcessorTypes() {
 		
 		Set<ProcessorType> processorTypes = new HashSet<ProcessorType>();
 		
@@ -70,7 +70,7 @@ public class StandardTypeLoader implements TypeLoader {
 	}
 
 	@Override
-	public Set<ReceiverType> loadReceiverTypes() {
+	public final Set<ReceiverType> loadReceiverTypes() {
 		
 		Set<ReceiverType> receiverTypes = new HashSet<ReceiverType>();
 		

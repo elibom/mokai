@@ -11,11 +11,10 @@ import junit.framework.Assert;
 
 import org.apache.commons.dbcp.BasicDataSource;
 import org.mokai.Message;
+import org.mokai.Message.Flow;
 import org.mokai.Message.SourceType;
 import org.mokai.Message.Status;
-import org.mokai.Message.Type;
-import org.mokai.message.SmsMessage;
-import org.mokai.persist.jdbc.JdbcMessageStore;
+import org.mokai.persist.jdbc.JdbcSmsMessageStore;
 import org.mokai.persist.jdbc.util.DerbyInitializer;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -71,31 +70,31 @@ public class JdbcMessageStoreTest {
 	
 	@Test
 	public void testSaveRetrieveMessage() throws Exception {
-		JdbcMessageStore messageStore = new JdbcMessageStore();
+		JdbcSmsMessageStore messageStore = new JdbcSmsMessageStore();
 		messageStore.setDataSource(dataSource);
 		
-		SmsMessage message = new SmsMessage();
-		message.setType(Type.OUTBOUND);
+		Message message = new Message(Message.SMS_TYPE);
+		message.setFlow(Flow.OUTBOUND);
 		message.setSource("test");
 		message.setSourceType(SourceType.RECEIVER);
 		message.setStatus(Status.CREATED);
-		message.setFrom("1111");
-		message.setTo("2222");
-		message.setText("text");
+		message.setProperty("from", "1111");
+		message.setProperty("to", "2222");
+		message.setProperty("text", "text");
 		
 		messageStore.saveOrUpdate(message);
 		
 		Collection<Message> messages = messageStore.list(null);
 		Assert.assertEquals(1, messages.size());
 		
-		SmsMessage smsMessage = (SmsMessage) messages.iterator().next();
-		Assert.assertEquals(Type.OUTBOUND, smsMessage.getType());
+		Message smsMessage = (Message) messages.iterator().next();
+		Assert.assertEquals(Flow.OUTBOUND, smsMessage.getFlow());
 		Assert.assertEquals("test", smsMessage.getSource());
 		Assert.assertEquals(SourceType.RECEIVER, smsMessage.getSourceType());
 		Assert.assertEquals(Status.CREATED, smsMessage.getStatus());
-		Assert.assertEquals("1111", smsMessage.getFrom());
-		Assert.assertEquals("2222", smsMessage.getTo());
-		Assert.assertEquals("text", smsMessage.getText());
+		Assert.assertEquals("1111", smsMessage.getProperty("from", String.class));
+		Assert.assertEquals("2222", smsMessage.getProperty("to", String.class));
+		Assert.assertEquals("text", smsMessage.getProperty("text", String.class));
 			
 		
 	}

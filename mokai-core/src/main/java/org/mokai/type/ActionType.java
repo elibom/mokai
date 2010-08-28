@@ -24,20 +24,20 @@ public class ActionType implements Serializable {
 		this.actionClass = actionClass;
 	}
 
-	public String getName() {
+	public final String getName() {
 		return name;
 	}
 
-	public String getDescription() {
+	public final String getDescription() {
 		return description;
 	}
 
-	public Class<? extends Action> getActionClass() {
+	public final Class<? extends Action> getActionClass() {
 		return actionClass;
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public final boolean equals(Object obj) {
 		if (ActionType.class.isInstance(obj)) {
 			ActionType at = (ActionType) obj;
 			
@@ -48,7 +48,7 @@ public class ActionType implements Serializable {
 	}
 
 	@Override
-	public int hashCode() {
+	public final int hashCode() {
 		return actionClass.hashCode();
 	}
 	

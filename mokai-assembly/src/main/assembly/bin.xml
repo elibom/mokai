@@ -37,13 +37,14 @@
 			</includes>
 		</fileSet>
 		
-		<!-- <fileSet>
+		<fileSet>
 			<directory>../mokai-connectors/mokai-http/target</directory>
 			<outputDirectory>plugins</outputDirectory>
 			<includes>
 				<include>*.zip</include>
 			</includes>
-		</fileSet> -->
+		</fileSet>
+
 	</fileSets>
 	
 	<dependencySets>

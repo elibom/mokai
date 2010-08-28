@@ -3,10 +3,14 @@ package org.mokai.acceptor;
 import org.mokai.Acceptor;
 import org.mokai.ExposableConfiguration;
 import org.mokai.Message;
-import org.mokai.message.SmsMessage;
 import org.mokai.ui.annotation.Label;
 import org.mokai.ui.annotation.List;
 
+/**
+ * Acceptor that matches a {@link Message} property to a exact expression.
+ * 
+ * @author German Escobar
+ */
 public class ExactMatchAcceptor implements Acceptor, ExposableConfiguration<ExactMatchAcceptor> {
 
 	@Label("Field")
@@ -28,15 +32,10 @@ public class ExactMatchAcceptor implements Acceptor, ExposableConfiguration<Exac
 	@Override
 	public boolean accepts(Message message) {
 		
-		if (SmsMessage.class.isInstance(message)) {
-			SmsMessage smsMessage = (SmsMessage) message;
+		String value = message.getProperty(field, String.class);
 			
-			String to = smsMessage.getTo();
-			
-			if (to != null && to.equals(expression)) {
-				return true;
-			}
-			
+		if (value != null && value.equals(expression)) {
+			return true;
 		}
 		
 		return false;
@@ -47,19 +46,19 @@ public class ExactMatchAcceptor implements Acceptor, ExposableConfiguration<Exac
 		return this;
 	}
 
-	public String getField() {
+	public final String getField() {
 		return field;
 	}
 
-	public void setField(String field) {
+	public final void setField(String field) {
 		this.field = field;
 	}
 
-	public String getExpression() {
+	public final String getExpression() {
 		return expression;
 	}
 
-	public void setExpression(String expression) {
+	public final void setExpression(String expression) {
 		this.expression = expression;
 	}
 	

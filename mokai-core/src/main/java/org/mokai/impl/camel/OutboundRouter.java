@@ -6,11 +6,20 @@ import org.apache.camel.Exchange;
 import org.apache.camel.RecipientList;
 import org.mokai.Acceptor;
 import org.mokai.Message;
+import org.mokai.Processor;
 import org.mokai.ProcessorService;
 import org.mokai.RoutingEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * This class decides the {@link ProcessorService} that will handle a message using
+ * the {@link Processor#supports(Message)} method and the {@link Acceptors}s of 
+ * each {@link ProcessorService}. It is configured in the {@link CamelRoutingEngine}
+ * class.
+ * 
+ * @author German Escobar
+ */
 public class OutboundRouter {
 	
 	private Logger log = LoggerFactory.getLogger(OutboundRouter.class);
@@ -18,13 +27,13 @@ public class OutboundRouter {
 	private RoutingEngine routingContext;
 
 	@RecipientList
-	public String route(Exchange exchange) {
+	public final String route(Exchange exchange) {
 		Message message = exchange.getIn().getBody(Message.class);
 		
 		return route(message);
 	}
 	
-	public String route(Message message) {
+	private String route(Message message) {
 		// try to route the message
 		List<ProcessorService> processorServices = routingContext.getProcessors();
 		for (ProcessorService processorService : processorServices) {
@@ -55,7 +64,7 @@ public class OutboundRouter {
 		return "activemq:unroutablemessages";
 	}
 
-	public void setRoutingContext(RoutingEngine routingContext) {
+	public final void setRoutingContext(RoutingEngine routingContext) {
 		this.routingContext = routingContext;
 	}
 }

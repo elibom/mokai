@@ -21,6 +21,8 @@ import org.mokai.plugin.PluginException;
 import org.mokai.plugin.PluginMechanism;
 
 /**
+ * A Java Plugin Framework (JPF) implementation of the {@link PluginMechanism} 
+ * interface.
  * 
  * @author German Escobar
  */

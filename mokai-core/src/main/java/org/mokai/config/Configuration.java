@@ -1,6 +1,7 @@
 package org.mokai.config;
 
 /**
+ * Implemented by configuration classes that can load and save information.
  * 
  * @author German Escobar
  */

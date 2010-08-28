@@ -18,7 +18,6 @@ import org.mokai.Service;
 import org.mokai.Serviceable;
 import org.mokai.annotation.Resource;
 import org.mokai.impl.camel.CamelReceiverService;
-import org.mokai.message.SmsMessage;
 import org.testng.annotations.Test;
 
 /**
@@ -36,26 +35,26 @@ public class CamelReceiverServiceTest extends CamelBaseTest {
 		// expected results
 		MockEndpoint resultEndpoint = camelContext.getEndpoint("mock:validate", MockEndpoint.class);
 		resultEndpoint.expectedMessageCount(1);
-		resultEndpoint.message(0).body().isInstanceOf(SmsMessage.class);
+		resultEndpoint.message(0).body().isInstanceOf(Message.class);
 		
 		// create receiver
 		SimpleReceiver receiver = new SimpleReceiver();
 		new CamelReceiverService("test", receiver, camelContext);
 		
 		// send a message
-		receiver.receiveMessage(new SmsMessage());
+		receiver.receiveMessage(new Message());
 		
 		// validate results
 		resultEndpoint.assertIsSatisfied();
 		
 		Exchange exchange = resultEndpoint.getReceivedExchanges().iterator().next();
-		SmsMessage message = exchange.getIn().getBody(SmsMessage.class);
+		Message message = exchange.getIn().getBody(Message.class);
 		
 		Assert.assertNotNull(message.getReference());
 		Assert.assertEquals("test", message.getSource());
 		Assert.assertEquals(Message.SourceType.RECEIVER, message.getSourceType());
 		Assert.assertEquals(Message.ANONYMOUS_ACCOUNT_ID, message.getAccountId());
-		Assert.assertEquals(Message.Type.OUTBOUND, message.getType());
+		Assert.assertEquals(Message.Flow.OUTBOUND, message.getFlow());
 	}
 	
 	@Test
@@ -86,7 +85,7 @@ public class CamelReceiverServiceTest extends CamelBaseTest {
 		});
 		
 		// simulate we receive a message
-		receiver.receiveMessage(new SmsMessage());
+		receiver.receiveMessage(new Message());
 		
 		// validate results
 		resultEndpoint.assertIsSatisfied();
@@ -167,7 +166,7 @@ public class CamelReceiverServiceTest extends CamelBaseTest {
 		SimpleReceiver receiver = new SimpleReceiver();
 		CamelReceiverService receiverService = new CamelReceiverService("test", receiver, camelContext);
 		
-		SmsMessage message = new SmsMessage();
+		Message message = new Message();
 		
 		Action action = Mockito.mock(Action.class);
 		Mockito.doThrow(new NullPointerException()).when(action).execute(message);

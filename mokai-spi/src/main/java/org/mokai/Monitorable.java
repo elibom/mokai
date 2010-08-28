@@ -1,5 +1,11 @@
 package org.mokai;
 
+/**
+ * Implemented by types (receivers, processors, actions and acceptors) that can be 
+ * monitored for broken links.
+ * 
+ * @author German Escobar
+ */
 public interface Monitorable {
 
 	public enum Status {

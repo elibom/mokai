@@ -4,16 +4,27 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.XMLWriter;
+import org.mokai.ExecutionException;
 import org.mokai.Processor;
 import org.mokai.RoutingEngine;
 
-
+/**
+ * Utility class to handle XML common tasks used by the {@link ProcessorConfiguration}
+ * and {@link ReceiverConfiguration}.
+ * 
+ * @author German Escobar
+ */
 public class XmlUtils {
 
 	/**
@@ -23,7 +34,7 @@ public class XmlUtils {
 	 * @param value
 	 * @return
 	 */
-	public static <T> Object convert(Class<T> clazz, String value) {
+	public static <T> Object convert(Class<T> clazz, String value) throws Exception {
 		
 		if (Integer.class.equals(clazz) || int.class.equals(clazz)) {
 			return Integer.valueOf(value);
@@ -35,6 +46,24 @@ public class XmlUtils {
 			return Boolean.valueOf(value);
 		} else if (Byte.class.equals(clazz) || byte.class.equals(clazz)) {
 			return Byte.valueOf(value);
+		} else if (clazz.isEnum()) {
+			try {
+				
+				Method valueOfMethod = clazz.getMethod("convert", String.class);
+				if (!Modifier.isStatic(valueOfMethod.getModifiers())) {
+					throw new NoSuchMethodException("method convert must be declared static");
+				}
+				
+				Object ret = valueOfMethod.invoke(null, value);
+				return ret;
+				
+			} catch (InvocationTargetException e) {
+				if (e.getCause() != null && RuntimeException.class.isInstance(e.getCause())) {
+					throw (RuntimeException) e.getCause();
+				} else {
+					throw new ExecutionException(e);
+				}
+			}
 		}
 
 		return value;
@@ -91,35 +120,85 @@ public class XmlUtils {
 				if (obj != null) {
 					propertyElement.setText(field.get(configuration).toString());
 				} else {
-					// TODO add null element					
+					propertyElement.addElement("null");					
 				}
 			}
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
 	public static void setConfigurationField(Element element, Object configuration, RoutingEngine routingEngine) throws Exception {
-		String name = element.attributeValue("name");
 		
-		Field field = configuration.getClass().getDeclaredField(name);
-		
-		Object propertyValue = null;
-		if (element.isTextOnly()) {
-			String strValue = element.getText();
-			// TODO fix this when we have a null element
-			if (strValue != null && !"".equals(strValue)) {
-				propertyValue = XmlUtils.convert(field.getType(), strValue);
+		if (element.getName().equals("property")) {
+			
+			Field field = retrieveField(element, configuration);
+			
+			// check if we have a value attribute
+			String valueAttribute = element.attributeValue("value");
+			if (valueAttribute != null) {
+				setValue(field, configuration, XmlUtils.convert(field.getType(), valueAttribute));
+				return;
 			}
-		} else {
+			
+			// check if the value was set directly
+			if (element.isTextOnly()) {
+				String valueText = element.getText();
+				if (valueText != null) {
+					setValue(field, configuration, XmlUtils.convert(field.getType(), valueText));
+				}
+				return;
+			}
+			
+			// retrieve the child element 
 			Element elementValue = (Element) element.elementIterator().next();
+			if (elementValue.getName().equals("value")) {
+				
+				String valueText = element.getText();
+				if (valueText != null && !"".equals(valueText)) {
+					setValue(field, configuration, XmlUtils.convert(field.getType(), valueText));
+				}
+				
+			} else if (elementValue.getName().equals("null")) {
+				
+				setValue(field, configuration, null);
+				
+			}
 			
-			/*if (elementValue.getName().equals("connector")) {
-				String connectorId = elementValue.attributeValue("id");
-				propertyValue = routingContext.getConnector(connectorId);
-			}*/
+		} else if (element.getName().equals("mapProperty")) {
+			
+			Field field = retrieveField(element, configuration);
+			
+			if (!Map.class.isAssignableFrom(field.getType())) {
+				throw new IllegalArgumentException("field " + field.getName() + " is not a Map");
+			}
+			
+			Map<String,String> map = new HashMap<String,String>();
+			
+			Iterator iterator = element.elementIterator();
+			while (iterator.hasNext()) {
+				Element entry = (Element) iterator.next();
+				String entryKey = entry.attributeValue("key");
+				String entryValue = entry.attributeValue("value");
+				
+				map.put(entryKey, entryValue);
+			}
+			
+			setValue(field, configuration, map);
 		}
-			
+		
+	}
+	
+	private static Field retrieveField(Element element, Object object) throws Exception {
+		// retrieve the field
+		String nameAttribute = element.attributeValue("name");
+		Field field = object.getClass().getDeclaredField(nameAttribute);
+		
+		return field;
+	}
+	
+	private static void setValue(Field field, Object object, Object value) throws IllegalAccessException {
 		field.setAccessible(true);
-		field.set(configuration, propertyValue);
+		field.set(object, value);
 	}
 	
 	@SuppressWarnings("unchecked")

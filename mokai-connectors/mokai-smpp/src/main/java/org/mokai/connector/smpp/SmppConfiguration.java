@@ -4,6 +4,27 @@ import org.mokai.ui.annotation.Label;
 import org.mokai.ui.annotation.Required;
 
 public class SmppConfiguration {
+	
+	public enum BindType {
+		
+		TRANSMITTER, TRANSCIEVER, RECEIVER;
+		
+		public static BindType convert(String strValue) {
+			if (strValue == null) {
+				throw new IllegalArgumentException("value not provided");
+			}
+			
+			if (strValue.equals("t")) {
+				return TRANSMITTER;
+			} else if (strValue.equals("r")) {
+				return RECEIVER;
+			} else if (strValue.equals("tr")) {
+				return TRANSCIEVER;
+			}
+			
+			throw new IllegalArgumentException("value not supported");
+		}
+	}
 
 	@Required
 	@Label("Host")
@@ -29,7 +50,7 @@ public class SmppConfiguration {
 	private int enquireLinkTimer = 9000;
 	
 	@Label("Bind Type")
-	private String bindType= "tr";
+	private BindType bindType = BindType.TRANSCIEVER;
 	
 	@Label("Source NPI")
 	private String sourceNPI;
@@ -49,107 +70,107 @@ public class SmppConfiguration {
 	@Label("Reconnect Delay")
     private long reconnectDelay = 5000;
 	
-	public String getHost() {
+	public final String getHost() {
 		return host;
 	}
 
-	public void setHost(String host) {
+	public final void setHost(String host) {
 		this.host = host;
 	}
 
-	public int getPort() {
+	public final int getPort() {
 		return port;
 	}
 
-	public void setPort(int port) {
+	public final void setPort(int port) {
 		this.port = port;
 	}
 
-	public String getSystemId() {
+	public final String getSystemId() {
 		return systemId;
 	}
 
-	public void setSystemId(String user) {
+	public final void setSystemId(String user) {
 		this.systemId = user;
 	}
 
-	public String getPassword() {
+	public final String getPassword() {
 		return password;
 	}
 
-	public void setPassword(String password) {
+	public final void setPassword(String password) {
 		this.password = password;
 	}
 
-	public String getSystemType() {
+	public final String getSystemType() {
 		return systemType;
 	}
 
-	public void setSystemType(String systemType) {
+	public final void setSystemType(String systemType) {
 		this.systemType = systemType;
 	}
 
-	public int getEnquireLinkTimer() {
+	public final int getEnquireLinkTimer() {
 		return enquireLinkTimer;
 	}
 
-	public void setEnquireLinkTimer(int enquireLinkTimer) {
+	public final void setEnquireLinkTimer(int enquireLinkTimer) {
 		this.enquireLinkTimer = enquireLinkTimer;
 	}
 
-	public String getBindType() {
+	public final BindType getBindType() {
 		return bindType;
 	}
 
-	public void setBindType(String bindType) {
+	public final void setBindType(BindType bindType) {
 		this.bindType = bindType;
 	}
 
-	public String getSourceNPI() {
+	public final String getSourceNPI() {
 		return sourceNPI;
 	}
 
-	public void setSourceNPI(String sourceNPI) {
+	public final void setSourceNPI(String sourceNPI) {
 		this.sourceNPI = sourceNPI;
 	}
 
-	public String getSourceTON() {
+	public final String getSourceTON() {
 		return sourceTON;
 	}
 
-	public void setSourceTON(String sourceTON) {
+	public final void setSourceTON(String sourceTON) {
 		this.sourceTON = sourceTON;
 	}
 
-	public String getDestNPI() {
+	public final String getDestNPI() {
 		return destNPI;
 	}
 
-	public void setDestNPI(String destNPI) {
+	public final void setDestNPI(String destNPI) {
 		this.destNPI = destNPI;
 	}
 
-	public String getDestTON() {
+	public final String getDestTON() {
 		return destTON;
 	}
 
-	public void setDestTON(String destTON) {
+	public final void setDestTON(String destTON) {
 		this.destTON = destTON;
 	}
 
-	public long getInitialReconnectDelay() {
+	public final long getInitialReconnectDelay() {
 		return initialReconnectDelay;
 	}
 
-	public void setInitialReconnectDelay(long initialReconnectDelay) {
+	public final void setInitialReconnectDelay(long initialReconnectDelay) {
 		this.initialReconnectDelay = initialReconnectDelay;
 	}
 
-	public long getReconnectDelay() {
+	public final long getReconnectDelay() {
 		return reconnectDelay;
 	}
 
-	public void setReconnectDelay(long reconnectDelay) {
+	public final void setReconnectDelay(long reconnectDelay) {
 		this.reconnectDelay = reconnectDelay;
 	}
 	

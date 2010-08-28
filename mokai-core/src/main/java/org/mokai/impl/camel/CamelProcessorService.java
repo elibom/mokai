@@ -33,6 +33,11 @@ import org.mokai.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * {@link ProcessorService} implementation based on Apache Camel.
+ * 
+ * @author German Escobar
+ */
 public class CamelProcessorService implements ProcessorService {
 	
 	private Logger log = LoggerFactory.getLogger(CamelProcessorService.class);
@@ -154,28 +159,33 @@ public class CamelProcessorService implements ProcessorService {
 	}
 	
 	@Override
-	public String getId() {
+	public final String getId() {
 		return this.id;
 	}
 	
 	@Override
-	public int getPriority() {
+	public final int getPriority() {
 		return this.priority;
 	}
 
 	@Override
-	public Processor getProcessor() {
+	public void setPriority(int priority) {
+		this.priority = priority;
+	}
+
+	@Override
+	public final Processor getProcessor() {
 		return this.processor;
 	}
 	
 	@Override
-	public int getNumQueuedMessages() {
+	public final int getNumQueuedMessages() {
 		BrowsableEndpoint queueEndpoint = camelContext.getEndpoint("activemq:processor-" + id, BrowsableEndpoint.class);
 		return queueEndpoint.getExchanges().size();
 	}
 
 	@Override
-	public ProcessorService addAcceptor(Acceptor acceptor) throws IllegalArgumentException, 
+	public final ProcessorService addAcceptor(Acceptor acceptor) throws IllegalArgumentException, 
 			ObjectAlreadyExistsException {
 		
 		Validate.notNull(acceptor);
@@ -190,7 +200,7 @@ public class CamelProcessorService implements ProcessorService {
 	}
 	
 	@Override
-	public ProcessorService removeAcceptor(Acceptor acceptor) throws IllegalArgumentException, 
+	public final ProcessorService removeAcceptor(Acceptor acceptor) throws IllegalArgumentException, 
 			ObjectNotFoundException {
 		
 		Validate.notNull(acceptor);
@@ -204,12 +214,12 @@ public class CamelProcessorService implements ProcessorService {
 	}
 	
 	@Override
-	public List<Acceptor> getAcceptors() {
+	public final List<Acceptor> getAcceptors() {
 		return Collections.unmodifiableList(acceptors);
 	}
 	
 	@Override
-	public ProcessorService addPreProcessingAction(Action action) throws IllegalArgumentException, 
+	public final ProcessorService addPreProcessingAction(Action action) throws IllegalArgumentException, 
 			ObjectAlreadyExistsException {
 		
 		Validate.notNull(action);
@@ -224,7 +234,7 @@ public class CamelProcessorService implements ProcessorService {
 	}
 	
 	@Override
-	public ProcessorService removePreProcessingAction(Action action) throws IllegalArgumentException, 
+	public final ProcessorService removePreProcessingAction(Action action) throws IllegalArgumentException, 
 			ObjectNotFoundException {
 		
 		Validate.notNull(action);
@@ -238,12 +248,12 @@ public class CamelProcessorService implements ProcessorService {
 	}
 	
 	@Override
-	public List<Action> getPreProcessingActions() {
+	public final List<Action> getPreProcessingActions() {
 		return Collections.unmodifiableList(preProcessingActions);
 	}
 
 	@Override
-	public ProcessorService addPostProcessingAction(Action action) throws IllegalArgumentException, 
+	public final ProcessorService addPostProcessingAction(Action action) throws IllegalArgumentException, 
 			ObjectAlreadyExistsException {
 		
 		Validate.notNull(action);
@@ -258,7 +268,7 @@ public class CamelProcessorService implements ProcessorService {
 	}
 	
 	@Override
-	public ProcessorService removePostProcessingAction(Action action) throws IllegalArgumentException,
+	public final ProcessorService removePostProcessingAction(Action action) throws IllegalArgumentException,
 			ObjectNotFoundException {
 		
 		Validate.notNull(action);
@@ -272,12 +282,12 @@ public class CamelProcessorService implements ProcessorService {
 	}
 	
 	@Override
-	public List<Action> getPostProcessingActions() {
+	public final List<Action> getPostProcessingActions() {
 		return Collections.unmodifiableList(postProcessingActions);
 	}
 
 	@Override
-	public ProcessorService addPostReceivingAction(Action action) throws IllegalArgumentException, 
+	public final ProcessorService addPostReceivingAction(Action action) throws IllegalArgumentException, 
 			ObjectAlreadyExistsException {
 		
 		Validate.notNull(action);
@@ -292,7 +302,7 @@ public class CamelProcessorService implements ProcessorService {
 	}
 	
 	@Override
-	public ProcessorService removePostReceivingAction(Action action) throws IllegalArgumentException, 
+	public final ProcessorService removePostReceivingAction(Action action) throws IllegalArgumentException, 
 			ObjectNotFoundException {
 		
 		Validate.notNull(action);
@@ -306,17 +316,17 @@ public class CamelProcessorService implements ProcessorService {
 	}
 
 	@Override
-	public List<Action> getPostReceivingActions() {
+	public final List<Action> getPostReceivingActions() {
 		return Collections.unmodifiableList(postReceivingActions);
 	}
 
 	@Override
-	public State getState() {
+	public final State getState() {
 		return state;
 	}
 
 	@Override
-	public Status getProcessorStatus() {
+	public final Status getStatus() {
 		
 		Status retStatus = status; // the status we are returning
 		
@@ -340,7 +350,7 @@ public class CamelProcessorService implements ProcessorService {
 	}
 
 	@Override
-	public void start() throws ExecutionException {
+	public final void start() throws ExecutionException {
 		
 		if (!state.isStartable()) {
 			log.warn("Processor " + id + " is already started, ignoring call");
@@ -441,7 +451,7 @@ public class CamelProcessorService implements ProcessorService {
 	}
 
 	@Override
-	public void stop() {
+	public final void stop() {
 		try {
 			if (!state.isStoppable()) {
 				log.warn("Processor " + id + " is already stopped, ignoring call");
@@ -466,7 +476,7 @@ public class CamelProcessorService implements ProcessorService {
 	}
 	
 	@Override
-	public void destroy() {
+	public final void destroy() {
 		try {
 			
 			stop();
@@ -489,7 +499,7 @@ public class CamelProcessorService implements ProcessorService {
 		return "direct:processor-" + id;
 	}
 	
-	public void setRedeliveryPolicy(RedeliveryPolicy redeliveryPolicy) {
+	public final void setRedeliveryPolicy(RedeliveryPolicy redeliveryPolicy) {
 		this.redeliveryPolicy = redeliveryPolicy;
 	}
 	
@@ -497,8 +507,6 @@ public class CamelProcessorService implements ProcessorService {
 	public String toString() {
 		return id;
 	}
-
-
 
 	private class ConnectorProcessor implements org.apache.camel.Processor {
 		
@@ -589,7 +597,7 @@ public class CamelProcessorService implements ProcessorService {
 			
 			message.setSource(id);
 			message.setSourceType(Message.SourceType.PROCESSOR);
-			message.setType(Message.Type.INBOUND);
+			message.setFlow(Message.Flow.INBOUND);
 		}
 		
 	}

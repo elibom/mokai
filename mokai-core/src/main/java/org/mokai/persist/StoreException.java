@@ -1,5 +1,10 @@
 package org.mokai.persist;
 
+/**
+ * 
+ *  
+ * @author German Escobar
+ */
 public class StoreException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;

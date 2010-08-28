@@ -1,5 +1,7 @@
 package org.mokai.connector.camel.jetty;
 
+import java.util.Map;
+
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
@@ -7,10 +9,10 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.impl.DefaultCamelContext;
 import org.mokai.Configurable;
 import org.mokai.ExposableConfiguration;
+import org.mokai.Message;
 import org.mokai.MessageProducer;
 import org.mokai.Receiver;
 import org.mokai.annotation.Resource;
-import org.mokai.message.SmsMessage;
 
 /**
  * 
@@ -35,7 +37,7 @@ public class JettyConnector implements Receiver, Configurable,
 	}
 	
 	@Override
-	public void configure() throws Exception {
+	public final void configure() throws Exception {
 		camelContext = new DefaultCamelContext();
 		
 		final String uri = "jetty:http://0.0.0.0:" + getConfiguration().getPort() 
@@ -50,23 +52,29 @@ public class JettyConnector implements Receiver, Configurable,
 
 					@Override
 					public void process(Exchange exchange) throws Exception {
-						String to = (String) exchange.getIn().getHeader("to");
-						String from = (String) exchange.getIn().getHeader("from");
-						String message = (String) exchange.getIn().getHeader("message");
-						String accountId = (String) exchange.getIn().getHeader("account");
-						String password = (String) exchange.getIn().getHeader("password");
-							
-						SmsMessage sms = new SmsMessage();
-						sms.setTo(to);
-						sms.setFrom(from);
-						sms.setText(message);
-							
-						if (accountId != null) {
-							sms.setAccountId(accountId);
-							sms.setPassword(password);
+						String type = (String) exchange.getIn().getHeader("type");
+						if (type == null) {
+							type = Message.SMS_TYPE;
 						}
-							
-						messageProducer.produce(sms);
+						
+						Message message = new Message(type);
+						
+						for (Map.Entry<String, Object> entry : exchange.getIn().getHeaders().entrySet()) {
+							if (!entry.getKey().equals("type")) {
+								
+								// by default set the key to the header value 
+								String key = entry.getKey();
+								
+								// check if there is a mapping for the key
+								if (configuration.getMapper().containsKey(key)) {
+									key = configuration.getMapper().get(key);
+								}
+								
+								message.setProperty(key, entry.getValue());
+							}
+						}
+						
+						messageProducer.produce(message);
 					}
 						
 				});
@@ -81,7 +89,7 @@ public class JettyConnector implements Receiver, Configurable,
 
 
 	@Override
-	public void destroy() throws Exception {
+	public final void destroy() throws Exception {
 		try {
 			camelContext.stop();
 		} catch (Exception e) {
@@ -90,7 +98,7 @@ public class JettyConnector implements Receiver, Configurable,
 	}
 
 	@Override
-	public JettyConfiguration getConfiguration() {
+	public final JettyConfiguration getConfiguration() {
 		return configuration;
 	}
 

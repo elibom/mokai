@@ -16,6 +16,11 @@ import org.mokai.ui.field.SelectConnectorsField;
 import org.mokai.ui.field.SelectValuesField;
 import org.mokai.ui.field.TextField;
 
+/**
+ * Helper class for creating fields from a class using the annotations.
+ * 
+ * @author German Escobar
+ */
 public class InputFields {
 	
 	private Map<Class<?>,List<InputField>> inputFields = new HashMap<Class<?>,List<InputField>>();

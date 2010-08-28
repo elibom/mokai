@@ -21,6 +21,12 @@ import org.mokai.config.Configuration;
 import org.mokai.config.ConfigurationException;
 import org.mokai.plugin.PluginMechanism;
 
+/**
+ * Loads and saves {@link ProcessorService}s information to and from an 
+ * XML file.
+ * 
+ * @author German Escobar
+ */
 public class ProcessorConfiguration implements Configuration {
 	
 	private String path = "data/processors.xml";
@@ -30,7 +36,7 @@ public class ProcessorConfiguration implements Configuration {
 	private PluginMechanism pluginMechanism;
 
 	@Override
-	public void load() {
+	public final void load() {
 		// search from file
 		InputStream inputStream = searchFromFile(path);
 
@@ -55,7 +61,7 @@ public class ProcessorConfiguration implements Configuration {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public void load(InputStream inputStream) throws Exception {
+	public final void load(InputStream inputStream) throws Exception {
 		// create the document
 		SAXReader reader = new SAXReader();
 		Document document = reader.read(inputStream);
@@ -206,7 +212,7 @@ public class ProcessorConfiguration implements Configuration {
 	
 
 	@Override
-	public void save() {
+	public final void save() {
 		try {
 			
 	        Document document = createProcessorsDocument();
@@ -217,7 +223,7 @@ public class ProcessorConfiguration implements Configuration {
 		}
 	}
 	
-	public Document createProcessorsDocument() throws Exception {
+	public final Document createProcessorsDocument() throws Exception {
 		// retrieve processors
 		List<ProcessorService> processors = routingEngine.getProcessors();
 		
@@ -290,15 +296,15 @@ public class ProcessorConfiguration implements Configuration {
     	}
 	}
 
-	public void setPath(String path) {
+	public final void setPath(String path) {
 		this.path = path;
 	}
 
-	public void setRoutingEngine(RoutingEngine routingEngine) {
+	public final void setRoutingEngine(RoutingEngine routingEngine) {
 		this.routingEngine = routingEngine;
 	}
 
-	public void setPluginMechanism(PluginMechanism pluginMechanism) {
+	public final void setPluginMechanism(PluginMechanism pluginMechanism) {
 		this.pluginMechanism = pluginMechanism;
 	}
 	

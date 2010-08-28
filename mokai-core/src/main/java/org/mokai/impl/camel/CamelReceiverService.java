@@ -24,12 +24,17 @@ import org.mokai.ObjectNotFoundException;
 import org.mokai.Receiver;
 import org.mokai.ReceiverService;
 import org.mokai.Serviceable;
+import org.mokai.Message.Flow;
 import org.mokai.Message.SourceType;
-import org.mokai.Message.Type;
 import org.mokai.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * {@link ReceiverService} implementation based on Apache Camel.
+ * 
+ * @author German Escobar
+ */
 public class CamelReceiverService implements ReceiverService {
 	
 	private Logger log = LoggerFactory.getLogger(CamelReceiverService.class);
@@ -142,12 +147,12 @@ public class CamelReceiverService implements ReceiverService {
 	}
 	
 	@Override
-	public String getId() {
+	public final String getId() {
 		return this.id;
 	}
 	
 	@Override
-	public Receiver getReceiver() {
+	public final Receiver getReceiver() {
 		return this.receiver;
 	}
 
@@ -160,7 +165,7 @@ public class CamelReceiverService implements ReceiverService {
 	}
 
 	@Override
-	public ReceiverService addPostReceivingAction(Action action) throws IllegalArgumentException, 
+	public final ReceiverService addPostReceivingAction(Action action) throws IllegalArgumentException, 
 			ObjectAlreadyExistsException {
 		
 		Validate.notNull(action);
@@ -175,7 +180,7 @@ public class CamelReceiverService implements ReceiverService {
 	}
 	
 	@Override
-	public ReceiverService removePostReceivingAction(Action action) throws IllegalArgumentException, 
+	public final ReceiverService removePostReceivingAction(Action action) throws IllegalArgumentException, 
 			ObjectNotFoundException {
 		
 		Validate.notNull(action);
@@ -189,13 +194,13 @@ public class CamelReceiverService implements ReceiverService {
 	}
 
 	@Override
-	public List<Action> getPostReceivingActions() {
+	public final List<Action> getPostReceivingActions() {
 		return Collections.unmodifiableList(postReceivingActions);
 	}
 
 
 	@Override
-	public State getState() {
+	public final State getState() {
 		return this.state;
 	}
 
@@ -203,7 +208,7 @@ public class CamelReceiverService implements ReceiverService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void start() throws ExecutionException {
+	public final void start() throws ExecutionException {
 		
 		try {
 			
@@ -229,7 +234,7 @@ public class CamelReceiverService implements ReceiverService {
 	}
 
 	@Override
-	public void stop() throws ExecutionException {
+	public final void stop() throws ExecutionException {
 		try {
 			
 			if (!state.isStoppable()) {
@@ -252,7 +257,7 @@ public class CamelReceiverService implements ReceiverService {
 	}
 	
 	@Override
-	public void destroy() {
+	public final void destroy() {
 		try {
 			
 			stop();
@@ -284,7 +289,7 @@ public class CamelReceiverService implements ReceiverService {
 			
 			message.setSourceType(SourceType.RECEIVER);
 			message.setSource(id);
-			message.setType(Type.OUTBOUND);
+			message.setFlow(Flow.OUTBOUND);
 		}
 		
 	}

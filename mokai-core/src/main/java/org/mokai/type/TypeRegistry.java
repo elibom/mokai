@@ -8,7 +8,7 @@ import org.mokai.Processor;
 import org.mokai.Receiver;
 
 /**
- * Mantains a 
+ * Mantains a cached registry of the different types.
  * 
  * @author German Escobar
  */

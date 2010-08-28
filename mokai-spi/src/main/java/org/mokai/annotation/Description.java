@@ -8,6 +8,12 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+/**
+ * Allows a type (receiver, processor, action or acceptor) to have a description
+ * that can be retrieved on runtime. Useful for showing information in GUI's.
+ * 
+ * @author German Escobar
+ */
 @Documented
 @Retention(value=RUNTIME)
 @Target(value=TYPE)

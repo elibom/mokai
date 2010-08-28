@@ -15,16 +15,16 @@ public class SelectValuesField<T> extends InputField {
 		super(name, label);
 	}
 
-	public T[] getItems() {
+	public final T[] getItems() {
 		return items;
 	}
 
-	public void setItems(T[] items) {
+	public final void setItems(T[] items) {
 		this.items = items;
 	}
 
 	@Override
-	public String getType() {
+	public final String getType() {
 		return TYPE;
 	}
 }

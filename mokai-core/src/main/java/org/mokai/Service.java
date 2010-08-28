@@ -3,6 +3,7 @@ package org.mokai;
 import org.mokai.ExecutionException;
 
 /**
+ * Implemented by classes that can be started, stopped and return state.
  * 
  * @author German Escobar
  */

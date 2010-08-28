@@ -19,10 +19,9 @@ import javax.sql.DataSource;
 import org.mokai.Message;
 import org.mokai.ObjectNotFoundException;
 import org.mokai.Message.DestinationType;
+import org.mokai.Message.Flow;
 import org.mokai.Message.SourceType;
 import org.mokai.Message.Status;
-import org.mokai.Message.Type;
-import org.mokai.message.SmsMessage;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.MessageStore;
 import org.mokai.persist.StoreException;
@@ -30,30 +29,35 @@ import org.mokai.persist.MessageCriteria.OrderType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class JdbcMessageStore implements MessageStore {
+/**
+ * An implementation of a {@link MessageStore} used to persist SMS messages in 
+ * a relational database.
+ * 
+ * @author German Escobar
+ */
+public class JdbcSmsMessageStore implements MessageStore {
 	
-	private Logger log = LoggerFactory.getLogger(JdbcMessageStore.class);
+	private Logger log = LoggerFactory.getLogger(JdbcSmsMessageStore.class);
 	
 	protected DataSource dataSource;
 
 	@Override
-	public void saveOrUpdate(Message message) throws StoreException {
+	public final void saveOrUpdate(Message message) throws StoreException {
 
 		// only save sms messages
-		if (!SmsMessage.class.isInstance(message)) {
+		if (!message.isType(Message.SMS_TYPE)) {
 			return;
 		}
-		
-		SmsMessage smsMessage = (SmsMessage) message;
-		if (smsMessage.getId() == Message.NOT_PERSISTED) {
-			save(smsMessage);
+
+		if (message.getId() == Message.NOT_PERSISTED) {
+			save(message);
 		} else {
-			update(smsMessage);
+			update(message);
 		}
 		
 	}
 	
-	private void save(SmsMessage smsMessage) throws StoreException {
+	private void save(Message smsMessage) throws StoreException {
 		Connection conn = null;
 		PreparedStatement stmt = null;
 		ResultSet rsKeys = null;
@@ -85,11 +89,11 @@ public class JdbcMessageStore implements MessageStore {
 		}
 	}
 	
-	protected PreparedStatement generateSaveStatement(Connection conn, SmsMessage smsMessage) throws SQLException {
+	protected PreparedStatement generateSaveStatement(Connection conn, Message smsMessage) throws SQLException {
 		String strSQL = "INSERT INTO message (" +
 				"account_message, " +
 				"reference_message, " +
-				"type_message, " +
+				"flow_message, " +
 				"source_message, " +
 				"sourcetype_message, " +
 				"destination_message, " +
@@ -107,24 +111,28 @@ public class JdbcMessageStore implements MessageStore {
 		
 		stmt.setString(1, smsMessage.getAccountId());
 		stmt.setString(2, smsMessage.getReference());
-		stmt.setByte(3, smsMessage.getType().value());
+		stmt.setByte(3, smsMessage.getFlow().value());
 		stmt.setString(4, smsMessage.getSource());
 		stmt.setByte(5, smsMessage.getSourceType().value());
 		stmt.setString(6, smsMessage.getDestination());
 		stmt.setByte(7, smsMessage.getDestinationType().value());
 		stmt.setByte(8, smsMessage.getStatus().value());
 		
-		stmt.setString(9, smsMessage.getTo());
-		stmt.setString(10, smsMessage.getFrom());
-		stmt.setString(11, smsMessage.getText());
-		stmt.setString(12, smsMessage.getMessageId());
-		stmt.setInt(13, smsMessage.getCommandStatus());
+		stmt.setString(9, smsMessage.getProperty("to", String.class));
+		stmt.setString(10, smsMessage.getProperty("from", String.class));
+		stmt.setString(11, smsMessage.getProperty("text", String.class));
+		stmt.setString(12, smsMessage.getProperty("messageId", String.class));
+		if (smsMessage.getProperty("commandStatus", Integer.class) != null) { 
+			stmt.setInt(13, smsMessage.getProperty("commandStatus", Integer.class));
+		} else {
+			stmt.setInt(13, 0);
+		}
 		stmt.setTimestamp(14, new Timestamp(smsMessage.getCreationTime().getTime()));
 		
 		return stmt;
 	}
 	
-	private void update(SmsMessage smsMessage) throws StoreException {
+	private void update(Message smsMessage) throws StoreException {
 		Connection conn = null;
 		PreparedStatement stmt = null;
 		
@@ -148,7 +156,7 @@ public class JdbcMessageStore implements MessageStore {
 	}
 
 	@Override
-	public Collection<Message> list(MessageCriteria criteria) throws StoreException {
+	public final Collection<Message> list(MessageCriteria criteria) throws StoreException {
 		
 		List<Message> messages = new ArrayList<Message>();
 		
@@ -221,22 +229,22 @@ public class JdbcMessageStore implements MessageStore {
 			
 			rs = stmt.executeQuery();
 			while (rs.next()) {
-				SmsMessage message = new SmsMessage();
+				Message message = new Message(Message.SMS_TYPE);
 				message.setId(rs.getLong("id_message"));
 				message.setAccountId(rs.getString("account_message"));
 				message.setReference(rs.getString("reference_message"));
-				message.setType(Type.getType(rs.getByte("type_message")));
+				message.setFlow(Flow.getFlow(rs.getByte("flow_message")));
 				message.setSource(rs.getString("source_message"));
 				message.setSourceType(SourceType.getSourceType(rs.getByte("sourcetype_message")));
 				message.setDestination(rs.getString("destination_message"));
 				message.setDestinationType(DestinationType.getDestinationType(rs.getByte("destinationtype_message")));
 				message.setStatus(Status.getSatus(rs.getByte("status_message")));
 				
-				message.setTo(rs.getString("to_message"));
-				message.setFrom(rs.getString("from_message"));
-				message.setText(rs.getString("text_message"));
-				message.setMessageId(rs.getString("messageid_message"));
-				message.setCommandStatus(rs.getInt("commandstatus_message"));
+				message.setProperty("to", rs.getString("to_message"));
+				message.setProperty("from", rs.getString("from_message"));
+				message.setProperty("text", rs.getString("text_message"));
+				message.setProperty("messageId", rs.getString("messageid_message"));
+				message.setProperty("commandStatus", rs.getInt("commandstatus_message"));
 				
 				message.setCreationTime(rs.getTimestamp("creation_time"));
 				
@@ -263,7 +271,7 @@ public class JdbcMessageStore implements MessageStore {
 		return messages;
 	}
 	
-	public String addOperator(boolean existsCriteria) {
+	private String addOperator(boolean existsCriteria) {
 		String ret = "";
 		if (!existsCriteria) {
 			ret = " WHERE";
@@ -274,7 +282,7 @@ public class JdbcMessageStore implements MessageStore {
 		return ret;
 	}
 
-	public void setDataSource(DataSource dataSource) {
+	public final void setDataSource(DataSource dataSource) {
 		this.dataSource = dataSource;
 	}	
 	

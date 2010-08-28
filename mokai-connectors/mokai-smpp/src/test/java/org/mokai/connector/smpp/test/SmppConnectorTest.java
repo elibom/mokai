@@ -12,7 +12,6 @@ import org.mokai.Monitorable.Status;
 import org.mokai.annotation.Resource;
 import org.mokai.connector.smpp.SmppConfiguration;
 import org.mokai.connector.smpp.SmppConnector;
-import org.mokai.message.SmsMessage;
 import org.smpp.smscsim.Simulator;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -75,10 +74,10 @@ public class SmppConnectorTest {
 		connector.doStart();
 		waitUntilStatus(connector, DEFAULT_TIMEOUT, Status.OK);
 		
-		SmsMessage message = new SmsMessage();
-		message.setTo("3002175604");
-		message.setFrom("3542");
-		message.setText("This is the test");
+		Message message = new Message();
+		message.setProperty("to", "3002175604");
+		message.setProperty("from", "3542");
+		message.setProperty("text", "This is the test");
 		
 		connector.process(message);
 		
@@ -130,10 +129,10 @@ public class SmppConnectorTest {
 			Assert.fail("the message was not received");
 		}
 		
-		SmsMessage message = (SmsMessage) messageProducer.getMessage(0);
-		Assert.assertEquals(to, message.getTo());
-		Assert.assertEquals(from, message.getFrom());
-		Assert.assertEquals(text, message.getText());
+		Message message = (Message) messageProducer.getMessage(0);
+		Assert.assertEquals(to, message.getProperty("to", String.class));
+		Assert.assertEquals(from, message.getProperty("from", String.class));
+		Assert.assertEquals(text, message.getProperty("text", String.class));
 		
 		connector.doStop();
 	}

@@ -16,6 +16,9 @@
 		
 		<acceptors>
 			<acceptor className="org.mokai.types.mock.MockAcceptor" />
+			<acceptor className="org.mokai.types.mock.MockAcceptorWithEnum">
+				<property name="mockEnum" value="first" />
+			</acceptor>
 		</acceptors>
 		
 		<pre-processing-actions>

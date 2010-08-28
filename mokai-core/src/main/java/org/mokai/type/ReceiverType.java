@@ -24,20 +24,20 @@ public class ReceiverType implements Serializable {
 		this.receiverClass = receiverClass;
 	}
 
-	public String getName() {
+	public final String getName() {
 		return name;
 	}
 
-	public String getDescription() {
+	public final String getDescription() {
 		return description;
 	}
 
-	public Class<? extends Receiver> getReceiverClass() {
+	public final Class<? extends Receiver> getReceiverClass() {
 		return receiverClass;
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public final boolean equals(Object obj) {
 		if (ReceiverType.class.isInstance(obj)) {
 			ReceiverType rt = (ReceiverType) obj;
 			
@@ -48,7 +48,7 @@ public class ReceiverType implements Serializable {
 	}
 
 	@Override
-	public int hashCode() {
+	public final int hashCode() {
 		return receiverClass.hashCode();
 	}
 	

@@ -9,7 +9,6 @@
 		<version>0.1.0-SNAPSHOT</version>
 	</parent>
 	
-	<groupId>org.mokai</groupId>
 	<artifactId>mokai-smpp</artifactId>
 	
 	<name>Mokai SMPP Connector</name>

@@ -20,7 +20,12 @@ import org.mokai.config.Configuration;
 import org.mokai.config.ConfigurationException;
 import org.mokai.plugin.PluginMechanism;
 
-
+/**
+ * Loads and saves {@link ReceiverService}s information to and from an 
+ * XML file.
+ * 
+ * @author German Escobar
+ */
 public class ReceiverConfiguration implements Configuration {
 	
 	private String path = "data/receivers.xml";
@@ -30,7 +35,7 @@ public class ReceiverConfiguration implements Configuration {
 	private PluginMechanism pluginMechanism;
 
 	@Override
-	public void load() throws ConfigurationException {
+	public final void load() throws ConfigurationException {
 		// search from file
 		InputStream inputStream = searchFromFile(path);
 
@@ -60,7 +65,7 @@ public class ReceiverConfiguration implements Configuration {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public void load(InputStream inputStream) throws Exception {
+	public final void load(InputStream inputStream) throws Exception {
 			
 		// create the document
 		SAXReader reader = new SAXReader();
@@ -150,7 +155,7 @@ public class ReceiverConfiguration implements Configuration {
 	}
 
 	@Override
-	public void save() {
+	public final void save() {
 		
 		try {
 			
@@ -162,7 +167,7 @@ public class ReceiverConfiguration implements Configuration {
 		}
 	}
 	
-	public Document createReceiversDocument() throws Exception {
+	public final Document createReceiversDocument() throws Exception {
 		// retrieve receivers
 		Collection<ReceiverService> receivers = routingEngine.getReceivers();
 		
@@ -207,15 +212,15 @@ public class ReceiverConfiguration implements Configuration {
         return document;
 	}
 
-	public void setPath(String path) {
+	public final void setPath(String path) {
 		this.path = path;
 	}
 
-	public void setRoutingEngine(RoutingEngine routingEngine) {
+	public final void setRoutingEngine(RoutingEngine routingEngine) {
 		this.routingEngine = routingEngine;
 	}
 
-	public void setPluginMechanism(PluginMechanism pluginMechanism) {
+	public final void setPluginMechanism(PluginMechanism pluginMechanism) {
 		this.pluginMechanism = pluginMechanism;
 	}
 

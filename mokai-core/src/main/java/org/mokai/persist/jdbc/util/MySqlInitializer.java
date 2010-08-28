@@ -8,7 +8,7 @@ public class MySqlInitializer extends DBInitializer {
 			"id_message BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY, " +
 			"account_message VARCHAR(30), " +
 			"reference_message VARCHAR(100), " +
-			"type_message TINYINT NOT NULL, " +
+			"flow_message TINYINT NOT NULL, " +
 			"source_message VARCHAR(30) NOT NULL, " +
 			"sourcetype_message TINYINT NOT NULL, " +
 			"destination_message VARCHAR(30), " +

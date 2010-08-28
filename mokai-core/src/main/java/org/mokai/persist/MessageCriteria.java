@@ -6,6 +6,12 @@ import java.util.List;
 
 import org.mokai.Message.Status;
 
+/**
+ * Class used to filter messages from the {@link MessageStore}.
+ * @see MessageStore#list(MessageCriteria)
+ * 
+ * @author German Escobar
+ */
 public class MessageCriteria implements Serializable {
 	
 	/**
@@ -20,94 +26,94 @@ public class MessageCriteria implements Serializable {
 	/**
 	 * The lower limit of records to be retrieved.
 	 */
-	protected int firstRecord;
+	private int firstRecord;
 	
 	/**
 	 * The number of records to be retrieved.
 	 */
-	protected int numRecords;
+	private int numRecords;
 	
 	/**
 	 * The column by which the query should be ordered.
 	 */
-	protected String orderBy;
+	private String orderBy;
 	
 	/**
 	 * If it should be ordered upwards or downwards.
 	 */
-	protected OrderType orderType = OrderType.UPWARDS;
+	private OrderType orderType = OrderType.UPWARDS;
 	
-	protected List<Status> status;
+	private List<Status> status;
 	
 	public MessageCriteria() {
 		this.status = new ArrayList<Status>();
 	}
 
-	public int getFirstRecord() {
+	public final int getFirstRecord() {
 		return firstRecord;
 	}
 
-	public void setFirstRecord(int firstRecord) {
+	public final void setFirstRecord(int firstRecord) {
 		this.firstRecord = firstRecord;
 	}
 	
-	public MessageCriteria firstRecord(int firstRecord) {
+	public final MessageCriteria firstRecord(int firstRecord) {
 		setFirstRecord(firstRecord);
 		
 		return this;
 	}
 
-	public int getNumRecords() {
+	public final int getNumRecords() {
 		return numRecords;
 	}
 
-	public void setNumRecords(int numRecords) {
+	public final void setNumRecords(int numRecords) {
 		this.numRecords = numRecords;
 	}
 	
-	public MessageCriteria numRecords(int numRecords) {
+	public final MessageCriteria numRecords(int numRecords) {
 		setNumRecords(numRecords);
 		
 		return this;
 	}
 
-	public String getOrderBy() {
+	public final String getOrderBy() {
 		return orderBy;
 	}
 
-	public void setOrderBy(String orderBy) {
+	public final void setOrderBy(String orderBy) {
 		this.orderBy = orderBy;
 	}
 	
-	public MessageCriteria orderBy(String orderBy) {
+	public final MessageCriteria orderBy(String orderBy) {
 		setOrderBy(orderBy);
 		
 		return this;
 	}
 
-	public OrderType getOrderType() {
+	public final OrderType getOrderType() {
 		return orderType;
 	}
 
-	public void setOrderType(OrderType orderType) {
+	public final void setOrderType(OrderType orderType) {
 		this.orderType = orderType;
 	}
 	
-	public MessageCriteria orderType(OrderType orderType) {
+	public final MessageCriteria orderType(OrderType orderType) {
 		setOrderType(orderType);
 		
 		return this;
 	}
 
-	public List<Status> getStatus() {
+	public final List<Status> getStatus() {
 		return status;
 	}
 
-	public void setStatus(List<Status> status) {
+	public final void setStatus(List<Status> status) {
 		this.status = status;
 	}
 	
-	public MessageCriteria addStatus(Status status) {
+	public final MessageCriteria addStatus(Status status) {
 		this.status.add(status);
 		
 		return this;

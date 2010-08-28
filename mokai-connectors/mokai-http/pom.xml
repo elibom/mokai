@@ -1,0 +1,71 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	
+	<parent>
+		<artifactId>mokai-connectors</artifactId>
+		<groupId>org.mokai</groupId>
+		<version>0.1.0-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>mokai-http</artifactId>
+
+	<name>Mokai Http Connector</name>
+	<description>Mokai Http Connector Module</description>
+	
+	<dependencies>
+		<dependency>
+			<groupId>org.mokai</groupId>
+			<artifactId>mokai-spi</artifactId>
+			<version>${project.version}</version>
+			<scope>provided</scope>
+		</dependency>
+	
+		<dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.0.1</version>
+        </dependency>
+        
+        <dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<version>${testng.version}</version>
+			<scope>test</scope>
+		</dependency>
+        
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.0.1</version>
+            <classifier>tests</classifier>
+            <scope>test</scope>
+        </dependency>
+	</dependencies>
+	
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.2-beta-5</version>
+				<configuration>
+					<descriptors>
+						<descriptor>src/main/assembly/bin.xml</descriptor>
+					</descriptors>
+					<finalName>org.mokai.http-${project.version}</finalName>
+      				<appendAssemblyId>false</appendAssemblyId>
+				</configuration>
+				<executions>
+					<execution>
+						<id>make-assembly</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+	
+</project>

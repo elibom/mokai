@@ -6,10 +6,14 @@ import java.util.regex.Pattern;
 import org.mokai.Acceptor;
 import org.mokai.ExposableConfiguration;
 import org.mokai.Message;
-import org.mokai.message.SmsMessage;
 import org.mokai.ui.annotation.Label;
 import org.mokai.ui.annotation.List;
 
+/**
+ * Acceptor that matches a {@link Message} property to a regular expression.
+ * 
+ * @author German Escobar
+ */
 public class RegExpAcceptor implements Acceptor, ExposableConfiguration<RegExpAcceptor> {
 	
 	@Label("Field")
@@ -29,18 +33,15 @@ public class RegExpAcceptor implements Acceptor, ExposableConfiguration<RegExpAc
 
 	@Override
 	public boolean accepts(Message message) {
-		if (SmsMessage.class.isInstance(message)) {
-			SmsMessage smsMessage = (SmsMessage) message;
 			
-			String to = smsMessage.getTo();
+		String value = message.getProperty(field, String.class);
 			
-			if (to != null) {
-				Pattern pattern = Pattern.compile(regexp);
-				Matcher matcher = pattern.matcher(to);
+		if (value != null) {
+			Pattern pattern = Pattern.compile(regexp);
+			Matcher matcher = pattern.matcher(value);
 				
-				if (matcher.matches()) {
-					return true;
-				}
+			if (matcher.matches()) {
+				return true;
 			}
 		}
 		
@@ -52,19 +53,19 @@ public class RegExpAcceptor implements Acceptor, ExposableConfiguration<RegExpAc
 		return this;
 	}
 
-	public String getField() {
+	public final String getField() {
 		return field;
 	}
 
-	public void setField(String field) {
+	public final void setField(String field) {
 		this.field = field;
 	}
 
-	public String getRegexp() {
+	public final String getRegexp() {
 		return regexp;
 	}
 
-	public void setRegexp(String regexp) {
+	public final void setRegexp(String regexp) {
 		this.regexp = regexp;
 	}
 

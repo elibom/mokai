@@ -2,7 +2,9 @@ package org.mokai.connector.camel.jetty.test;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import junit.framework.Assert;
 
@@ -14,7 +16,6 @@ import org.mokai.MessageProducer;
 import org.mokai.annotation.Resource;
 import org.mokai.connector.camel.jetty.JettyConfiguration;
 import org.mokai.connector.camel.jetty.JettyConnector;
-import org.mokai.message.SmsMessage;
 import org.testng.annotations.Test;
 
 public class JettyConnectorTest {
@@ -38,15 +39,56 @@ public class JettyConnectorTest {
 		
 		HttpClient client = new HttpClient();
 		GetMethod getMethod = new GetMethod("http://localhost:9080/test?to=" 
-				+ to + "&from=" + from + "&message=" + text);
+				+ to + "&from=" + from + "&text=" + text);
 		client.executeMethod(getMethod);
 		
 		Assert.assertEquals(1, messageProducer.messageCount());
 		
-		SmsMessage message = (SmsMessage) messageProducer.getMessage(0);
-		Assert.assertEquals(to, message.getTo());
-		Assert.assertEquals(from, message.getFrom());
-		Assert.assertEquals(text, message.getText());
+		Message message = (Message) messageProducer.getMessage(0);
+		Assert.assertEquals(Message.SMS_TYPE, message.getType());
+		Assert.assertEquals(to, message.getProperty("to", String.class));
+		Assert.assertEquals(from, message.getProperty("from", String.class));
+		Assert.assertEquals(text, message.getProperty("text", String.class));
+		
+		connector.destroy();
+		
+	}
+	
+	@Test
+	public void testMapper() throws Exception {
+		MockMessageProducer messageProducer = new MockMessageProducer();
+		
+		JettyConfiguration configuration = new JettyConfiguration();
+		configuration.setPort("9080");
+		configuration.setContext("test");
+		
+		Map<String,String> mapper = new HashMap<String,String>();
+		mapper.put("to", "to1");
+		mapper.put("from", "from1");
+		mapper.put("text", "text1");
+		configuration.setMapper(mapper);
+		
+		JettyConnector connector = new JettyConnector(configuration);
+		addMessageProducer(messageProducer, connector);
+		connector.configure(); // the jetty server starts
+		
+		// create test HTTP call
+		String to = "3002175604";
+		String from = "3542";
+		String text = "test";
+		
+		HttpClient client = new HttpClient();
+		GetMethod getMethod = new GetMethod("http://localhost:9080/test?to=" 
+				+ to + "&from=" + from + "&text=" + text);
+		client.executeMethod(getMethod);
+		
+		Assert.assertEquals(1, messageProducer.messageCount());
+		
+		Message message = (Message) messageProducer.getMessage(0);
+		Assert.assertEquals(Message.SMS_TYPE, message.getType());
+		Assert.assertEquals(to, message.getProperty("to1", String.class));
+		Assert.assertEquals(from, message.getProperty("from1", String.class));
+		Assert.assertEquals(text, message.getProperty("text1", String.class));
 		
 		connector.destroy();
 		

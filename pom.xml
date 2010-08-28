@@ -144,7 +144,7 @@
 			<url>http://repository.jboss.org/maven2/</url>
 		</repository>
 		
-		<repository>  
+		<!-- <repository>  
   			<id>elibom-nexus</id>  
   			<name>Elibom</name>  
   			<url>http://192.168.0.99:8081/nexus/content/groups/public</url>  
@@ -154,13 +154,13 @@
   			<snapshots>  
    				<enabled>true</enabled>  
   			</snapshots>  
- 		</repository>   		
+ 		</repository> -->   		
 	</repositories>
 	
 	<pluginRepositories>
 		<pluginRepository>
-			<id>codehaus.snapshots</id>
-			<url>http://snapshots.repository.codehaus.org</url>
+			<id>elibom-nexus</id>
+			<url>http://192.168.0.99:8081/nexus/content/groups/public</url>
 		</pluginRepository>
 	</pluginRepositories>
 

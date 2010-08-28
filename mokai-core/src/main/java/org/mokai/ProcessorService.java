@@ -5,21 +5,40 @@ import java.util.List;
 import org.mokai.Monitorable.Status;
 
 /**
- * 
+ * Wraps a {@link Processor} and adds the acceptors, pre-processing actions,
+ * post-processing actions and post-receiving actions.
  * 
  * @author German Escobar
  */
 public interface ProcessorService extends Service {
 
+	/**
+	 * @return the unique id of the processor service.
+	 */
 	String getId();
 
 	int getPriority();
 	
+	void setPriority(int priority);
+	
 	Processor getProcessor();
 	
+	/**
+	 * After a {@link Message} is accepted by the processor service, it queues
+	 * the messages for future processing.
+	 * @return the number of messages that are queued
+	 */
 	int getNumQueuedMessages();
 	
-	Status getProcessorStatus();
+	/**
+	 * The status tells whether the service is in good health or {@link Message}s 
+	 * are failing. The status is calculated by first checking the status of the 
+	 * {@link Processor} (if it implements {@link Monitoreable}) and then checking
+	 * the last message failed or was successfully processed.
+	 *  
+	 * @return the status of the processor service.
+	 */
+	Status getStatus();
 	
 	ProcessorService addAcceptor(Acceptor acceptor) throws IllegalArgumentException, ObjectAlreadyExistsException;
 	

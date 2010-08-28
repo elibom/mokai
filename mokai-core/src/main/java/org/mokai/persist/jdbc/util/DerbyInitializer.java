@@ -8,7 +8,7 @@ public class DerbyInitializer extends DBInitializer {
 			"id_message BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1), " +
 			"account_message VARCHAR(30), " +
 			"reference_message VARCHAR(100), " +
-			"type_message SMALLINT NOT NULL, " +
+			"flow_message SMALLINT NOT NULL, " +
 			"source_message VARCHAR(30) NOT NULL, " +
 			"sourcetype_message SMALLINT NOT NULL, " +
 			"destination_message VARCHAR(30), " +

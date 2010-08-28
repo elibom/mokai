@@ -16,8 +16,9 @@ public interface Processor {
 	/**
 	 * Called when a message needs to be processed.
 	 * @param message the {@link Message} that needs to be processed.
+	 * @throws Exception
 	 */
-	void process(Message message);
+	void process(Message message) throws Exception;
 	
 	/**
 	 * Tells whether a message is supported by this processor or not.

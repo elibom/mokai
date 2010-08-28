@@ -68,7 +68,7 @@ public class ProcessorConfigurationTest {
 		Mockito.verify(processorService1, Mockito.never()).addPostProcessingAction(Mockito.any(Action.class));
 		Mockito.verify(processorService1, Mockito.never()).addPostReceivingAction(Mockito.any(Action.class));
 		
-		Mockito.verify(processorService2).addAcceptor(Mockito.any(Acceptor.class));
+		Mockito.verify(processorService2, Mockito.times(2)).addAcceptor(Mockito.any(Acceptor.class));
 		Mockito.verify(processorService2).addPreProcessingAction(new MockConfigurableAction("t1", 1));
 		Mockito.verify(processorService2).addPostProcessingAction(new MockConfigurableAction("t2", 2));
 		Mockito.verify(processorService2).addPostReceivingAction(new MockConfigurableAction("t3", 3));

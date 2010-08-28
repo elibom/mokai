@@ -34,7 +34,6 @@ import org.mokai.Serviceable;
 import org.mokai.annotation.Description;
 import org.mokai.annotation.Name;
 import org.mokai.annotation.Resource;
-import org.mokai.message.SmsMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,7 +69,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	}
 
 	@Override
-	public void doStart() throws Exception {
+	public final void doStart() throws Exception {
 		
 		log.debug("starting SmppConnector ... ");
 		
@@ -102,10 +101,10 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 					String from = pdu.getSourceAddr();
 					String text = new String(pdu.getShortMessage());
 					
-					SmsMessage message = new SmsMessage();
-					message.setTo(to);
-					message.setFrom(from);
-					message.setText(text);
+					Message message = new Message(Message.SMS_TYPE);
+					message.setProperty("to", to);
+					message.setProperty("from", from);
+					message.setProperty("text", text);
 					
 					messageProducer.produce(message);
 				}
@@ -169,7 +168,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	}
 
 	@Override
-	public void doStop() throws Exception {
+	public final void doStop() throws Exception {
 		
 		started = false;
 		
@@ -179,25 +178,23 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	}
 
 	@Override
-	public Status getStatus() {
+	public final Status getStatus() {
 		return status;
 	}
 
 	@Override
-	public void process(Message message) {
+	public final void process(Message message) {
 		if (!status.equals(Status.OK)) {
 			throw new IllegalStateException("SMPP client not connected.");
 		}
-		
-		SmsMessage smsMessage = (SmsMessage) message;
 
 		try {
 		
 			SubmitSm submitSm = new SubmitSm();
-			submitSm.setShortMessage(smsMessage.getText().getBytes());
+			submitSm.setShortMessage(message.getProperty("text", String.class).getBytes());
 			
 			// destination address
-			submitSm.setDestAddress(smsMessage.getTo());
+			submitSm.setDestAddress(message.getProperty("to", String.class));
 			if (notEmpty(configuration.getDestNPI())) {
 				submitSm.setDestAddrNpi(Byte.valueOf(configuration.getDestNPI()));
 			}
@@ -206,7 +203,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			}
 			
 			// source address
-			submitSm.setSourceAddr(smsMessage.getFrom());
+			submitSm.setSourceAddr(message.getProperty("from", String.class));
 			if (notEmpty(configuration.getSourceNPI())) {
 				submitSm.setSourceAddrNpi(Byte.valueOf(configuration.getDestNPI()));
 			}
@@ -248,15 +245,24 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 
 	@Override
 	public boolean supports(Message message) {
-		if (SmsMessage.class.isInstance(message)) {
+		if (message.isType(Message.SMS_TYPE)) {
 			return true;
 		}
 		
+		return supportsMessage(message);
+	}
+	
+	/**
+	 * Helper method that subclases can override to support additional type of messages
+	 * @param message the Message object to be tested for support
+	 * @return true if supports the message, false otherwise
+	 */
+	protected boolean supportsMessage(Message message) {
 		return false;
 	}
 
 	@Override
-	public SmppConfiguration getConfiguration() {
+	public final SmppConfiguration getConfiguration() {
 		return configuration;
 	}
 	

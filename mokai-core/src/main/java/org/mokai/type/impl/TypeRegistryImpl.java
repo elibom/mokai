@@ -2,7 +2,6 @@ package org.mokai.type.impl;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.mokai.Acceptor;
@@ -22,13 +21,13 @@ import org.mokai.type.TypeRegistry;
  */
 public class TypeRegistryImpl implements TypeRegistry {
 	
-	private Map<Class<? extends Acceptor>,AcceptorType> acceptorTypes;
+	/*private Map<Class<? extends Acceptor>,AcceptorType> acceptorTypes;
 	
 	private Map<Class<? extends Action>,ActionType> actionTypes;
 	
 	private Map<Class<? extends Processor>,ProcessorType> processorTypes;
 	
-	private Map<Class<? extends Receiver>,ReceiverType> receiverTypes;
+	private Map<Class<? extends Receiver>,ReceiverType> receiverTypes;*/
 	
 	private Set<TypeLoader> typeLoaders = Collections.synchronizedSet(new HashSet<TypeLoader>());
 

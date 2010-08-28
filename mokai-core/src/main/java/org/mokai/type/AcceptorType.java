@@ -29,21 +29,21 @@ public class AcceptorType implements Serializable {
 		this.acceptorClass = acceptorClass;
 	}
 
-	public String getName() {
+	public final String getName() {
 		return name;
 	}
 
-	public String getDescription() {
+	public final String getDescription() {
 		return description;
 	}
 
-	public Class<? extends Acceptor> getAcceptorClass() {
+	public final Class<? extends Acceptor> getAcceptorClass() {
 		return acceptorClass;
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (AcceptorType.class.isInstance(obj)) {
+	public final boolean equals(Object obj) {
+		if (getClass() == obj.getClass()) {
 			AcceptorType at = (AcceptorType) obj;
 			
 			return at.getAcceptorClass().equals(acceptorClass);
@@ -53,7 +53,7 @@ public class AcceptorType implements Serializable {
 	}
 
 	@Override
-	public int hashCode() {
+	public final int hashCode() {
 		return acceptorClass.hashCode();
 	}
 	

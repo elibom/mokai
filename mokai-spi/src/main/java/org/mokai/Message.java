@@ -2,9 +2,13 @@ package org.mokai;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 /**
+ * Represents a message that is being routing through the gateway.
+ * 
  * @author German Escobar
  */
 public class Message implements Serializable {
@@ -17,6 +21,8 @@ public class Message implements Serializable {
 	public static final long NOT_PERSISTED = -1;
 	
 	public static final String ANONYMOUS_ACCOUNT_ID = "anonymous";
+	
+	public static final String SMS_TYPE = "sms";
 	
 	public enum SourceType {
 		
@@ -60,23 +66,23 @@ public class Message implements Serializable {
 		}
 		
 		public static DestinationType getDestinationType(byte b) {
-			if (b == 1) {
-				return PROCESSOR;
-			} else if (b == -1) {
-				return UNKNOWN;
+			for (DestinationType t : values()) {
+				if (t.value() == b) {
+					return t;
+				}
 			}
 			
 			throw new IllegalArgumentException("Destination type with id " + b + " not supported");
 		}
 	}
 	
-	public enum Type {
+	public enum Flow {
 		
 		INBOUND(1), OUTBOUND(2), UNKNOWN(-1);
 		
 		private byte id;
 		
-		private Type(int id) {
+		private Flow(int id) {
 			this.id = (byte) id;
 		}
 		
@@ -84,13 +90,11 @@ public class Message implements Serializable {
 			return id;
 		}
 		
-		public static Type getType(byte b) {
-			if (b == 1) {
-				return INBOUND;
-			} else if (b == 2) {
-				return OUTBOUND;
-			} else if (b == -1) {
-				return UNKNOWN;
+		public static Flow getFlow(byte b) {
+			for (Flow t : values()) {
+				if (t.value() == b) {
+					return t;
+				}
 			}
 			
 			throw new IllegalArgumentException("Type with id " + b + " not supported");
@@ -127,118 +131,182 @@ public class Message implements Serializable {
 		}
 	}
 	
-	protected long id = NOT_PERSISTED;
+	private long id = NOT_PERSISTED;
 	
-	protected String accountId = ANONYMOUS_ACCOUNT_ID;
+	private String accountId = ANONYMOUS_ACCOUNT_ID;
 	
 	/**
 	 * Transient. Should not be persisted. Should be set to null once validated.
 	 * Mandatory if accountId is not Message.ANONYMOUS_ACCOUNT_ID and type is
 	 * Message.Type.OUTBOUND.
 	 */
-	protected transient String password;
+	private transient String password;
 	
-	protected String reference = UUID.randomUUID().toString();
+	private String reference = UUID.randomUUID().toString();
 	
-	protected Type type = Type.UNKNOWN;
+	private String type;
 	
-	protected String source;
+	private Flow flow = Flow.UNKNOWN;
 	
-	protected SourceType sourceType = SourceType.UNKNOWN;
+	private String source;
 	
-	protected String destination;
+	private SourceType sourceType = SourceType.UNKNOWN;
 	
-	protected DestinationType destinationType = DestinationType.UNKNOWN;
+	private String destination;
 	
-	protected Status status = Status.CREATED;
+	private DestinationType destinationType = DestinationType.UNKNOWN;
 	
-	protected Date creationTime = new Date();
+	private Status status = Status.CREATED;
+	
+	private Map<String,Object> properties = new HashMap<String,Object>();
+	
+	private Object body;
+	
+	private Date creationTime = new Date();
+	
+	public Message() {
+		
+	}
+	
+	public Message(String type) {
+		this.type = type;
+	}
+	
+	public final boolean isType(String t) {
+		if (t == null) {
+			throw new IllegalArgumentException("Type not provided");
+		}
+		
+		if (this.type != null && this.type.equals(t)) {
+			return true;
+		}
+		
+		return false;
+	}
 
-	public long getId() {
+	public final long getId() {
 		return id;
 	}
 
-	public void setId(long id) {
+	public final void setId(long id) {
 		this.id = id;
 	}
 
-	public String getReference() {
+	public final String getReference() {
 		return reference;
 	}
 
-	public void setReference(String reference) {
+	public final void setReference(String reference) {
 		this.reference = reference;
 	}
 
-	public String getAccountId() {
+	public final String getAccountId() {
 		return accountId;
 	}
 
-	public void setAccountId(String accountId) {
+	public final void setAccountId(String accountId) {
 		this.accountId = accountId;
 	}
 
-	public String getPassword() {
+	public final String getPassword() {
 		return password;
 	}
 
-	public void setPassword(String password) {
+	public final void setPassword(String password) {
 		this.password = password;
 	}
 
-	public String getSource() {
+	public final String getSource() {
 		return source;
 	}
 
-	public void setSource(String source) {
+	public final void setSource(String source) {
 		this.source = source;
 	}
 
-	public SourceType getSourceType() {
+	public final SourceType getSourceType() {
 		return sourceType;
 	}
 
-	public void setSourceType(SourceType sourceType) {
+	public final void setSourceType(SourceType sourceType) {
 		this.sourceType = sourceType;
 	}
 
-	public String getDestination() {
+	public final String getDestination() {
 		return destination;
 	}
 
-	public void setDestination(String destination) {
+	public final void setDestination(String destination) {
 		this.destination = destination;
 	}
 
-	public DestinationType getDestinationType() {
+	public final DestinationType getDestinationType() {
 		return destinationType;
 	}
 
-	public void setDestinationType(DestinationType destinationType) {
+	public final void setDestinationType(DestinationType destinationType) {
 		this.destinationType = destinationType;
 	}
 
-	public Type getType() {
+	public final String getType() {
 		return type;
 	}
 
-	public void setType(Type type) {
+	public final void setType(String type) {
 		this.type = type;
 	}
 
-	public Status getStatus() {
+	public final Flow getFlow() {
+		return flow;
+	}
+
+	public final void setFlow(Flow flow) {
+		this.flow = flow;
+	}
+
+	public final Status getStatus() {
 		return status;
 	}
 
-	public void setStatus(Status status) {
+	public final void setStatus(Status status) {
 		this.status = status;
 	}
 
-	public Date getCreationTime() {
+	public final Object getBody() {
+		return body;
+	}
+	
+	public final Map<String, Object> getProperties() {
+		return properties;
+	}
+	
+	public final Object getProperty(String key) {
+		return properties.get(key);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public final <T> T getProperty(String key, Class<T> clazz) {
+		return (T) properties.get(key);
+	}
+	
+	public final void setProperty(String key, Object value) {
+		properties.put(key, value);
+	}
+
+	@SuppressWarnings("unchecked")
+	public final <T> T getBody(Class<T> clazz) {
+		return (T) body;
+	}
+
+	public final void setBody(Object body) {
+		this.body = body;
+	}
+
+	public final Date getCreationTime() {
 		return creationTime;
 	}
 
-	public void setCreationTime(Date creationTime) {
+	public final void setCreationTime(Date creationTime) {
 		this.creationTime = creationTime;
 	}
 	

@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import junit.framework.Assert;
 
@@ -46,7 +49,7 @@ public class ProcessorConfigurationTest {
 		testGoodFile(pluginMechanism);
 	}
 	
-	private void testGoodFile(PluginMechanism pluginMechanism) {
+	private void testGoodFile(PluginMechanism pluginMechanism) throws Exception {
 		String path = "src/test/resources/processors-test/good-processors.xml";
 		
 		ProcessorService processorService1 = Mockito.mock(ProcessorService.class);
@@ -55,17 +58,21 @@ public class ProcessorConfigurationTest {
 		RoutingEngine routingEngine = Mockito.mock(RoutingEngine.class);
 		Mockito
 			.when(routingEngine.createProcessor(Mockito.eq("test-1"), Mockito.anyInt(), Mockito.any(Processor.class)))
-			.thenReturn(processorService1);
+			.thenAnswer(new ProcessorServiceAnswer(processorService1, 500));
 		Mockito
 			.when(routingEngine.createProcessor(Mockito.eq("test-2"), Mockito.anyInt(), Mockito.any(Processor.class)))
-			.thenReturn(processorService2);
+			.thenAnswer(new ProcessorServiceAnswer(processorService2, 500));
+		
+		ThreadPoolExecutor executor = createThreadPool(); 
 		
 		ProcessorConfiguration config = new ProcessorConfiguration();
 		config.setRoutingEngine(routingEngine);
 		config.setPluginMechanism(pluginMechanism);
 		config.setPath(path);
+		config.setExecutor(executor);
 		
 		config.load();
+		executor.awaitTermination(3000, TimeUnit.MILLISECONDS);
 		
 		// check that we have created two processors
 		Mockito.verify(routingEngine)
@@ -84,6 +91,10 @@ public class ProcessorConfigurationTest {
 		Mockito.verify(processorService2).addPostProcessingAction(new MockConfigurableAction("t2", 2));
 		Mockito.verify(processorService2).addPostReceivingAction(new MockConfigurableAction("t3", 3));
 	}
+	
+	private ThreadPoolExecutor createThreadPool() {
+		return new ThreadPoolExecutor(1, 1, Long.MAX_VALUE, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
+	}
 
 	@Test
 	public void testLoadFileWithPluginMechanism() throws Exception {
@@ -94,7 +105,7 @@ public class ProcessorConfigurationTest {
 		RoutingEngine routingEngine = Mockito.mock(RoutingEngine.class);
 		Mockito
 			.when(routingEngine.createProcessor(Mockito.anyString(), Mockito.anyInt(), Mockito.any(Processor.class)))
-			.thenReturn(processorService);
+			.thenReturn(processorService); 
 		
 		PluginMechanism pluginMechanism = mockPluginMechanism();
 		
@@ -104,6 +115,7 @@ public class ProcessorConfigurationTest {
 		config.setPath(path);
 		
 		config.load();
+		// we dont need to wait as the plugin mechanism is called before the executor
 		
 		Mockito.verify(pluginMechanism).loadClass(Mockito.endsWith("MockConnector"));
 		Mockito.verify(pluginMechanism).loadClass(Mockito.endsWith("MockAcceptor"));
@@ -576,6 +588,24 @@ public class ProcessorConfigurationTest {
 		}
 		
 		public abstract void validate(Element rootElement);
+	}
+	
+	private class ProcessorServiceAnswer implements Answer<ProcessorService> {
+		
+		private ProcessorService processorService;
+		private long delay;
+		
+		public ProcessorServiceAnswer(ProcessorService processorService, long delay) {
+			this.processorService = processorService;
+			this.delay = delay;
+		}
+
+		@Override
+		public ProcessorService answer(InvocationOnMock invocation) throws Throwable {
+			Thread.sleep(delay);
+			return processorService;
+		}
+		
 	}
 	
 }

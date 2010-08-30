@@ -6,6 +6,10 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
@@ -34,6 +38,9 @@ public class ProcessorConfiguration implements Configuration {
 	private RoutingEngine routingEngine;
 	
 	private PluginMechanism pluginMechanism;
+	
+	private Executor executor = 
+		new ThreadPoolExecutor(3, 6, Long.MAX_VALUE, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
 
 	@Override
 	public final void load() {
@@ -76,52 +83,56 @@ public class ProcessorConfiguration implements Configuration {
 		}
 	}
 	
-	private void handleProcessorElement(Element processorElement) throws Exception {
+	private void handleProcessorElement(final Element processorElement) throws Exception {
 		
 		// build the processor connector
 		Element connectorElement = processorElement.element("connector");
-		Processor connector = buildProcessorConnector(connectorElement);
+		final Processor connector = buildProcessorConnector(connectorElement);
 		
-		// create the receiver service
-		String id = processorElement.attributeValue("id");
-		int priority = Integer.parseInt(processorElement.attributeValue("priority"));
-		ProcessorService processorService = routingEngine.createProcessor(id, priority, connector);
+		// build the acceptors
+		final List<Acceptor> acceptors = buildAcceptors(processorElement.element("acceptors"));
 		
-		// handle acceptors
-		Element acceptorsElement = processorElement.element("acceptors");
-		if (acceptorsElement != null) {
-			List<Acceptor> acceptors = buildAcceptors(acceptorsElement);
-			for (Acceptor acceptor : acceptors) {
-				processorService.addAcceptor(acceptor);
+		// build the pre-processing actions
+		final List<Action> preProcessingActions = buildActions(processorElement.element("pre-processing-actions"));
+		
+		// build the post-processing actions
+		final List<Action> postProcessingActions = buildActions(processorElement.element("post-processing-actions"));
+		
+		// build the post-receiving actions
+		final List<Action> postReceivingActions = buildActions(processorElement.element("post-receiving-actions"));
+		
+		Runnable runnable = new Runnable() {
+
+			@Override
+			public void run() {
+				// create the processor service
+				String id = processorElement.attributeValue("id");
+				int priority = Integer.parseInt(processorElement.attributeValue("priority"));
+				ProcessorService processorService = routingEngine.createProcessor(id, priority, connector);
+				
+				// add acceptors to the processor
+				for (Acceptor acceptor : acceptors) {
+					processorService.addAcceptor(acceptor);
+				}
+				
+				// add pre-processing-actions to the processor 
+				for (Action action : preProcessingActions) {
+					processorService.addPreProcessingAction(action);
+				}
+				
+				// add post-processing-actions to the processor
+				for (Action action : postProcessingActions) {
+					processorService.addPostProcessingAction(action);
+				}
+				
+				// add post-receiving-actions to the processor
+				for (Action action : postReceivingActions) {
+					processorService.addPostReceivingAction(action);
+				}
 			}
-		}
-		
-		// handle pre-processing-actions
-		Element preProcessingActionsElement = processorElement.element("pre-processing-actions");
-		if (preProcessingActionsElement != null) {
-			List<Action> preProcessingActions = buildActions(preProcessingActionsElement);
-			for (Action action : preProcessingActions) {
-				processorService.addPreProcessingAction(action);
-			}
-		}
-		
-		// handle post-processing-actions
-		Element postProcessingActionsElement = processorElement.element("post-processing-actions");
-		if (postProcessingActionsElement != null) {
-			List<Action> postProcessingActions = buildActions(postProcessingActionsElement);
-			for (Action action : postProcessingActions) {
-				processorService.addPostProcessingAction(action);
-			}
-		}
-		
-		// handle post-receiving-actions
-		Element postReceivingActionsElement = processorElement.element("post-receiving-actions");
-		if (postReceivingActionsElement != null) {
-			List<Action> postReceivingActions = buildActions(postReceivingActionsElement);
-			for (Action action : postReceivingActions) {
-				processorService.addPostReceivingAction(action);
-			}
-		}
+			
+		};
+		executor.execute(runnable);
 		
 	}
 	
@@ -156,6 +167,10 @@ public class ProcessorConfiguration implements Configuration {
 		
 		List<Acceptor> acceptors = new ArrayList<Acceptor>();
 		
+		if (acceptorsElement == null) {
+			return acceptors;
+		}
+		
 		Iterator iterator = acceptorsElement.elementIterator();
 		while (iterator.hasNext()) {
 			Element acceptorElement = (Element) iterator.next();
@@ -189,6 +204,10 @@ public class ProcessorConfiguration implements Configuration {
 	private List<Action> buildActions(Element actionsElement) throws Exception {
 		
 		List<Action> actions = new ArrayList<Action>();
+		
+		if (actionsElement == null) {
+			return actions;
+		}
 		
 		Iterator iterator = actionsElement.elementIterator();
 		while (iterator.hasNext()) {
@@ -315,6 +334,10 @@ public class ProcessorConfiguration implements Configuration {
 
 	public final void setPluginMechanism(PluginMechanism pluginMechanism) {
 		this.pluginMechanism = pluginMechanism;
+	}
+
+	public void setExecutor(Executor executor) {
+		this.executor = executor;
 	}
 	
 }

@@ -3,9 +3,14 @@ package org.mokai.config.xml;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
@@ -33,6 +38,9 @@ public class ReceiverConfiguration implements Configuration {
 	private RoutingEngine routingEngine;
 	
 	private PluginMechanism pluginMechanism;
+	
+	private Executor executor = 
+		new ThreadPoolExecutor(3, 6, Long.MAX_VALUE, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
 
 	@Override
 	public final void load() throws ConfigurationException {
@@ -83,22 +91,31 @@ public class ReceiverConfiguration implements Configuration {
 		
 	}
 	
-	private void handleReceiverElement(Element receiverElement) throws Exception {
+	private void handleReceiverElement(final Element receiverElement) throws Exception {
 		
 		// build the receiver connector
 		Element connectorElement = receiverElement.element("connector");
-		Receiver receiver = buildReceiverConnector(connectorElement);
+		final Receiver receiver = buildReceiverConnector(connectorElement);
 		
-		// create the receiver service
-		String id = receiverElement.attributeValue("id");
-		ReceiverService receiverService = routingEngine.createReceiver(id, receiver);
+		// build the post-receiving actions
+		final List<Action> postReceivingActions = buildActions(receiverElement.element("post-receiving-actions"));
 		
-		// handle 'post-receiving' actions element
-		Element postReceivingActionsElement = 
-			receiverElement.element("post-receiving-actions");
-		if (postReceivingActionsElement != null) {
-			handlePostReceivingActionsElement(postReceivingActionsElement, receiverService);
-		}
+		Runnable runnable = new Runnable() {
+
+			@Override
+			public void run() {
+				// create the receiver service
+				String id = receiverElement.attributeValue("id");
+				ReceiverService receiverService = routingEngine.createReceiver(id, receiver);
+				
+				// add post-receiving actions to receiver
+				for (Action action : postReceivingActions) {
+					receiverService.addPostReceivingAction(action);
+				}	
+			}
+			
+		};
+		executor.execute(runnable);
 		
 	}
 	
@@ -128,16 +145,20 @@ public class ReceiverConfiguration implements Configuration {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private void handlePostReceivingActionsElement(Element postReceivingActionsElement, 
-			ReceiverService receiverService) throws Exception {
+	private List<Action> buildActions(Element actionsElement) throws Exception {
 		
-		Iterator postReceivingActions = postReceivingActionsElement.elementIterator("action");
+		List<Action> actions = new ArrayList<Action>();
 		
-		while (postReceivingActions.hasNext()) {
+		if (actionsElement == null) {
+			return actions;
+		}
+		
+		Iterator iterator = actionsElement.elementIterator();
+		while (iterator.hasNext()) {
+			Element actionElement = (Element) iterator.next();
 			
-			Element postReceivingAction = (Element) postReceivingActions.next();
-			String className = postReceivingAction.attributeValue("className");
-			
+			// create action instance
+			String className = actionElement.attributeValue("className");
 			Class<? extends Action> actionClass = null;
 			if (pluginMechanism != null) {
 				actionClass = (Class<? extends Action>) pluginMechanism.loadClass(className);
@@ -150,14 +171,15 @@ public class ReceiverConfiguration implements Configuration {
 			Action action = actionClass.newInstance();
 			
 			if (ExposableConfiguration.class.isInstance(action)) {
-				ExposableConfiguration<?> configurableAction = (ExposableConfiguration<?>) action;
+				ExposableConfiguration<?> exposableAction = (ExposableConfiguration<?>) action;
 				
-				XmlUtils.setConfigurationFields(postReceivingAction, configurableAction.getConfiguration(), routingEngine);
+				XmlUtils.setConfigurationFields(actionElement, exposableAction.getConfiguration(), routingEngine);
 			}
 			
-			receiverService.addPostReceivingAction(action);
-			
+			actions.add(action);
 		}
+		
+		return actions;
 	}
 
 	@Override
@@ -230,4 +252,8 @@ public class ReceiverConfiguration implements Configuration {
 		this.pluginMechanism = pluginMechanism;
 	}
 
+	public void setExecutor(Executor executor) {
+		this.executor = executor;
+	}
+	
 }

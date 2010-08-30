@@ -19,6 +19,7 @@ import org.mokai.ProcessorService;
 import org.mokai.Receiver;
 import org.mokai.ReceiverService;
 import org.mokai.Service;
+import org.mokai.Message.Status;
 import org.mokai.impl.camel.CamelRoutingEngine;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.MessageStore;
@@ -298,6 +299,50 @@ public class CamelRoutingEngineTest {
 		barrier.await(3, TimeUnit.SECONDS);
 		
 		Assert.assertEquals(0, processor.getCount());
+		
+		routingEngine.stop();
+	}
+	
+	@Test
+	public void testRetryFailedMessages() throws Exception {
+		
+		Collection<Message> failedMessages = new ArrayList<Message>();
+		
+		Message m1 = new Message();
+		m1.setStatus(Status.FAILED);
+		failedMessages.add(m1);
+		
+		MessageStore messageStore = Mockito.mock(MessageStore.class);
+		Mockito.when(messageStore.list(Mockito.any(MessageCriteria.class))).thenReturn(failedMessages);
+		
+		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
+		routingEngine.setMessageStore(messageStore);
+		routingEngine.start();
+		
+		// create the processor
+		Processor processor = Mockito.mock(Processor.class);
+		Mockito
+			.when(processor.supports(Mockito.any(Message.class)))
+			.thenReturn(true);
+		ProcessorService processorService = 
+			routingEngine.createProcessor("1", 1000, processor);
+		processorService.addAcceptor(new Acceptor() {
+
+			@Override
+			public boolean accepts(Message message) {
+				return true;
+			}
+			
+		});
+		
+		// retry failed messages
+		routingEngine.retryFailedMessages();
+		
+		Thread.sleep(3000);
+		
+		// verify
+		Mockito.verify(processor).process(Mockito.any(Message.class));
+		Mockito.verify(messageStore).saveOrUpdate(Mockito.any(Message.class));
 		
 		routingEngine.stop();
 	}

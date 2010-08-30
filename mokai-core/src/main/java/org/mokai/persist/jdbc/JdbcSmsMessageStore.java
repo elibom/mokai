@@ -213,7 +213,7 @@ public class JdbcSmsMessageStore implements MessageStore {
 					numRecords = criteria.getNumRecords();
 				}
 				
-				strSQL += " LIMIT " + firstRecord + "," + numRecords;
+				//strSQL += " LIMIT " + firstRecord + "," + numRecords;
 			}
 			
 			long startTime = new Date().getTime();

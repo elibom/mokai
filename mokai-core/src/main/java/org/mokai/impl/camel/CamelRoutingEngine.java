@@ -367,7 +367,7 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 		Collection<Message> messages = messageStoreDelegate.list(criteria);
 		logCollectionSize(messages.size());
 		for (Message message : messages) {
-			producer.sendBody("activemq:router", ExchangePattern.InOnly, message);
+			producer.sendBody("activemq:outboundRouter", ExchangePattern.InOnly, message);
 		}
 		
 		log.debug("finished");

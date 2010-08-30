@@ -2,6 +2,7 @@ package org.mokai.persist.test;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.Collection;
 
@@ -14,9 +15,11 @@ import org.mokai.Message;
 import org.mokai.Message.Flow;
 import org.mokai.Message.SourceType;
 import org.mokai.Message.Status;
+import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.jdbc.JdbcSmsMessageStore;
 import org.mokai.persist.jdbc.util.DerbyInitializer;
-import org.testng.annotations.AfterMethod;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -28,7 +31,7 @@ public class JdbcMessageStoreTest {
 	
 	private DataSource dataSource;
 
-	@BeforeMethod
+	@BeforeClass
 	public void setUp() throws Exception {
 		BasicDataSource dataSource = new BasicDataSource();
 		dataSource.setDriverClassName("org.apache.derby.jdbc.EmbeddedDriver");
@@ -44,8 +47,8 @@ public class JdbcMessageStoreTest {
 		dbInitializer.init();
 	}
 	
-	@AfterMethod
-	public void tearDown() throws Exception {
+	@BeforeMethod
+	public void cleanDb() throws Exception {
 		// drop messages table
 		Connection conn = null;
 		Statement stmt = null;
@@ -53,7 +56,7 @@ public class JdbcMessageStoreTest {
 		try {
 			conn = dataSource.getConnection();
 			stmt = conn.createStatement();
-			stmt.execute("DROP TABLE message");
+			stmt.execute("DELETE FROM message");
 		} finally {
 			if (stmt != null) {
 				try { stmt.close(); } catch (Exception e) {}
@@ -62,7 +65,10 @@ public class JdbcMessageStoreTest {
 				try { conn.close(); } catch (Exception e) {}
 			}
 		}
-		
+	}
+	
+	@AfterClass
+	public void tearDown() {
 		try {
 			DriverManager.getConnection("jdbc:derby:;shutdown=true");
 		} catch (Exception e) {}
@@ -95,7 +101,76 @@ public class JdbcMessageStoreTest {
 		Assert.assertEquals("1111", smsMessage.getProperty("from", String.class));
 		Assert.assertEquals("2222", smsMessage.getProperty("to", String.class));
 		Assert.assertEquals("text", smsMessage.getProperty("text", String.class));
-			
+	}
+	
+	@Test
+	public void testRetrieveFailMessages() throws Exception {
+		generateTestData();
 		
+		JdbcSmsMessageStore messageStore = new JdbcSmsMessageStore();
+		messageStore.setDataSource(dataSource);
+		
+		// retrieve failed messages
+		MessageCriteria criteria = new MessageCriteria();
+		criteria.addStatus(Status.FAILED);
+		Collection<Message> messages = messageStore.list(criteria);
+		Assert.assertEquals(3, messages.size());
+		
+		// retrieve processed messages
+		criteria = new MessageCriteria();
+		criteria.addStatus(Status.PROCESSED);
+		messages = messageStore.list(criteria);
+		Assert.assertEquals(3, messages.size());
+		
+		// retrieve unroutable messages
+		criteria = new MessageCriteria();
+		criteria.addStatus(Status.UNROUTABLE);
+		messages = messageStore.list(criteria);
+		Assert.assertEquals(3, messages.size());
+		
+	}
+	
+	private void generateTestData() throws Exception {
+		Connection conn = null;
+		PreparedStatement stmt = null;
+		
+		try {
+			conn = dataSource.getConnection();
+			stmt = conn.prepareStatement("INSERT INTO message (flow_message, source_message, sourcetype_message, destinationtype_message, status_message) VALUES (?, ?, ?, ?, ?)");
+			
+			// create 3 failed messages
+			createMessage(stmt, (byte) 3);
+			createMessage(stmt, (byte) 3);
+			createMessage(stmt, (byte) 3);
+			
+			// create 3 processed messages
+			createMessage(stmt, (byte) 2);
+			createMessage(stmt, (byte) 2);
+			createMessage(stmt, (byte) 2);
+			
+			// create 3 unroutable messages
+			createMessage(stmt, (byte) 4);
+			createMessage(stmt, (byte) 4);
+			createMessage(stmt, (byte) 4);
+			
+		} finally {
+			if (stmt != null) {
+				try { stmt.close(); } catch (Exception e) {}
+			}
+			if (conn != null) {
+				try { conn.close(); } catch (Exception e) {}
+			}
+		}
+	}
+	
+	private void createMessage(PreparedStatement stmt, byte status) throws Exception {
+		// create failed message
+		stmt.setByte(1, (byte) 2);
+		stmt.setString(2, "test");
+		stmt.setByte(3, (byte) 1);
+		stmt.setByte(4, (byte) -1);
+		stmt.setByte(5, status);
+		
+		stmt.execute();
 	}
 }

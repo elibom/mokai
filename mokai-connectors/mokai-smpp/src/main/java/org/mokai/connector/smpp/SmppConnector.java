@@ -15,6 +15,7 @@ import org.jsmpp.bean.RegisteredDelivery;
 import org.jsmpp.bean.SMSCDeliveryReceipt;
 import org.jsmpp.bean.SubmitSm;
 import org.jsmpp.bean.TypeOfNumber;
+import org.jsmpp.extra.NegativeResponseException;
 import org.jsmpp.extra.ProcessRequestException;
 import org.jsmpp.extra.SessionState;
 import org.jsmpp.session.BindParameter;
@@ -75,7 +76,15 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		
 		started = true;
 		
-		connect(0);
+		// try to start in the same thread, dont retry
+		new ConnectionThread(1, 0).run();
+		
+		// if we couldn't connect, start a thread to keep trying
+		if (status.equals(Status.FAILED)) {
+			new Thread(
+					new ConnectionThread(Integer.MAX_VALUE, configuration.getInitialReconnectDelay())
+			).start();
+		}
 	}
 	
 	private SMPPSession createSession() throws IOException {
@@ -128,7 +137,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
                     status = MonitorStatusBuilder.failed("connection lost");
                     
                     session.close();
-                    connect(configuration.getInitialReconnectDelay());
+                    reconnect(configuration.getInitialReconnectDelay());
                 }
             }
         });
@@ -240,8 +249,11 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	                (byte) 0,
 	                submitSm.getShortMessage());
 			
-			message.setReference(messageId);
+			message.setProperty("messageId", messageId);
+			message.setProperty("commandStatus", 0);
 			
+		} catch (NegativeResponseException e) {
+			message.setProperty("commandStatus", e.getCommandStatus());
 		} catch (Exception e) {
 			throw new ExecutionException(e);
 		}
@@ -278,39 +290,56 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		return false;
 	}
 	
-	private void connect(final long initialReconnectDelay) {
-        new Thread() {
-            @Override
-            public void run() {
-                log.info("schedule connect after " + initialReconnectDelay + " millis");
-                try {
-                    Thread.sleep(initialReconnectDelay);
-                } catch (InterruptedException e) {
-                }
+	private void reconnect(final long initialReconnectDelay) {
+        new Thread(new ConnectionThread(Integer.MAX_VALUE, configuration.getInitialReconnectDelay())).start();
 
-                int attempt = 0;
-                while (started && (session == null || session.getSessionState().equals(SessionState.CLOSED))) {
+	}
+	
+	/**
+	 * Connects to the SMSC. 
+	 * 
+	 * @author German Escobar
+	 */
+	private class ConnectionThread implements Runnable {
+		
+		private int maxRetries;
+		private long initialReconnectDelay;
+		
+		public ConnectionThread(int maxRetries, long initialReconnectDelay) {
+			this.maxRetries = maxRetries;
+			this.initialReconnectDelay = initialReconnectDelay;
+		}
+
+		@Override
+		public void run() {
+			log.info("schedule connect after " + initialReconnectDelay + " millis");
+            try {
+                Thread.sleep(initialReconnectDelay);
+            } catch (InterruptedException e) {
+            }
+
+            int attempt = 0;
+            while (attempt < maxRetries && started && (session == null || session.getSessionState().equals(SessionState.CLOSED))) {
+                try {
+                    log.info("trying to connect to " + getConfiguration().getHost() + " - attempt #" + (++attempt) + "...");
+                    session = createSession();
+                    
+                    status = MonitorStatusBuilder.ok();
+                    
+                } catch (IOException e) {
+                    log.info("failed to connect to " + getConfiguration().getHost());
+                    
+                    status = MonitorStatusBuilder.failed("could not connect", e);
+                    
+                    session.close();
+                    
                     try {
-                        log.info("trying to connect to " + getConfiguration().getHost() + " - attempt #" + (++attempt) + "...");
-                        session = createSession();
-                        
-                        status = MonitorStatusBuilder.ok();
-                        
-                    } catch (IOException e) {
-                        log.info("failed to connect to " + getConfiguration().getHost());
-                        
-                        status = MonitorStatusBuilder.failed("could not connect", e);
-                        
-                        session.close();
-                        
-                        try {
-                            Thread.sleep(configuration.getReconnectDelay());
-                        } catch (InterruptedException ee) {
-                        }
+                        Thread.sleep(configuration.getReconnectDelay());
+                    } catch (InterruptedException ee) {
                     }
                 }
             }
-        }.start();
-
+		}
+		
 	}
 }

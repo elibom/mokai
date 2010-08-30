@@ -1,6 +1,8 @@
 package org.mokai.connector.camel.jetty;
 
+import java.io.ByteArrayInputStream;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
@@ -59,18 +61,35 @@ public class JettyConnector implements Receiver, Configurable,
 						
 						Message message = new Message(type);
 						
-						for (Map.Entry<String, Object> entry : exchange.getIn().getHeaders().entrySet()) {
-							if (!entry.getKey().equals("type")) {
+						// retrieve the query part of the request
+						String query = (String) exchange.getIn().getHeader("CamelHttpQuery");
+						
+						// if the query is not null or empty, parse
+						if (query != null && !"".equals(query)) {
+							
+							// load the query parameters in a properties object
+							query = query.replaceAll("&", "\n");
+							ByteArrayInputStream inputStream = new ByteArrayInputStream(query.getBytes());
+							Properties parameters = new Properties();
+							parameters.load(inputStream);
+							
+							// iterate through the parameters and add them to the message properties
+							for (Map.Entry<Object,Object> entry : parameters.entrySet()) {
 								
-								// by default set the key to the header value 
-								String key = entry.getKey();
-								
-								// check if there is a mapping for the key
-								if (configuration.getMapper().containsKey(key)) {
-									key = configuration.getMapper().get(key);
+								if (!entry.getKey().equals("type")) {
+									
+									// by default set the key to the header value 
+									String key = (String) entry.getKey();
+									System.out.println("key: " + key + ", value: " + entry.getValue());
+									
+									// check if there is a mapping for the key
+									if (configuration.getMapper().containsKey(key)) {
+										key = configuration.getMapper().get(key);
+									}
+									
+									String value = (String) entry.getValue();
+									message.setProperty(key, value);
 								}
-								
-								message.setProperty(key, entry.getValue());
 							}
 						}
 						

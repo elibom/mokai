@@ -87,6 +87,28 @@ public class SmppConnectorTest {
 	}
 	
 	@Test
+	public void testProcessMessageNullText() throws Exception {
+		SmppConfiguration configuration = new SmppConfiguration();
+		configuration.setHost("localhost");
+		configuration.setPort(8321);
+		configuration.setSystemId("test");
+		configuration.setPassword("test");
+		
+		SmppConnector connector = new SmppConnector(configuration);
+		connector.doStart();
+		waitUntilStatus(connector, DEFAULT_TIMEOUT, Status.OK);
+		
+		Message message = new Message();
+		message.setProperty("to1", "3002175604");
+		message.setProperty("from1", "3542");
+		message.setProperty("message", "This is the test");
+		
+		connector.process(message);
+		
+		connector.doStop();
+	}
+	
+	@Test
 	public void testBindNPITON() throws Exception {
 		SmppConfiguration configuration = new SmppConfiguration();
 		configuration.setHost("localhost");

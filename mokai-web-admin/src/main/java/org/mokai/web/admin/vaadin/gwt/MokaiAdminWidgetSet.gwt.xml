@@ -1,0 +1,8 @@
+<module>
+	
+	<inherits name="com.vaadin.terminal.gwt.DefaultWidgetSet" /> 
+    <inherits name="org.vaadin.henrik.refresher.RefresherApplicationWidgetset" />
+    
+    <stylesheet src="style.css"/>
+    
+</module>

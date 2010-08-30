@@ -34,7 +34,7 @@ public interface TypeRegistry {
 	 * Reloads the types from the {@link TypeLoader}s. 
 	 * 
 	 * Usually, implementations of this interface will use a caching mechanism to 
-	 * store the types and avoid calling the {@TypeLoader}s every time, which is a 
+	 * store the types and avoid calling the {@link TypeLoader}s every time, which is a 
 	 * costly operation. This method will clear the cache (if exists) and reload 
 	 * the types. 
 	 */

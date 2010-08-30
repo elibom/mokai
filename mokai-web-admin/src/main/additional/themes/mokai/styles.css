@@ -1,0 +1,13 @@
+@import url(../reindeer/styles.css);
+
+.v-table-cell-content-red {
+	background-color: red;
+}
+
+.v-table-cell-content-green {
+	background-color: green;
+}
+
+.v-table-cell-content-gray {
+	background-color: gray;
+}

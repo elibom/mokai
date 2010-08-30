@@ -52,7 +52,7 @@
 		<property name="dataSource"><ref bean="dataSource" /></property>
 	</bean>
 	
-	<bean id="messageStore" class="org.mokai.persist.jdbc.JdbcMessageStore">
+	<bean id="messageStore" class="org.mokai.persist.jdbc.JdbcSmsMessageStore">
 		<property name="dataSource"><ref bean="dataSource" /></property>
 	</bean>
 	<!-- <bean id="messageStore" class="org.mokai.persist.impl.DefaultMessageStore" /> -->

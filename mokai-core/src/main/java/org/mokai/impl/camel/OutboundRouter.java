@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * This class decides the {@link ProcessorService} that will handle a message using
- * the {@link Processor#supports(Message)} method and the {@link Acceptors}s of 
+ * the {@link Processor#supports(Message)} method and the {@link Acceptor}s of 
  * each {@link ProcessorService}. It is configured in the {@link CamelRoutingEngine}
  * class.
  * 

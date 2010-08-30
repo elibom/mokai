@@ -11,7 +11,7 @@ import org.java.plugin.registry.PluginDescriptor;
 import org.java.plugin.standard.StandardPluginLifecycleHandler;
 
 /**
- * A custom {@link PluginLifecycleHandler} that ignores the services files from the
+ * A custom PluginLifecycleHandler that ignores the services files from the
  * parent class loader. This way it will ONLY find the service files of the plugins. 
  * 
  * @author German Escobar

@@ -37,6 +37,16 @@ public class ProcessorConfigurationTest {
 
 	@Test
 	public void testLoadGoodFile() throws Exception {
+		testGoodFile(null);		
+	}
+	
+	@Test
+	public void testLoadFileWithNotUsefulPluginMechanism() throws Exception {
+		PluginMechanism pluginMechanism = Mockito.mock(PluginMechanism.class);
+		testGoodFile(pluginMechanism);
+	}
+	
+	private void testGoodFile(PluginMechanism pluginMechanism) {
 		String path = "src/test/resources/processors-test/good-processors.xml";
 		
 		ProcessorService processorService1 = Mockito.mock(ProcessorService.class);
@@ -52,6 +62,7 @@ public class ProcessorConfigurationTest {
 		
 		ProcessorConfiguration config = new ProcessorConfiguration();
 		config.setRoutingEngine(routingEngine);
+		config.setPluginMechanism(pluginMechanism);
 		config.setPath(path);
 		
 		config.load();
@@ -73,7 +84,7 @@ public class ProcessorConfigurationTest {
 		Mockito.verify(processorService2).addPostProcessingAction(new MockConfigurableAction("t2", 2));
 		Mockito.verify(processorService2).addPostReceivingAction(new MockConfigurableAction("t3", 3));
 	}
-	
+
 	@Test
 	public void testLoadFileWithPluginMechanism() throws Exception {
 		String path = "src/test/resources/processors-test/plugin-processors.xml";

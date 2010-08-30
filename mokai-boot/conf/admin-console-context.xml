@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camel="http://camel.apache.org/schema/spring"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans 
-			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
-			http://camel.apache.org/schema/spring 
-			http://camel.apache.org/schema/spring/camel-spring.xsd">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:camel="http://camel.apache.org/schema/spring"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+			http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd
+			http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+	
+	<context:annotation-config/>
 
 	<bean name="web-server" class="org.eclipse.jetty.server.Server"
 		init-method="start" destroy-method="stop">
@@ -31,9 +35,16 @@
 									<property name="servlets">
 										<list>
 											<bean class="org.eclipse.jetty.servlet.ServletHolder">
-												<property name="name" value="DefaultServlet" />
+												<property name="name" value="ApplicationServlet" />
 												<property name="servlet">
-													<bean class="org.eclipse.jetty.servlet.DefaultServlet" />
+													<bean class="org.mokai.web.admin.vaadin.SpringApplicationServlet" />
+												</property>
+												<property name="initParameters">
+													<map>
+														<entry key="application" value="org.mokai.web.admin.vaadin.WebAdminApplication" />
+														<entry key="widgetset" value="org.mokai.web.admin.vaadin.gwt.MokaiAdminWidgetSet" />
+														<entry key="productionMode" value="false" />
+													</map>
 												</property>
 											</bean>
 										</list>
@@ -46,31 +57,7 @@
 														<value>/*</value>
 													</list>
 												</property>
-												<property name="servletName" value="DefaultServlet" />
-											</bean>
-										</list>
-									</property>
-									<property name="filters">
-										<list>
-											<bean class="org.eclipse.jetty.servlet.FilterHolder">
-												<property name="name" value="WicketFilter" />
-												<property name="filter">
-													<bean class="org.mokai.admin.wicket.SpringWicketFilter">
-														<property name="applicationFactory"><ref bean="applicationFactory" /></property>
-													</bean>
-												</property>
-											</bean>
-										</list>
-									</property>
-									<property name="filterMappings"> 
-										<list>
-											<bean class="org.eclipse.jetty.servlet.FilterMapping">
-												<property name="pathSpecs">
-													<list>
-														<value>/*</value>
-													</list>
-												</property>
-												<property name="filterName" value="WicketFilter" />
+												<property name="servletName" value="ApplicationServlet" />
 											</bean>
 										</list>
 									</property>
@@ -81,16 +68,5 @@
 				</property>
 			</bean>
 		</property>
-	</bean>
-	
-	<bean name="applicationFactory" class="org.mokai.admin.wicket.SpringWebApplicationFactory">
-		<property name="webApplication"><ref bean="webApplication" /></property>
-	</bean>
-	
-	<bean name="webApplication" class="org.mokai.admin.WicketApplication">
-		<property name="routingContext"><ref bean="routingContext" /></property>
-		<property name="objectTypeRegistry"><ref bean="objectTypeRegistry" /></property>
-		<property name="connectorConfiguration"><ref bean="connectorConfiguration" /></property>
-		<property name="queueConfiguration"><ref bean="queueConfiguration" /></property>
 	</bean>
 </beans>

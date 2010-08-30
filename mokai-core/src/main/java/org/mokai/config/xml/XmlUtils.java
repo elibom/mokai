@@ -32,7 +32,7 @@ public class XmlUtils {
 	 * 
 	 * @param clazz
 	 * @param value
-	 * @return
+	 * @return the converted object from the String value.
 	 */
 	public static <T> Object convert(Class<T> clazz, String value) throws Exception {
 		

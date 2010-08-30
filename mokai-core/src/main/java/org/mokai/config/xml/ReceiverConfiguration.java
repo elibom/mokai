@@ -109,9 +109,12 @@ public class ReceiverConfiguration implements Configuration {
 		Class<? extends Receiver> receiverClass = null;
 		if (pluginMechanism != null) {
 			receiverClass = (Class<? extends Receiver>) pluginMechanism.loadClass(className);
-		} else {
+		} 
+		
+		if (receiverClass == null) {
 			receiverClass = (Class<? extends Receiver>) Class.forName(className);
 		}
+		
 		Receiver receiverConnector = receiverClass.newInstance();
 		
 		if (ExposableConfiguration.class.isInstance(receiverConnector)) {
@@ -138,9 +141,12 @@ public class ReceiverConfiguration implements Configuration {
 			Class<? extends Action> actionClass = null;
 			if (pluginMechanism != null) {
 				actionClass = (Class<? extends Action>) pluginMechanism.loadClass(className);
-			} else {
+			}
+			
+			if (actionClass == null) {
 				actionClass = (Class<? extends Action>) Class.forName(className);
 			}
+			
 			Action action = actionClass.newInstance();
 			
 			if (ExposableConfiguration.class.isInstance(action)) {

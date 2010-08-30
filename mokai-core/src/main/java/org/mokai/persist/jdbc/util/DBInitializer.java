@@ -21,7 +21,7 @@ public abstract class DBInitializer {
 			connection = dataSource.getConnection();
 			
 			DatabaseMetaData metadata = connection.getMetaData();
-			rs = metadata.getTables("", "mokai", "message", null);
+			rs = metadata.getTables("", getDbSchema(), "MESSAGE", null);
 			if (!rs.next()) {
 				statement = connection.createStatement();
 				statement.executeUpdate(messagesTableScript());
@@ -38,6 +38,8 @@ public abstract class DBInitializer {
 	}
 	
 	public abstract String messagesTableScript();
+	
+	public abstract String getDbSchema();
 
 	public void setDataSource(DataSource dataSource) {
 		this.dataSource = dataSource;

@@ -33,7 +33,7 @@ public interface ProcessorService extends Service {
 	/**
 	 * The status tells whether the service is in good health or {@link Message}s 
 	 * are failing. The status is calculated by first checking the status of the 
-	 * {@link Processor} (if it implements {@link Monitoreable}) and then checking
+	 * {@link Processor} (if it implements {@link Monitorable}) and then checking
 	 * the last message failed or was successfully processed.
 	 *  
 	 * @return the status of the processor service.

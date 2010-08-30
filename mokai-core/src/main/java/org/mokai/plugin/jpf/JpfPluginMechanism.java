@@ -45,7 +45,7 @@ public class JpfPluginMechanism implements PluginMechanism, Configurable {
 		// the directory of the plugins
 		File pluginsRoot= new File(pluginsPath);
 		if (!pluginsRoot.exists()) {
-			return;
+			pluginsRoot.mkdirs();
 		}
 		
 		// configure initial properties

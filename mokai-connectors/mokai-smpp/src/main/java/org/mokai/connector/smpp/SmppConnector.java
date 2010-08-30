@@ -191,7 +191,11 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		try {
 		
 			SubmitSm submitSm = new SubmitSm();
-			submitSm.setShortMessage(message.getProperty("text", String.class).getBytes());
+			if (message.getProperty("text", String.class) != null) {
+				submitSm.setShortMessage(message.getProperty("text", String.class).getBytes());
+			} else {
+				submitSm.setShortMessage("".getBytes());
+			}
 			
 			// destination address
 			submitSm.setDestAddress(message.getProperty("to", String.class));

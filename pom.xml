@@ -18,6 +18,7 @@
 		<!-- <module>mokai-admin</module> -->
 		<module>mokai-boot</module>
 		<module>mokai-assembly</module>
+		<module>mokai-web-admin</module>
 	</modules>
 
 	<dependencyManagement>
@@ -25,6 +26,12 @@
 			<dependency>
 				<groupId>org.springframework</groupId>
 				<artifactId>spring-context</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-web</artifactId>
 				<version>${spring.version}</version>
 			</dependency>
 
@@ -154,14 +161,20 @@
   			<snapshots>  
    				<enabled>true</enabled>  
   			</snapshots>  
- 		</repository> -->   		
+ 		</repository> -->   	
+ 		
+ 		<repository>
+   			<id>vaadin-addons</id>
+   			<url>http://maven.vaadin.com/vaadin-addons</url>
+		</repository>	
+		
 	</repositories>
 	
 	<pluginRepositories>
-		<pluginRepository>
+		<!-- <pluginRepository>
 			<id>elibom-nexus</id>
 			<url>http://192.168.0.99:8081/nexus/content/groups/public</url>
-		</pluginRepository>
+		</pluginRepository> -->
 	</pluginRepositories>
 
 </project>

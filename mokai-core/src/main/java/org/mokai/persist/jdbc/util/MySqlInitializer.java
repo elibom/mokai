@@ -24,4 +24,9 @@ public class MySqlInitializer extends DBInitializer {
 		return script;
 	}
 
+	@Override
+	public String getDbSchema() {
+		return "mokai";
+	}
+
 }

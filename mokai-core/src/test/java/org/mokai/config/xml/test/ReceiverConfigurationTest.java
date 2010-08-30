@@ -34,6 +34,16 @@ public class ReceiverConfigurationTest {
 
 	@Test
 	public void testLoadGoodFile() throws Exception {
+		testGoodFile(null);
+	}
+	
+	@Test
+	public void testLoadGoodFileNotUsefulPluginMechanism() throws Exception {
+		PluginMechanism pluginMechanism = Mockito.mock(PluginMechanism.class);
+		testGoodFile(pluginMechanism);
+	}
+	
+	private void testGoodFile(PluginMechanism pluginMechanism) throws Exception {
 		String path = "src/test/resources/receivers-test/good-receivers.xml";
 		
 		ReceiverService receiverService1 = Mockito.mock(ReceiverService.class);
@@ -50,6 +60,7 @@ public class ReceiverConfigurationTest {
 		ReceiverConfiguration config = new ReceiverConfiguration();
 		config.setPath(path);
 		config.setRoutingEngine(routingEngine);
+		config.setPluginMechanism(pluginMechanism);
 		
 		config.load();
 		

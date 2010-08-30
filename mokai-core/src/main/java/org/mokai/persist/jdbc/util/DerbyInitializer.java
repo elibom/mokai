@@ -23,6 +23,9 @@ public class DerbyInitializer extends DBInitializer {
 		
 		return script;
 	}
-	
-	
+
+	@Override
+	public String getDbSchema() {
+		return "APP";
+	}
 }

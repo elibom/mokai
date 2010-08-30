@@ -133,9 +133,12 @@ public class ProcessorConfiguration implements Configuration {
 		
 		if (pluginMechanism != null) {
 			processorClass = (Class<? extends Processor>) pluginMechanism.loadClass(className);
-		} else {
+		} 
+		
+		if (processorClass == null) {
 			processorClass = (Class<? extends Processor>) Class.forName(className);
 		}
+		
 		Processor processorConnector = processorClass.newInstance();
 		
 		if (ExposableConfiguration.class.isInstance(processorConnector)) {
@@ -162,9 +165,12 @@ public class ProcessorConfiguration implements Configuration {
 			Class<? extends Acceptor> acceptorClass = null;
 			if (pluginMechanism != null) {
 				acceptorClass = (Class<? extends Acceptor>) pluginMechanism.loadClass(className);
-			} else {
+			} 
+			
+			if (acceptorClass == null) {
 				acceptorClass = (Class<? extends Acceptor>) Class.forName(className);
 			}
+			
 			Acceptor acceptor = acceptorClass.newInstance();
 			
 			if (ExposableConfiguration.class.isInstance(acceptor)) {
@@ -193,9 +199,12 @@ public class ProcessorConfiguration implements Configuration {
 			Class<? extends Action> actionClass = null;
 			if (pluginMechanism != null) {
 				actionClass = (Class<? extends Action>) pluginMechanism.loadClass(className);
-			} else {
+			}
+			
+			if (actionClass == null) {
 				actionClass = (Class<? extends Action>) Class.forName(className);
 			}
+			
 			Action action = actionClass.newInstance();
 			
 			if (ExposableConfiguration.class.isInstance(action)) {

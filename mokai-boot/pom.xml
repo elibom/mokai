@@ -20,11 +20,11 @@
 			<artifactId>spring-context</artifactId>
 		</dependency>
 		
-		<!-- <dependency>
+		<dependency>
 			<groupId>org.mokai</groupId>
-			<artifactId>mokai-admin</artifactId>
+			<artifactId>mokai-web-admin</artifactId>
 			<version>${project.version}</version>
-		</dependency>  -->
+		</dependency>
 		
 		<dependency>
 			<groupId>org.mokai</groupId>

@@ -12,7 +12,7 @@ public class Main {
 		
 		// start spring context
 		String[] configLocations = new String[] { 
-				"conf/core-context.xml" 
+				"conf/core-context.xml", "conf/admin-console-context.xml" 
 			};
 		
 		final ConfigurableApplicationContext springContext = new FileSystemXmlApplicationContext(configLocations);

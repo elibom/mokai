@@ -104,8 +104,11 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 				log.info("received deliverSm: " + pdu);
 				
 				if (pdu.isSmscDeliveryReceipt()) {
-					log.warn("DeliveryReceipt not supported yet!");
+					log.warn("DeliveryReceipt not supported yet: " + pdu);
 				} else {
+					
+					log.info("received deliverySm: " + pdu);
+					
 					String to = pdu.getDestAddress();
 					String from = pdu.getSourceAddr();
 					String text = new String(pdu.getShortMessage());

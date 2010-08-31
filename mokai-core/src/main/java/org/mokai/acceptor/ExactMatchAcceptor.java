@@ -30,7 +30,7 @@ public class ExactMatchAcceptor implements Acceptor, ExposableConfiguration<Exac
 	}
 
 	@Override
-	public boolean accepts(Message message) {
+	public final boolean accepts(Message message) {
 		
 		String value = message.getProperty(field, String.class);
 			
@@ -42,7 +42,7 @@ public class ExactMatchAcceptor implements Acceptor, ExposableConfiguration<Exac
 	}
 
 	@Override
-	public ExactMatchAcceptor getConfiguration() {
+	public final ExactMatchAcceptor getConfiguration() {
 		return this;
 	}
 
@@ -63,7 +63,15 @@ public class ExactMatchAcceptor implements Acceptor, ExposableConfiguration<Exac
 	}
 	
 	@Override
-	public String toString() {
-		return "ExactMatchAcceptor [field=" + field + ",expression=" + expression + "]";
+	public final String toString() {
+		if (customToString() == null) {
+			return "ExactMatchAcceptor [field=" + field + ",expression=" + expression + "]";
+		}
+		
+		return customToString();
+	}
+	
+	protected String customToString() {
+		return null;
 	}
 }

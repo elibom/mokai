@@ -3,7 +3,7 @@ package org.mokai.persist.jdbc.util;
 public class MySqlInitializer extends DBInitializer {
 
 	@Override
-	public String messagesTableScript() {
+	public final String messagesTableScript() {
 		String script = "CREATE TABLE message (" +
 			"id_message BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY, " +
 			"account_message VARCHAR(30), " +
@@ -25,7 +25,7 @@ public class MySqlInitializer extends DBInitializer {
 	}
 
 	@Override
-	public String getDbSchema() {
+	public final String getDbSchema() {
 		return "mokai";
 	}
 

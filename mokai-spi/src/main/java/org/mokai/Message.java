@@ -104,7 +104,7 @@ public class Message implements Serializable {
 	
 	public enum Status {
 		
-		CREATED(1), PROCESSED(2), FAILED(3), UNROUTABLE(4);
+		CREATED(1), PROCESSED(2), FAILED(3), UNROUTABLE(4), RETRYING(5);
 		
 		private byte id;
 		
@@ -125,6 +125,8 @@ public class Message implements Serializable {
 				return FAILED;
 			} else if (b == 4) {
 				return UNROUTABLE;
+			} else if (b == 5) {
+				return RETRYING;
 			}
 			
 			throw new IllegalArgumentException("Status with id " + b + " not supported");

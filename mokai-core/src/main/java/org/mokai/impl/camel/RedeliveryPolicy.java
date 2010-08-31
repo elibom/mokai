@@ -10,10 +10,13 @@ import org.mokai.Processor;
  * @author German Escobar
  */
 public class RedeliveryPolicy {
-
-	private int maxRedeliveries = 3;
 	
-	private long maxRedeliveryDelay = 3000;
+	private static final int DEFAULT_MAX_REDELIVERIES = 3;
+	private static final long DEFAULT_MAX_REDELIVERY_DELAY = 3000;
+
+	private int maxRedeliveries = DEFAULT_MAX_REDELIVERIES;
+	
+	private long maxRedeliveryDelay = DEFAULT_MAX_REDELIVERY_DELAY;
 
 	public final int getMaxRedeliveries() {
 		return maxRedeliveries;

@@ -41,7 +41,7 @@ public class JpfPluginMechanism implements PluginMechanism, Configurable {
 	}
 	
 	@Override
-	public void configure() throws Exception {
+	public final void configure() throws Exception {
 		// the directory of the plugins
 		File pluginsRoot= new File(pluginsPath);
 		if (!pluginsRoot.exists()) {
@@ -74,7 +74,7 @@ public class JpfPluginMechanism implements PluginMechanism, Configurable {
 	}
 
 	@Override
-	public Class<?> loadClass(String className) throws IllegalArgumentException, PluginException {
+	public final Class<?> loadClass(String className) throws IllegalArgumentException, PluginException {
 		
 		// validate that configure has been called
 		checkPluginManager();
@@ -95,7 +95,7 @@ public class JpfPluginMechanism implements PluginMechanism, Configurable {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> Set<Class<? extends T>> loadTypes(Class<T> type) throws IllegalArgumentException, PluginException {
+	public final <T> Set<Class<? extends T>> loadTypes(Class<T> type) throws IllegalArgumentException, PluginException {
 		
 		// validate that configure has been called
 		checkPluginManager();
@@ -127,7 +127,7 @@ public class JpfPluginMechanism implements PluginMechanism, Configurable {
 	}
 
 	@Override
-	public void destroy() throws Exception {
+	public final void destroy() throws Exception {
 		if (pluginManager != null) {
 			pluginManager.shutdown();
 		}

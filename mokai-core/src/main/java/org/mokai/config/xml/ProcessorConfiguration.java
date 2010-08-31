@@ -33,6 +33,9 @@ import org.mokai.plugin.PluginMechanism;
  */
 public class ProcessorConfiguration implements Configuration {
 	
+	private static final int DEFAULT_POOL_SIZE = 3;
+	private static final int DEFAULT_MAX_POOL_SIZE = 4; 
+	
 	private String path = "data/processors.xml";
 	
 	private RoutingEngine routingEngine;
@@ -40,7 +43,8 @@ public class ProcessorConfiguration implements Configuration {
 	private PluginMechanism pluginMechanism;
 	
 	private Executor executor = 
-		new ThreadPoolExecutor(3, 6, Long.MAX_VALUE, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
+		new ThreadPoolExecutor(DEFAULT_POOL_SIZE, DEFAULT_MAX_POOL_SIZE, Long.MAX_VALUE, 
+				TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
 
 	@Override
 	public final void load() {

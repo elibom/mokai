@@ -11,7 +11,7 @@ public abstract class DBInitializer {
 
 	private DataSource dataSource;
 
-	public void init() {
+	public final void init() {
 		
 		Connection connection = null;
 		ResultSet rs = null;
@@ -41,7 +41,7 @@ public abstract class DBInitializer {
 	
 	public abstract String getDbSchema();
 
-	public void setDataSource(DataSource dataSource) {
+	public final void setDataSource(DataSource dataSource) {
 		this.dataSource = dataSource;
 	}
 }

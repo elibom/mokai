@@ -152,6 +152,13 @@ public class JdbcSmsMessageStore implements MessageStore {
 			
 		} catch (SQLException e) {
 			throw new StoreException(e);
+		} finally {
+			if (stmt != null) {
+				try { stmt.close(); } catch (Exception e) {}
+			}
+			if (conn != null) {
+				try { conn.close(); } catch (Exception e) {}
+			}
 		}
 	}
 

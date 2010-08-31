@@ -5,6 +5,10 @@ import org.mokai.ui.annotation.Required;
 
 public class SmppConfiguration {
 	
+	private static final int DEFAULT_ENQUIRELINK_TIMER = 9000;
+	private static final long DEFAULT_INITIAL_RECONNECT_DELAY = 5000;
+	private static final long DEFAULT_RECONNECT_DELAY = 5000;
+	
 	public enum BindType {
 		
 		TRANSMITTER, TRANSCIEVER, RECEIVER;
@@ -47,7 +51,7 @@ public class SmppConfiguration {
 	private String systemType;
 	
 	@Label("Enquire Link Timer")
-	private int enquireLinkTimer = 9000;
+	private int enquireLinkTimer = DEFAULT_ENQUIRELINK_TIMER;
 	
 	@Label("Bind Type")
 	private BindType bindType = BindType.TRANSCIEVER;
@@ -65,10 +69,10 @@ public class SmppConfiguration {
 	private String destTON;
 	
 	@Label("Initial Reconnect Delay")
-	private long initialReconnectDelay = 5000;
+	private long initialReconnectDelay = DEFAULT_INITIAL_RECONNECT_DELAY;
 	
 	@Label("Reconnect Delay")
-    private long reconnectDelay = 5000;
+    private long reconnectDelay = DEFAULT_RECONNECT_DELAY;
 	
 	public final String getHost() {
 		return host;

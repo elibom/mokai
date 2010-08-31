@@ -9,10 +9,10 @@ import java.util.Set;
  */
 public interface PluginMechanism {
 
-	public <T> Set<Class<? extends T>> loadTypes(Class<T> type) 
+	<T> Set<Class<? extends T>> loadTypes(Class<T> type) 
 			throws IllegalArgumentException, PluginException;
 	
-	public Class<?> loadClass(String className) throws IllegalArgumentException, 
+	Class<?> loadClass(String className) throws IllegalArgumentException, 
 			PluginException;
 	
 }

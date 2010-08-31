@@ -1,8 +1,5 @@
 package org.mokai.web.admin.vaadin;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.List;
 
 import org.apache.commons.lang.Validate;
@@ -10,13 +7,10 @@ import org.mokai.ProcessorService;
 import org.mokai.RoutingEngine;
 import org.mokai.Monitorable.Status;
 import org.mokai.Service.State;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.henrik.refresher.Refresher;
 
 import com.vaadin.Application;
-import com.vaadin.data.Property;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Window;
@@ -25,8 +19,6 @@ import com.vaadin.ui.Button.ClickEvent;
 public class WebAdminApplication extends Application {
 
 	private static final long serialVersionUID = 1L;
-	
-	private Logger log = LoggerFactory.getLogger(WebAdminApplication.class);
 	
 	@Autowired
 	private RoutingEngine routingEngine;
@@ -153,139 +145,6 @@ public class WebAdminApplication extends Application {
 			}
 			
 		});
-	}
-	
-	@SuppressWarnings("unused")
-	private class PropertyValue implements Property {
-
-		private static final long serialVersionUID = 1L;
-		
-		private Object object;
-		private String property;
-		private boolean readOnly;
-		
-		public PropertyValue(Object object, String property) {
-			this(object, property, true);
-		}
-		
-		public PropertyValue(Object object, String property, boolean readOnly) {
-			Validate.notNull(object);
-			Validate.notEmpty(property);
-			
-			this.object = object;
-			this.property = property;
-			this.readOnly = readOnly;
-		}
-
-		@Override
-		public Class<?> getType() {
-			return object.getClass();
-		}
-
-		@Override
-		public Object getValue() {
-			try {
-				Field field = object.getClass().getField(property);
-				field.setAccessible(true);
-				
-				return field.get(object);
-			} catch (NoSuchFieldException e) {
-				log.error("NoSuchFieldException for property '" + property + "': " 
-						+ e.getMessage(), e);
-			} catch (IllegalArgumentException e) {
-				log.error("IllegalArgumentException for property '" + property + "': " 
-						+ e.getMessage(), e);
-			} catch (IllegalAccessException e) {
-				log.error("IllegalAccessException for property '" + property + "': "
-						+ e.getMessage(), e);
-			}
-			
-			return null;
-		}
-
-		@Override
-		public boolean isReadOnly() {
-			return readOnly;
-		}
-
-		@Override
-		public void setReadOnly(boolean newStatus) {
-			this.readOnly = newStatus;
-		}
-
-		@Override
-		public void setValue(Object newValue) throws ReadOnlyException,
-				ConversionException {
-			this.object = newValue;
-		}
-		
-	}
-	
-	@SuppressWarnings("unused")
-	private class MethodValue implements Property {
-
-		private static final long serialVersionUID = 1L;
-		
-		private Object object;
-		private String methodName;
-		private boolean readOnly;
-		
-		public MethodValue(Object object, String methodName) {
-			this(object, methodName, true);
-		}
-		
-		public MethodValue(Object object, String methodName, boolean readOnly) {
-			Validate.notNull(object);
-			Validate.notEmpty(methodName);
-			
-			this.object = object;
-			this.methodName = methodName;
-			this.readOnly = readOnly;
-		}
-
-		@Override
-		public Class<?> getType() {
-			return object.getClass();
-		}
-
-		@Override
-		public Object getValue() {
-			try {
-				Method method = object.getClass().getMethod(methodName);
-				
-				return method.invoke(object);
-			} catch (NoSuchMethodException e) {
-				log.error("NoSuchMethodException for method '" + methodName + "': " 
-						+ e.getMessage(), e);
-			} catch (IllegalArgumentException e) {
-				log.error("IllegalArgumentException for method '" + methodName + "': " 
-						+ e.getMessage(), e);
-			} catch (IllegalAccessException e) {
-				log.error("IllegalAccessException for method '" + methodName + "': "
-						+ e.getMessage(), e);
-			} catch (InvocationTargetException e) {
-				log.error("InvocationTargetException for method '" + methodName + "': "
-						+ e.getMessage(), e);
-			}
-			
-			return null;
-		}
-
-		@Override
-		public boolean isReadOnly() {
-			return readOnly;
-		}
-
-		@Override
-		public void setReadOnly(boolean newStatus) {
-			this.readOnly = newStatus;
-		}
-
-		@Override
-		public void setValue(Object newValue) throws ReadOnlyException,
-				ConversionException {
-			this.object = newValue;
-		}
 	}
 
 }

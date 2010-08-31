@@ -31,12 +31,12 @@ public class FailedMessagesMonitor extends TimerTask implements Service {
 	private Timer timer;
 	
 	@Override
-	public State getState() {
+	public final State getState() {
 		return status;
 	}
 
 	@Override
-	public void start() {
+	public final void start() {
 		if (!status.isStartable()) {
 			return;
 		}
@@ -48,7 +48,7 @@ public class FailedMessagesMonitor extends TimerTask implements Service {
 	}
 
 	@Override
-	public void stop() {
+	public final void stop() {
 		if (!status.isStoppable()) {
 			return;
 		}
@@ -59,7 +59,7 @@ public class FailedMessagesMonitor extends TimerTask implements Service {
 	}
 
 	@Override
-	public void run() {
+	public final void run() {
 		if (routingEngine == null) {
 			throw new IllegalStateException("no CamelRoutingContext provided");
 		}
@@ -67,23 +67,23 @@ public class FailedMessagesMonitor extends TimerTask implements Service {
 		routingEngine.retryFailedMessages();
 	}
 
-	public long getDelay() {
+	public final long getDelay() {
 		return delay;
 	}
 
-	public void setDelay(long delay) {
+	public final void setDelay(long delay) {
 		this.delay = delay;
 	}
 
-	public long getInterval() {
+	public final long getInterval() {
 		return interval;
 	}
 
-	public void setInterval(long interval) {
+	public final void setInterval(long interval) {
 		this.interval = interval;
 	}
 
-	public void setRoutingContext(CamelRoutingEngine routingEngine) {
+	public final void setRoutingContext(CamelRoutingEngine routingEngine) {
 		this.routingEngine = routingEngine;
 	}
 

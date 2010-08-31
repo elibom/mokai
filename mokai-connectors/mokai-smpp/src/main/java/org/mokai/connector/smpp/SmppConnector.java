@@ -260,7 +260,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	}
 
 	@Override
-	public boolean supports(Message message) {
+	public final boolean supports(Message message) {
 		if (message.isType(Message.SMS_TYPE)) {
 			return true;
 		}

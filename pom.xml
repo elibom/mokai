@@ -120,16 +120,16 @@
 	<distributionManagement>  
  		<!-- Publish the versioned releases here -->  
  		<repository>  
-  			<id>elibom-nexus</id>  
-  			<name>Elibom Nexus</name>  
-  			<url>dav:http://localhost:8081/nexus/content/repositories/releases</url>  
+  			<id>elibom</id>  
+  			<name>Elibom Nexus Repository</name>  
+  			<url>dav:http://repository.elibom.net/nexus/content/repositories/releases</url>  
  		</repository>  
   
  		<!-- Publish the versioned releases here -->  
  		<snapshotRepository>  
-  			<id>elibom-nexus</id>  
-  			<name>Elibom Nexus</name>  
-  			<url>dav:http://localhost:8081/nexus/content/repositories/snapshots</url>  
+  			<id>elibom</id>  
+  			<name>Elibom Nexus Repository</name>  
+  			<url>dav:http://repository.elibom.net/nexus/content/repositories/snapshots</url>  
  		</snapshotRepository>  
 	</distributionManagement>
 
@@ -151,17 +151,17 @@
 			<url>http://repository.jboss.org/maven2/</url>
 		</repository>
 		
-		<!-- <repository>  
-  			<id>elibom-nexus</id>  
-  			<name>Elibom</name>  
-  			<url>http://192.168.0.99:8081/nexus/content/groups/public</url>  
+		<repository>  
+  			<id>elibom</id>  
+  			<name>Elibom Nexus Repository</name>  
+  			<url>http://repository.elibom.net/nexus/content/groups/public</url>  
   			<releases>  
    				<enabled>true</enabled>  
   			</releases>  
   			<snapshots>  
    				<enabled>true</enabled>  
   			</snapshots>  
- 		</repository> -->   	
+ 		</repository>	
  		
  		<repository>
    			<id>vaadin-addons</id>
@@ -171,10 +171,10 @@
 	</repositories>
 	
 	<pluginRepositories>
-		<!-- <pluginRepository>
+		<pluginRepository>
 			<id>elibom-nexus</id>
-			<url>http://192.168.0.99:8081/nexus/content/groups/public</url>
-		</pluginRepository> -->
+			<url>http://repository.elibom.net/nexus/content/groups/public</url>
+		</pluginRepository>
 	</pluginRepositories>
 
 </project>

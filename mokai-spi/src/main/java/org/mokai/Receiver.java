@@ -6,8 +6,8 @@ package org.mokai;
  * use the {@link MessageProducer} interface to route the messages inside the 
  * framework.</p>
  * 
- * <p>When a receiver is added to the {@link RoutingEngine}, it is wrapped
- * into a {@link ReceiverService} which also contains the post-receiving
+ * <p>When a receiver is added to the {@link org.mokai.RoutingEngine}, it is wrapped
+ * into a {@link org.mokai.ReceiverService} which also contains the post-receiving
  * actions.</p>
  * 
  * @author German Escobar

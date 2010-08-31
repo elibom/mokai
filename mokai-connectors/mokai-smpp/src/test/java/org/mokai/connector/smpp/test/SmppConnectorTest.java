@@ -12,6 +12,8 @@ import org.mokai.Monitorable.Status;
 import org.mokai.annotation.Resource;
 import org.mokai.connector.smpp.SmppConfiguration;
 import org.mokai.connector.smpp.SmppConnector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.smpp.smscsim.Simulator;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -19,6 +21,8 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 public class SmppConnectorTest {
+	
+	private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 	
 	private final long DEFAULT_TIMEOUT = 3000;
 	
@@ -33,11 +37,17 @@ public class SmppConnectorTest {
 	
 	@AfterMethod
 	public void stopSimulator() throws Exception {
-		simulator.stop();
+		try {
+			simulator.stop();
+		} catch (Exception e) {
+			e.printStackTrace();			
+		}
 	}
 	
 	@Test
 	public void testStatus() throws Exception {
+		log.info("starting testStatus ... ");
+		
 		SmppConfiguration configuration = new SmppConfiguration();
 		configuration.setHost("localhost");
 		configuration.setPort(8321);
@@ -64,6 +74,8 @@ public class SmppConnectorTest {
 
 	@Test
 	public void testProcessMessage() throws Exception {
+		log.info("starting testProcessMessage ... ");
+		
 		SmppConfiguration configuration = new SmppConfiguration();
 		configuration.setHost("localhost");
 		configuration.setPort(8321);
@@ -88,6 +100,8 @@ public class SmppConnectorTest {
 	
 	@Test
 	public void testProcessMessageNullText() throws Exception {
+		log.info("starting testProcessMessageNullText ... ");
+		
 		SmppConfiguration configuration = new SmppConfiguration();
 		configuration.setHost("localhost");
 		configuration.setPort(8321);
@@ -126,6 +140,8 @@ public class SmppConnectorTest {
 	
 	@Test
 	public void testReceiveMessage() throws Exception {
+		log.info("starting testReceiveMessage ... ");
+		
 		MockMessageProducer messageProducer = new MockMessageProducer();
 		
 		SmppConfiguration configuration = new SmppConfiguration();
@@ -161,6 +177,8 @@ public class SmppConnectorTest {
 	
 	@Test
 	public void testFailedConnectionOnStart() throws Exception {
+		log.info("starting testFailedConnectionOnStart ... ");
+		
 		stopSimulator();
 		
 		SmppConfiguration configuration = new SmppConfiguration();

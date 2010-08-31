@@ -115,7 +115,11 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 					message.setProperty("from", from);
 					message.setProperty("text", text);
 					
-					messageProducer.produce(message);
+					if (messageProducer != null) {
+						messageProducer.produce(message);
+					} else {
+						log.warn("MessageProducer is null ... ignoring message");
+					}
 				}
 					
 			}
@@ -327,7 +331,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
                     status = MonitorStatusBuilder.ok();
                     
                 } catch (IOException e) {
-                    log.info("failed to connect to " + getConfiguration().getHost());
+                    log.error("failed to connect to " + getConfiguration().getHost());
                     
                     status = MonitorStatusBuilder.failed("could not connect", e);
                     

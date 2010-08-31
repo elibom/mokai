@@ -21,6 +21,12 @@
 		</dependency>
 		
 		<dependency>
+			<groupId>org.apache.xbean</groupId>
+			<artifactId>xbean-spring</artifactId>
+			<version>3.7</version>
+		</dependency>
+		
+		<dependency>
 			<groupId>org.mokai</groupId>
 			<artifactId>mokai-web-admin</artifactId>
 			<version>${project.version}</version>
@@ -43,6 +49,13 @@
 		<dependency>
 			<groupId>org.mokai</groupId>
 			<artifactId>mokai-smpp</artifactId>
+			<version>${project.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.mokai</groupId>
+			<artifactId>mokai-jms</artifactId>
 			<version>${project.version}</version>
 			<scope>provided</scope>
 		</dependency>

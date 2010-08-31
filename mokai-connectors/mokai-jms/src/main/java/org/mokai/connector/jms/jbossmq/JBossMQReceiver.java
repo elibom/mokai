@@ -206,20 +206,20 @@ public class JBossMQReceiver implements Receiver, ExposableConfiguration<JBossMQ
             int attempt = 0;
             boolean connected = false;
             while (attempt < maxRetries && started && !connected) {
-			
-				try {			
-					InitialContext context = new InitialContext();
-					if (!configuration.getHost().startsWith("localhost")) {
-						Properties properties = new Properties();
-						properties.put(Context.INITIAL_CONTEXT_FACTORY, "org.jnp.interfaces.NamingContextFactory");
-						properties.put(Context.URL_PKG_PREFIXES, "org.jnp.interfaces");
-						properties.put(Context.PROVIDER_URL, configuration.getHost());
-						
-						context = new InitialContext(properties);
-					}
+            	log.info("trying to connect to " + getConfiguration().getHost() + " - attempt #" + (++attempt) + "...");
+            		
+				try {	
+					Properties properties = new Properties();
+					properties.put(Context.INITIAL_CONTEXT_FACTORY, "org.jnp.interfaces.NamingContextFactory");
+					properties.put(Context.URL_PKG_PREFIXES, "org.jnp.interfaces");
+					properties.put(Context.PROVIDER_URL, configuration.getHost());
+					
+					InitialContext context = new InitialContext(properties);
 					
 					ConnectionFactory connectionFactory = (ConnectionFactory) context.lookup("ConnectionFactory");
 					connection = connectionFactory.createConnection();
+					connection.setExceptionListener(JBossMQReceiver.this);
+					
 					session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 					
 					Destination queue = (Destination) context.lookup(configuration.getQueueName());
@@ -232,7 +232,7 @@ public class JBossMQReceiver implements Receiver, ExposableConfiguration<JBossMQ
 					connected = true;
 					
 				} catch (Exception e) {
-					log.error("failed to connecto to queue '" + configuration.getQueueName() 
+					log.error("failed to connect to queue '" + configuration.getQueueName() 
 							+ "' (" + configuration.getHost() + ")");
 					
 					status = MonitorStatusBuilder.failed("could not connect", e);

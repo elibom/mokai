@@ -11,6 +11,7 @@ import org.jsmpp.bean.ESMClass;
 import org.jsmpp.bean.GeneralDataCoding;
 import org.jsmpp.bean.MessageClass;
 import org.jsmpp.bean.NumberingPlanIndicator;
+import org.jsmpp.bean.OptionalParameter;
 import org.jsmpp.bean.RegisteredDelivery;
 import org.jsmpp.bean.SMSCDeliveryReceipt;
 import org.jsmpp.bean.SubmitSm;
@@ -162,8 +163,10 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		// bind type
 		BindType bindType = BindType.BIND_TRX;
 		if (configuration.getBindType().equals("r")) {
+			log.info("bind type: receiver");
 			bindType = BindType.BIND_RX;
 		} else if (configuration.getBindType().equals("t")) {
+			log.info("bind type: transmitter");
 			bindType = BindType.BIND_TX;
 		}
 		
@@ -187,9 +190,14 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	public final void doStop() throws Exception {
 		
 		started = false;
-		status = MonitorStatusBuilder.unknown();
 		
-		session.unbindAndClose();
+		try {
+			session.unbindAndClose();
+		} catch (Exception e) {
+			log.error("Exception closing session: " + e.getMessage(), e);
+		}
+		
+		status = MonitorStatusBuilder.unknown();
 	}
 
 	@Override
@@ -212,6 +220,11 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 				submitSm.setShortMessage("".getBytes());
 			}
 			
+			submitSm.setRegisteredDelivery((byte) 1);
+			submitSm.setOptionalParametes(
+					new OptionalParameter.Null(OptionalParameter.Tag.ALERT_ON_MESSAGE_DELIVERY)
+			);
+			
 			// destination address
 			submitSm.setDestAddress(message.getProperty("to", String.class));
 			if (notEmpty(configuration.getDestNPI())) {
@@ -224,10 +237,10 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			// source address
 			submitSm.setSourceAddr(message.getProperty("from", String.class));
 			if (notEmpty(configuration.getSourceNPI())) {
-				submitSm.setSourceAddrNpi(Byte.valueOf(configuration.getDestNPI()));
+				submitSm.setSourceAddrNpi(Byte.valueOf(configuration.getSourceNPI()));
 			}
 			if (notEmpty(configuration.getSourceTON())) {
-				submitSm.setSourceAddrTon(Byte.valueOf(configuration.getDestTON()));
+				submitSm.setSourceAddrTon(Byte.valueOf(configuration.getSourceTON()));
 			}
 			
 			submitSm.setRegisteredDelivery(SMSCDeliveryReceipt.SUCCESS_FAILURE.value());
@@ -332,8 +345,10 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
                     
                     status = MonitorStatusBuilder.ok();
                     
+                    log.info("connected to '" + configuration.getHost() + ":" + configuration.getPort() + "'");
+                    
                 } catch (IOException e) {
-                    log.error("failed to connect to " + getConfiguration().getHost());
+                    logException(e, attempt == 1);
                     
                     status = MonitorStatusBuilder.failed("could not connect", e);
                     
@@ -345,6 +360,17 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
                     }
                 }
             }
+		}
+		
+		private void logException(Exception e, boolean firstTime) {
+			// print the exception only one time
+			String logError = "failed to connect to '" + configuration.getHost() + ":" + configuration.getPort() + "'";
+			
+			if (firstTime) {
+				log.error(logError, e);
+			} else {
+				log.error(logError + ": " + e.getMessage());
+			}
 		}
 		
 	}

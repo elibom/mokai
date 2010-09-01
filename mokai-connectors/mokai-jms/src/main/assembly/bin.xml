@@ -26,6 +26,7 @@
 		<dependencySet>
 			<scope>runtime</scope>
 			<outputDirectory>lib</outputDirectory>
+			<useProjectArtifact>false</useProjectArtifact>
 		</dependencySet>
 	</dependencySets>
 </assembly>

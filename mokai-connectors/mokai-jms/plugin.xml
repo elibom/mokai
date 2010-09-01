@@ -6,6 +6,8 @@
 		<library id="core" path="classes/" type="code">
 			<export prefix="*" />
 		</library>
+		
+		<library id="jbossall-client" path="lib/jbossall-client-4.2.3.GA.jar" type="code" />
 	</runtime>
 	
 </plugin>

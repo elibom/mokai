@@ -24,6 +24,8 @@ import org.mokai.RoutingEngine;
 import org.mokai.config.Configuration;
 import org.mokai.config.ConfigurationException;
 import org.mokai.plugin.PluginMechanism;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Loads and saves {@link ProcessorService}s information to and from an 
@@ -32,6 +34,8 @@ import org.mokai.plugin.PluginMechanism;
  * @author German Escobar
  */
 public class ProcessorConfiguration implements Configuration {
+	
+	private Logger log = LoggerFactory.getLogger(ProcessorConfiguration.class);
 	
 	private static final int DEFAULT_POOL_SIZE = 3;
 	private static final int DEFAULT_MAX_POOL_SIZE = 4; 
@@ -59,6 +63,7 @@ public class ProcessorConfiguration implements Configuration {
 		try {
 			load(inputStream);
 		} catch (Exception e) {
+			log.error("Exception loading configuration: " + e.getMessage(), e);
 			throw new ConfigurationException(e);			
 		}
 	}

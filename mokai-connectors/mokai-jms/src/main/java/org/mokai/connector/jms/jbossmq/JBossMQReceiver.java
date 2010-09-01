@@ -212,14 +212,22 @@ public class JBossMQReceiver implements Receiver, ExposableConfiguration<JBossMQ
             boolean connected = false;
             while (attempt < maxRetries && started && !connected) {
             	log.info("trying to connect to " + getConfiguration().getHost() + " - attempt #" + (++attempt) + "...");
-            		
-				try {	
+            	
+            	// save the current thread class loader
+            	ClassLoader threadLoader = Thread.currentThread().getContextClassLoader();
+            	
+            	// set this class class loader to the current thread class loader
+            	Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+            	
+				try {					
 					Properties properties = new Properties();
 					properties.put(Context.INITIAL_CONTEXT_FACTORY, "org.jnp.interfaces.NamingContextFactory");
 					properties.put(Context.URL_PKG_PREFIXES, "org.jnp.interfaces");
 					properties.put(Context.PROVIDER_URL, configuration.getHost());
 					
+					
 					InitialContext context = new InitialContext(properties);
+					
 					
 					ConnectionFactory connectionFactory = (ConnectionFactory) context.lookup("ConnectionFactory");
 					connection = connectionFactory.createConnection();
@@ -236,20 +244,35 @@ public class JBossMQReceiver implements Receiver, ExposableConfiguration<JBossMQ
 					status = MonitorStatusBuilder.ok();
 					connected = true;
 					
+					log.info("connected to queue '" + configuration.getQueueName() + "' (" + configuration.getHost() + ")");
+					
 				} catch (Exception e) {
-					log.error("failed to connect to queue '" + configuration.getQueueName() 
-							+ "' (" + configuration.getHost() + ")");
+					logException(e, attempt == 1);
 					
 					status = MonitorStatusBuilder.failed("could not connect", e);
 					
 					try {
                         Thread.sleep(configuration.getReconnectDelay());
                     } catch (InterruptedException ee) {}
+				} finally {
+					
+					// change back the class loader
+					Thread.currentThread().setContextClassLoader(threadLoader);
 				}
             }
 		}
 		
-		
+		private void logException(Exception e, boolean firstTime) {
+			// print the exception only one time
+			String logError = "failed to connect to queue '" + configuration.getQueueName() 
+					+ "' (" + configuration.getHost() + ")";
+			
+			if (firstTime) {
+				log.error(logError, e);
+			} else {
+				log.error(logError + ": " + e.getMessage());
+			}
+		}
 	}
 
 }

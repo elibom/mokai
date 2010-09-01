@@ -1,5 +1,9 @@
 @import url(../reindeer/styles.css);
 
+.v-table-cell-content {
+    vertical-align: middle;
+}
+
 .v-table-cell-content-red {
 	background-color: red;
 }

@@ -12,7 +12,14 @@ import org.mokai.Message;
  */
 public interface MessageStore {
 
+	/**
+	 * 
+	 * @param message
+	 * @throws StoreException
+	 */
 	void saveOrUpdate(Message message) throws StoreException;
+	
+	void updateFailedToRetrying() throws StoreException;
 	
 	Collection<Message> list(MessageCriteria criteria) throws StoreException;
 	

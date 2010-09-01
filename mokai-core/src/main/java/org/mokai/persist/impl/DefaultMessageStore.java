@@ -22,6 +22,11 @@ public class DefaultMessageStore implements MessageStore {
 	}
 
 	@Override
+	public void updateFailedToRetrying() throws StoreException {
+		
+	}
+
+	@Override
 	public Collection<Message> list(MessageCriteria criteria)
 			throws StoreException {
 		return Collections.emptyList();

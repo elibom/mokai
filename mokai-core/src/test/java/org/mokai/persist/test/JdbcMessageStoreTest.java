@@ -104,7 +104,7 @@ public class JdbcMessageStoreTest {
 	}
 	
 	@Test
-	public void testRetrieveFailMessages() throws Exception {
+	public void testRetrieveMessages() throws Exception {
 		generateTestData();
 		
 		JdbcSmsMessageStore messageStore = new JdbcSmsMessageStore();
@@ -128,6 +128,28 @@ public class JdbcMessageStoreTest {
 		messages = messageStore.list(criteria);
 		Assert.assertEquals(3, messages.size());
 		
+	}
+	
+	@Test
+	public void testUpdateMessagesToRetry() throws Exception {
+		generateTestData();
+		
+		JdbcSmsMessageStore messageStore = new JdbcSmsMessageStore();
+		messageStore.setDataSource(dataSource);
+		
+		messageStore.updateFailedToRetrying();
+		
+		// retrieve failed messages
+		MessageCriteria criteria = new MessageCriteria();
+		criteria.addStatus(Status.FAILED);
+		Collection<Message> messages = messageStore.list(criteria);
+		Assert.assertEquals(0, messages.size());
+		
+		// retrieve retrying messages
+		criteria = new MessageCriteria();
+		criteria.addStatus(Status.RETRYING);
+		messages = messageStore.list(criteria);
+		Assert.assertEquals(3, messages.size());
 	}
 	
 	private void generateTestData() throws Exception {

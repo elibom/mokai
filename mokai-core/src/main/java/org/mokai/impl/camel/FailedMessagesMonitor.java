@@ -14,6 +14,9 @@ public class FailedMessagesMonitor extends TimerTask implements Service {
 
 	//private Logger log = LoggerFactory.getLogger(FailedMessagesMonitor.class);
 	
+	private static final long DEFAULT_DELAY = 0;
+	private static final long DEFAULT_INTERVAL = 30000;
+	
 	private CamelRoutingEngine routingEngine;
 	
 	private State status = State.STOPPED;
@@ -21,12 +24,12 @@ public class FailedMessagesMonitor extends TimerTask implements Service {
 	/**
 	 * The delay before the first execution in milliseconds
 	 */
-	private long delay;
+	private long delay = DEFAULT_DELAY;
 	
 	/**
 	 * The interval between executions in milliseconds
 	 */
-	private long interval;
+	private long interval = DEFAULT_INTERVAL;
 	
 	private Timer timer;
 	
@@ -83,7 +86,7 @@ public class FailedMessagesMonitor extends TimerTask implements Service {
 		this.interval = interval;
 	}
 
-	public final void setRoutingContext(CamelRoutingEngine routingEngine) {
+	public final void setRoutingEngine(CamelRoutingEngine routingEngine) {
 		this.routingEngine = routingEngine;
 	}
 

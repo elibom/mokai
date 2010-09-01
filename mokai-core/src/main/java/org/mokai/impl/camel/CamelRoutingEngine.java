@@ -355,10 +355,13 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 	public final void retryFailedMessages() {
 		log.debug("running ... ");
 		
+		// update all the failed messages to retrying
+		messageStoreDelegate.updateFailedToRetrying();
+		
 		ProducerTemplate producer = camelContext.createProducerTemplate();
 		
 		MessageCriteria criteria = new MessageCriteria()
-			.addStatus(Message.Status.FAILED)
+			.addStatus(Message.Status.RETRYING)
 			.orderBy("creation_time")
 			.orderType(OrderType.UPWARDS)
 			.firstRecord(0)
@@ -428,6 +431,11 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 		@Override
 		public void saveOrUpdate(Message message) throws StoreException {
 			delegate.saveOrUpdate(message);
+		}
+
+		@Override
+		public void updateFailedToRetrying() throws StoreException {
+			delegate.updateFailedToRetrying();
 		}
 
 		public MessageStore getDelegate() {

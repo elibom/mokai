@@ -271,6 +271,11 @@ public class CamelRoutingEngineTest {
 			public void saveOrUpdate(Message message) throws StoreException {
 				try { barrier.await(); } catch (Exception e) {}
 			}
+
+			@Override
+			public void updateFailedToRetrying() throws StoreException {
+				
+			}
 			
 		};
 		

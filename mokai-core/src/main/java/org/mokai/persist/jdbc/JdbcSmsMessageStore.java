@@ -161,6 +161,35 @@ public class JdbcSmsMessageStore implements MessageStore {
 			}
 		}
 	}
+	
+	@Override
+	public void updateFailedToRetrying() throws StoreException {
+		Connection conn = null;
+		PreparedStatement stmt = null;
+		
+		try {
+			conn = dataSource.getConnection();
+			
+			String strSQL = "UPDATE message SET status_message = ? WHERE status_message = ?";
+			
+			stmt = conn.prepareStatement(strSQL);
+			stmt.setByte(1, Status.RETRYING.value());
+			stmt.setLong(2, Status.FAILED.value());
+			
+			int affected = stmt.executeUpdate();
+			log.info("updated " + affected + " failed messages to retrying");
+			
+		} catch (SQLException e) {
+			throw new StoreException(e);
+		} finally {
+			if (stmt != null) {
+				try { stmt.close(); } catch (Exception e) {}
+			}
+			if (conn != null) {
+				try { conn.close(); } catch (Exception e) {}
+			}
+		}
+	}
 
 	@Override
 	public final Collection<Message> list(MessageCriteria criteria) throws StoreException {

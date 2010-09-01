@@ -75,6 +75,9 @@ public class JBossMQReceiver implements Receiver, ExposableConfiguration<JBossMQ
 	@Override
 	public void doStop() throws Exception {
 		try {
+			started = false;
+			status = MonitorStatusBuilder.unknown();
+			
 			if (connection != null) {
 				connection.stop();
 			}
@@ -170,7 +173,9 @@ public class JBossMQReceiver implements Receiver, ExposableConfiguration<JBossMQ
 	}
 
 	@Override
-	public void onException(JMSException exception) {
+	public void onException(JMSException e) {
+		status = MonitorStatusBuilder.failed("connection lost: " + e.getMessage(), e);
+		
 		new Thread(new ConnectionThread(Integer.MAX_VALUE, configuration.getInitialReconnectDelay())).start();
 	}
 

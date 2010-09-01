@@ -187,10 +187,9 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	public final void doStop() throws Exception {
 		
 		started = false;
+		status = MonitorStatusBuilder.unknown();
 		
 		session.unbindAndClose();
-		
-		status = MonitorStatusBuilder.unknown();
 	}
 
 	@Override

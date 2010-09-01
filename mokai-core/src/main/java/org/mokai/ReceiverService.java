@@ -3,6 +3,7 @@ package org.mokai;
 import java.util.List;
 
 import org.mokai.Action;
+import org.mokai.Monitorable.Status;
 
 /**
  * 
@@ -14,6 +15,8 @@ public interface ReceiverService extends Service {
 	String getId();
 	
 	Receiver getReceiver();
+	
+	Status getStatus();
 
 	ReceiverService addPostReceivingAction(Action action) throws IllegalArgumentException, ObjectAlreadyExistsException;
 	

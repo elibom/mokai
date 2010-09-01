@@ -19,6 +19,8 @@ import org.mokai.Configurable;
 import org.mokai.ExecutionException;
 import org.mokai.Message;
 import org.mokai.MessageProducer;
+import org.mokai.MonitorStatusBuilder;
+import org.mokai.Monitorable;
 import org.mokai.ObjectAlreadyExistsException;
 import org.mokai.ObjectNotFoundException;
 import org.mokai.Receiver;
@@ -26,6 +28,7 @@ import org.mokai.ReceiverService;
 import org.mokai.Serviceable;
 import org.mokai.Message.Flow;
 import org.mokai.Message.SourceType;
+import org.mokai.Monitorable.Status;
 import org.mokai.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -154,6 +157,18 @@ public class CamelReceiverService implements ReceiverService {
 	@Override
 	public final Receiver getReceiver() {
 		return this.receiver;
+	}
+
+	@Override
+	public Status getStatus() {
+		
+		// check if the receiver is monitorable
+		if (Monitorable.class.isInstance(receiver)) {
+			Monitorable monitorable = (Monitorable) receiver;
+			return monitorable.getStatus();
+		}
+		
+		return MonitorStatusBuilder.unknown();
 	}
 
 	private boolean isServiceable() {

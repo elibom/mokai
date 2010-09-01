@@ -57,6 +57,11 @@
 	</bean>
 	<!-- <bean id="messageStore" class="org.mokai.persist.impl.DefaultMessageStore" /> -->
 	
+	<bean id="faileMessagesMonitor" class="org.mokai.impl.camel.FailedMessagesMonitor" init-method="start" destroy-method="stop">
+		<property name="routingEngine"><ref bean="routingEngine" /></property>
+		<property name="delay" value="30000" />
+	</bean>
+	
 	<bean id="broker" class="org.apache.activemq.xbean.BrokerFactoryBean">
     	<property name="config" value="/conf/activemq.xml" />
     	<property name="start" value="true" />

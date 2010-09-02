@@ -5,8 +5,8 @@ import java.util.List;
 import org.mokai.Monitorable.Status;
 
 /**
- * Wraps a {@link Processor} and adds the acceptors, pre-processing actions,
- * post-processing actions and post-receiving actions.
+ * Wraps a {@link Processor} implementation and holds a collection of acceptors, 
+ * pre-processing actions, post-processing actions and post-receiving actions.
  * 
  * @author German Escobar
  */
@@ -17,10 +17,27 @@ public interface ProcessorService extends Service {
 	 */
 	String getId();
 
+	/**
+	 * Value is used to determine the order in which the processor services should 
+	 * be query in order to accept or reject a message.
+	 * 
+	 * @return the priority of this processor service.
+	 */
 	int getPriority();
 	
+	/**
+	 * Sets the priority of the processor service. This value is used to determine 
+	 * the order in which the processor services should be query in order to accept 
+	 * or reject a message.
+	 * 
+	 * @param priority can be a positive or negative number.
+	 */
 	void setPriority(int priority);
 	
+	/**
+	 * The wrapped processor.
+	 * @return the {@link Processor} that this processor service is managing.
+	 */
 	Processor getProcessor();
 	
 	/**
@@ -34,7 +51,7 @@ public interface ProcessorService extends Service {
 	 * The status tells whether the service is in good health or {@link Message}s 
 	 * are failing. The status is calculated by first checking the status of the 
 	 * {@link Processor} (if it implements {@link Monitorable}) and then checking
-	 * the last message failed or was successfully processed.
+	 * if the last message failed or was successfully processed.
 	 *  
 	 * @return the status of the processor service.
 	 */
@@ -64,6 +81,9 @@ public interface ProcessorService extends Service {
 	
 	List<Action> getPostReceivingActions();
 	
+	/**
+	 * Called when the processor service is removed from the {@link RoutingEngine}
+	 */
 	void destroy();
 	
 }

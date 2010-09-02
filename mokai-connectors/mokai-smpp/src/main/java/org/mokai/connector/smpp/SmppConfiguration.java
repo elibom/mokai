@@ -3,12 +3,25 @@ package org.mokai.connector.smpp;
 import org.mokai.ui.annotation.Label;
 import org.mokai.ui.annotation.Required;
 
+/**
+ * Holds the information used to configure a {@link SmppConnector} instance.
+ * 
+ * @author German Escobar
+ */
 public class SmppConfiguration {
 	
+	private static final String DEFAULT_HOST = "localhost";
+	private static final int DEFAULT_PORT = 5020;
 	private static final int DEFAULT_ENQUIRELINK_TIMER = 9000;
 	private static final long DEFAULT_INITIAL_RECONNECT_DELAY = 5000;
 	private static final long DEFAULT_RECONNECT_DELAY = 5000;
 	
+	/**
+	 * Tells whether the connection will be in transmitter, receiver or 
+	 * transciever mode.
+	 * 
+	 * @author German Escobar
+	 */
 	public enum BindType {
 		
 		TRANSMITTER, TRANSCIEVER, RECEIVER;
@@ -32,11 +45,11 @@ public class SmppConfiguration {
 
 	@Required
 	@Label("Host")
-	private String host;
+	private String host = DEFAULT_HOST;
 	
 	@Required
 	@Label("Port")
-	private int port;
+	private int port = DEFAULT_PORT;
 	
 	@Required
 	@Label("System ID")
@@ -55,6 +68,12 @@ public class SmppConfiguration {
 	
 	@Label("Bind Type")
 	private BindType bindType = BindType.TRANSCIEVER;
+	
+	@Label("Bind NPI")
+	private String bindNPI;
+	
+	@Label("Bind TON")
+	private String bindTON;
 	
 	@Label("Source NPI")
 	private String sourceNPI;
@@ -128,6 +147,22 @@ public class SmppConfiguration {
 
 	public final void setBindType(BindType bindType) {
 		this.bindType = bindType;
+	}
+
+	public final String getBindNPI() {
+		return bindNPI;
+	}
+
+	public final void setBindNPI(String bindNPI) {
+		this.bindNPI = bindNPI;
+	}
+
+	public final String getBindTON() {
+		return bindTON;
+	}
+
+	public final void setBindTON(String bindTON) {
+		this.bindTON = bindTON;
 	}
 
 	public final String getSourceNPI() {

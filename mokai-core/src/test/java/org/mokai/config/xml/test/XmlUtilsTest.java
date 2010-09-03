@@ -9,7 +9,7 @@ import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
-import org.mokai.config.xml.XmlUtils;
+import org.mokai.config.xml.XmlConfigurationUtils;
 import org.mokai.types.mock.MockAcceptorWithEnum.MockEnum;
 import org.testng.annotations.Test;
 
@@ -17,7 +17,7 @@ public class XmlUtilsTest {
 
 	@Test(expectedExceptions=IllegalArgumentException.class)
 	public void shouldFailInvalidEnum() throws Exception {
-		XmlUtils.convert(MockEnum.class, "third");
+		XmlConfigurationUtils.convert(MockEnum.class, "third");
 	}
 	
 	private Map<String,String> goodMap;
@@ -33,7 +33,7 @@ public class XmlUtilsTest {
 		// check root element
 		Element mapElement = createElement(xml);
 		
-		XmlUtils.setConfigurationField(mapElement, this, null);
+		XmlConfigurationUtils.setConfigurationField(mapElement, this, null);
 		
 		Assert.assertFalse(goodMap.isEmpty());
 		Assert.assertEquals("test2", goodMap.get("test1"));
@@ -45,7 +45,7 @@ public class XmlUtilsTest {
 		
 		Element propertyElement = createElement(xml);
 		
-		XmlUtils.setConfigurationField(propertyElement, this, null);
+		XmlConfigurationUtils.setConfigurationField(propertyElement, this, null);
 	}
 	
 	public enum FailEnum {
@@ -65,7 +65,7 @@ public class XmlUtilsTest {
 		
 		Element propertyElement = createElement(xml);
 		
-		XmlUtils.setConfigurationField(propertyElement, this, null);
+		XmlConfigurationUtils.setConfigurationField(propertyElement, this, null);
 	}
 	
 	public enum GoodEnum {
@@ -90,7 +90,7 @@ public class XmlUtilsTest {
 		
 		Element propertyElement = createElement(xml);
 		
-		XmlUtils.setConfigurationField(propertyElement, this, null);
+		XmlConfigurationUtils.setConfigurationField(propertyElement, this, null);
 		
 		Assert.assertEquals(GoodEnum.OPTION_1, goodEnum);
 	}

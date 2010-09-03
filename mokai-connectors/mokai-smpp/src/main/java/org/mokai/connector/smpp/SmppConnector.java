@@ -156,10 +156,8 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 				log.info("received deliverSm: " + pdu);
 				
 				if (pdu.isSmscDeliveryReceipt()) {
-					log.warn("DeliveryReceipt not supported yet: " + pdu);
+					log.info("DeliveryReceipt short message: " + new String(pdu.getShortMessage()));
 				} else {
-					
-					log.info("received deliverySm: " + pdu);
 					
 					String to = pdu.getDestAddress();
 					String from = pdu.getSourceAddr();
@@ -173,7 +171,8 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 					if (messageProducer != null) {
 						messageProducer.produce(message);
 					} else {
-						log.warn("MessageProducer is null ... ignoring message");
+						// this should not happen
+						log.error("MessageProducer is null ... ignoring message");
 					}
 				}
 					
@@ -295,7 +294,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	 * </ul>
 	 */
 	@Override
-	public final void process(Message message) {
+	public final void process(Message message) throws Exception {
 		if (!status.equals(Status.OK)) {
 			throw new IllegalStateException("SMPP client not connected.");
 		}
@@ -367,6 +366,8 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			
 			log.warn("NegativeResponseException while submitting a message: " + e.getMessage(), e);
 			message.setProperty("commandStatus", e.getCommandStatus());
+			
+			throw e;
 			
 		} catch (Exception e) {
 			

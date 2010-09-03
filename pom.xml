@@ -15,7 +15,6 @@
 		<module>mokai-spi</module>
 		<module>mokai-core</module>
 		<module>mokai-connectors</module>
-		<!-- <module>mokai-admin</module> -->
 		<module>mokai-boot</module>
 		<module>mokai-assembly</module>
 		<module>mokai-web-admin</module>
@@ -100,6 +99,16 @@
 	</properties>
 
 	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+			    	<groupId>org.codehaus.mojo</groupId>
+			      	<artifactId>sonar-maven-plugin</artifactId>
+			      	<version>1.0-beta-1</version>
+			   	</plugin>
+			</plugins>
+		</pluginManagement>
+	
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>

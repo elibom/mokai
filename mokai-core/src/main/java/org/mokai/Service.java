@@ -9,6 +9,11 @@ import org.mokai.ExecutionException;
  */
 public interface Service {
 
+	/**
+	 * Possible states of a {@link Service}.
+	 * 
+	 * @author German Escobar
+	 */
 	public enum State {
 		STARTED, STOPPED;
 		
@@ -21,9 +26,25 @@ public interface Service {
 		}
 	};
 	
+	/**
+	 * Starts the service and updates it's state to {@link State#STARTED}. 
+	 * 
+	 * @throws ExecutionException wraps any exception thrown by the
+	 * service while starting.
+	 */
 	void start() throws ExecutionException;
 	
+	/**
+	 * Stops the service and updates it's state to {@link State#STOPPED}.
+	 * 
+	 * @throws ExecutionException wraps any exception thrown by the 
+	 * service while stopping.
+	 */
 	void stop() throws ExecutionException;
 	
+	/**
+	 * @return the state of the service
+	 * @see State
+	 */
 	State getState();
 }

@@ -5,8 +5,20 @@ import java.util.List;
 import org.mokai.Monitorable.Status;
 
 /**
- * Wraps a {@link Processor} implementation and holds a collection of acceptors, 
- * pre-processing actions, post-processing actions and post-receiving actions.
+ * <p>A wrapper of a {@link Processor} implementation that holds a collection of 
+ * acceptors, pre-processing actions, post-processing actions and post-receiving 
+ * actions.</p>
+ * 
+ * <p>The {@link RoutingEngine} uses the collection of {@link Acceptor}s and the 
+ * {@link Processor#supports(Message)} method to determine if this processor service
+ * will handle the message. If it does, the message should be queued before it is 
+ * processed (this is not mandatory but a good practice).</p> 
+ * 
+ * <p>The pre-processing actions, post-processing actions and post-receiving actions
+ * are implementations of the {@link Action} interface. The pre-processing actions
+ * are called before the message is processed. The post-processing actions are called
+ * after a message is processed and the post-receiving actions are called after a 
+ * message has been received by the {@link Processor}.</p> 
  * 
  * @author German Escobar
  */
@@ -57,12 +69,48 @@ public interface ProcessorService extends Service {
 	 */
 	Status getStatus();
 	
+	/**
+	 * Adds an {@link Acceptor} to the collection of acceptors if it doesn't 
+	 * exists. Existence of an acceptor is determined by the 
+	 * {@link Acceptor#equals(Object)} method. 
+	 * 
+	 * @param acceptor the {@link Acceptor} instance to be added. 
+	 * @return the {@link ProcessorService} instance (fluent API).
+	 * @throws IllegalArgumentException if the acceptor is null.
+	 * @throws ObjectAlreadyExistsException if the acceptor already exists.
+	 */
 	ProcessorService addAcceptor(Acceptor acceptor) throws IllegalArgumentException, ObjectAlreadyExistsException;
 	
+	/**
+	 * Removes an {@link Acceptor} from the collection of acceptors if it exists.
+	 * Existence of an acceptor is determined by the {@link Acceptor#equals(Object)} 
+	 * method.
+	 * 
+	 * @param acceptor the {@link Acceptor} instance to be removed.
+	 * @return the {@link ProcessorService} instance (fluent API).
+	 * @throws IllegalArgumentException if the argument is null.
+	 * @throws ObjectNotFoundException if the acceptor is not found.
+	 */
 	ProcessorService removeAcceptor(Acceptor acceptor) throws IllegalArgumentException, ObjectNotFoundException;
 
+	/**
+	 * Retrieves the registered acceptors.
+	 * 
+	 * @return a list of {@link Acceptor} objects or an empty list if no 
+	 * acceptor has been added. 
+	 */
 	List<Acceptor> getAcceptors();
 	
+	/**
+	 * Adds an {@link Action} to the collection of pre-processing actions if it
+	 * doesn't exists. Existence is determined by the {@link Action#equals(Object)}
+	 * method.
+	 * 
+	 * @param action the {@link Action} to be added.
+	 * @return the {@link ProcessorService} instance (fluent API).
+	 * @throws IllegalArgumentException if the action is null.
+	 * @throws ObjectAlreadyExistsException if the action already exists.
+	 */
 	ProcessorService addPreProcessingAction(Action action) throws IllegalArgumentException, ObjectAlreadyExistsException;
 	
 	ProcessorService removePreProcessingAction(Action action) throws IllegalArgumentException, ObjectNotFoundException;

@@ -1,7 +1,7 @@
 package org.mokai;
 
 /**
- * Acceptors are used inside {@link org.mokai.ProcessorService} to match messages that
+ * Acceptors are used inside {@link org.mokai.ProcessorService}s to match messages that
  * are going to be processed.
  * 
  * @author German Escobar
@@ -9,6 +9,7 @@ package org.mokai;
 public interface Acceptor {
 
 	/**
+	 * Decides if a message is accepted or not.
 	 * 
 	 * @param message
 	 * @return true if the message is accepted, false otherwise.

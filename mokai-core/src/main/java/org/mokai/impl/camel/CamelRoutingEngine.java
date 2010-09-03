@@ -35,7 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * An Apache Camel based implementation of the {@link RoutingEngine}
+ * An <a href="http://camel.apache.org">Apache Camel</a> based implementation of the {@link RoutingEngine}
  * 
  * @author German Escobar
  */

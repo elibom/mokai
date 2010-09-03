@@ -25,7 +25,7 @@ public class InputFields {
 	
 	private Map<Class<?>,List<InputField>> inputFields = new HashMap<Class<?>,List<InputField>>();
 
-	public List<InputField> createFields(Class<?> clazz) {
+	public final List<InputField> createFields(Class<?> clazz) {
 		List<InputField> fields = inputFields.get(clazz); 
 		if (fields != null) {
 			return fields;

@@ -3,6 +3,7 @@ package org.mokai.persist.jdbc.util;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 import javax.sql.DataSource;
@@ -11,7 +12,7 @@ public abstract class DBInitializer {
 
 	private DataSource dataSource;
 
-	public final void init() {
+	public final void init() throws SQLException {
 		
 		Connection connection = null;
 		ResultSet rs = null;
@@ -27,12 +28,16 @@ public abstract class DBInitializer {
 				statement.executeUpdate(messagesTableScript());
 			}
 			
-		} catch (Exception e) {
-			e.printStackTrace();
 		} finally {
-			try { if (rs != null) rs.close(); } catch(Exception e) { }
-			try { if (statement != null) statement.close(); } catch(Exception e) { }
-			try { if (connection != null) connection.close(); } catch(Exception e) { }
+			if (rs != null) {
+				try { rs.close(); } catch (Exception e) { }
+			}
+			if (statement != null) {
+				try { statement.close(); } catch(Exception e) { }
+			}
+			if (connection != null) {
+				try { connection.close(); } catch(Exception e) { }
+			}
 		}
 		
 	}

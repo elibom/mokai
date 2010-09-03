@@ -59,8 +59,8 @@ public class CamelReceiverService implements ReceiverService {
 		Validate.notNull(receiver, "A connector must be provided");
 		Validate.notNull(camelContext, "A CamelContext must be provided");
 		
-		id = StringUtils.lowerCase(id);
-		this.id = StringUtils.deleteWhitespace(id);
+		String fixedId = StringUtils.lowerCase(id);
+		this.id = StringUtils.deleteWhitespace(fixedId);
 		this.receiver = receiver;
 	
 		this.state = State.STOPPED;
@@ -110,10 +110,10 @@ public class CamelReceiverService implements ReceiverService {
 		}
 	}
 	
-	private void injectMessageProducerToConnector(Object connector) {
+	private void injectMessageProducerToConnector(Object receiver) {
 		MessageProducer messageProducer = new MessageProducer() {
 			
-			ProducerTemplate producer = camelContext.createProducerTemplate();
+			private ProducerTemplate producer = camelContext.createProducerTemplate();
 
 			@Override
 			public void produce(Message message) {
@@ -146,7 +146,7 @@ public class CamelReceiverService implements ReceiverService {
 	}
 
 	@Override
-	public Status getStatus() {
+	public final Status getStatus() {
 		
 		// check if the receiver is monitorable
 		if (Monitorable.class.isInstance(receiver)) {

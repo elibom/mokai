@@ -27,7 +27,7 @@ public class DefaultMessageStore implements MessageStore {
 	}
 
 	@Override
-	public Collection<Message> list(MessageCriteria criteria)
+	public final Collection<Message> list(MessageCriteria criteria)
 			throws StoreException {
 		return Collections.emptyList();
 	}

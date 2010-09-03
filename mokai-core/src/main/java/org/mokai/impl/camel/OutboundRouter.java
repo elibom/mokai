@@ -6,16 +6,15 @@ import org.apache.camel.Exchange;
 import org.apache.camel.RecipientList;
 import org.mokai.Acceptor;
 import org.mokai.Message;
-import org.mokai.Processor;
 import org.mokai.ProcessorService;
 import org.mokai.RoutingEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class decides the {@link ProcessorService} that will handle a message using
- * the {@link Processor#supports(Message)} method and the {@link Acceptor}s of 
- * each {@link ProcessorService}. It is configured in the {@link CamelRoutingEngine}
+ * This class decides which {@link ProcessorService} will handle a message using
+ * the {@link org.mokai.Processor#supports(Message)} method and the {@link Acceptor}s 
+ * of each {@link ProcessorService}. It is configured in the {@link CamelRoutingEngine}
  * class.
  * 
  * @author German Escobar

@@ -5,9 +5,10 @@ import java.util.List;
 import org.mokai.Monitorable.Status;
 
 /**
- * <p>A wrapper of a {@link Processor} implementation that holds a collection of 
- * acceptors, pre-processing actions, post-processing actions and post-receiving 
- * actions.</p>
+ * <p>A wrapper of a {@link Processor} that holds a collection of acceptors, 
+ * pre-processing actions, post-processing actions and post-receiving 
+ * actions. Processors are created using the 
+ * {@link RoutingEngine#createProcessor(String, int, Processor)} method</p>
  * 
  * <p>The {@link RoutingEngine} uses the collection of {@link Acceptor}s and the 
  * {@link Processor#supports(Message)} method to determine if this processor service
@@ -20,18 +21,26 @@ import org.mokai.Monitorable.Status;
  * after a message is processed and the post-receiving actions are called after a 
  * message has been received by the {@link Processor}.</p> 
  * 
+ * @see RoutingEngine
+ * @see Processor
+ * @see Acceptor
+ * @see Action
+ * 
  * @author German Escobar
  */
 public interface ProcessorService extends Service {
 
 	/**
+	 * A processor service is identified by a unique id that is set by the caller in
+	 * the {@link RoutingEngine#createProcessor(String, int, Processor)} method.
+	 * 
 	 * @return the unique id of the processor service.
 	 */
 	String getId();
 
 	/**
-	 * Value is used to determine the order in which the processor services should 
-	 * be query in order to accept or reject a message.
+	 * The priority is used to determine the order in which the processor services 
+	 * should be query in order to accept or reject a message.
 	 * 
 	 * @return the priority of this processor service.
 	 */
@@ -48,6 +57,7 @@ public interface ProcessorService extends Service {
 	
 	/**
 	 * The wrapped processor.
+	 * 
 	 * @return the {@link Processor} that this processor service is managing.
 	 */
 	Processor getProcessor();
@@ -60,12 +70,13 @@ public interface ProcessorService extends Service {
 	int getNumQueuedMessages();
 	
 	/**
-	 * The status tells whether the service is in good health or {@link Message}s 
+	 * The status tells whether the service is working OK or {@link Message}s 
 	 * are failing. The status is calculated by first checking the status of the 
 	 * {@link Processor} (if it implements {@link Monitorable}) and then checking
 	 * if the last message failed or was successfully processed.
 	 *  
 	 * @return the status of the processor service.
+	 * @see Status
 	 */
 	Status getStatus();
 	
@@ -109,24 +120,97 @@ public interface ProcessorService extends Service {
 	 * @param action the {@link Action} to be added.
 	 * @return the {@link ProcessorService} instance (fluent API).
 	 * @throws IllegalArgumentException if the action is null.
-	 * @throws ObjectAlreadyExistsException if the action already exists.
+	 * @throws ObjectAlreadyExistsException if the action already exists in the 
+	 * collection of pre-processing actions.
 	 */
 	ProcessorService addPreProcessingAction(Action action) throws IllegalArgumentException, ObjectAlreadyExistsException;
 	
+	/**
+	 * Removes an {@link Action} from the collection of pre-processing actions if
+	 * it exists. Existence is determined by the {@link Action#equals(Object)}
+	 * method.
+	 * 
+	 * @param action the {@link Action} to be removed.
+	 * @return the {@link ProcessorService} instance (fluent API).
+	 * @throws IllegalArgumentException if the action to be removed is null.
+	 * @throws ObjectNotFoundException if the action is not found.
+	 */
 	ProcessorService removePreProcessingAction(Action action) throws IllegalArgumentException, ObjectNotFoundException;
 	
+	/**
+	 * Retrieves the registered pre-processing actions.
+	 * 
+	 * @return a list of {@link Action} objects or an empty list if no
+	 * pre-processing actions have been added.
+	 */
 	List<Action> getPreProcessingActions();
 	
+	/**
+	 * Adds an {@link Action} to the collection of post-processing actions if it
+	 * doesn't exists. Existence is determined by the {@link Action#equals(Object)}
+	 * method.
+	 * 
+	 * @param action the {@link Action} to be added.
+	 * @return the {@link ProcessorService} instance (fluent API).
+	 * @throws IllegalArgumentException if the action to be added is null.
+	 * @throws ObjectAlreadyExistsException if the action already exists in the 
+	 * collection of post-processing actions.
+	 */
 	ProcessorService addPostProcessingAction(Action action) throws IllegalArgumentException, ObjectAlreadyExistsException;
 	
+	/**
+	 * Removes an {@link Action} from the collection of post-processing actions if
+	 * it exists. Existence is determined by the {@link Action#equals(Object)}
+	 * method.
+	 * 
+	 * @param action the {@link Action} to be removed.
+	 * @return the {@link ProcessorService} instance (fluent API).
+	 * @throws IllegalArgumentException if the action to be removed is null.
+	 * @throws ObjectNotFoundException if the action is not found in the 
+	 * collection of post-processing actions.
+	 */
 	ProcessorService removePostProcessingAction(Action action) throws IllegalArgumentException, ObjectNotFoundException;
 	
+	/**
+	 * Retrieves the registered post-processing actions.
+	 * 
+	 * @return a list of {@link Action} objects or an empty list if no
+	 * post-processing actions have been added.
+	 */
 	List<Action> getPostProcessingActions();
 	
+	/**
+	 * Adds an {@link Action} to the collection of post-receiving actions if it
+	 * doesn't exists. Existence is determined by the {@link Action#equals(Object)}
+	 * method.
+	 * 
+	 * @param action the {@link Action} to be added.
+	 * @return the {@link ProcessorService} instance (fluent API).
+	 * @throws IllegalArgumentException if the action to be added is null.
+	 * @throws ObjectAlreadyExistsException if the action already exists in the 
+	 * collection of post-receiving actions.
+	 */
 	ProcessorService addPostReceivingAction(Action action) throws IllegalArgumentException, ObjectAlreadyExistsException;
 	
+	/**
+	 * Removes an {@link Action} from the collection of post-receiving actions if
+	 * it exists. Existence is determined by the {@link Action#equals(Object)}
+	 * method.
+	 * 
+	 * @param action the {@link Action} to be removed.
+	 * @return the {@link ProcessorService} instance (fluent API).
+	 * @throws IllegalArgumentException if the action to be removed is null.
+	 * @throws ObjectNotFoundException if the action is not found in the 
+	 * collection of post-receiving actions.
+	 */
 	ProcessorService removePostReceivingAction(Action action) throws IllegalArgumentException, ObjectNotFoundException;
 	
+	/**
+	 * Retrieves the registered post-receiving actions.
+	 * 
+	 * @return a list of {@link Action} objects or an empty list if no
+	 * post-receiving actions have been added.
+	 */
 	List<Action> getPostReceivingActions();
 	
 	/**

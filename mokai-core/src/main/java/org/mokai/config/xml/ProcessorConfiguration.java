@@ -312,7 +312,7 @@ public class ProcessorConfiguration implements Configuration {
 		this.pluginMechanism = pluginMechanism;
 	}
 
-	public void setExecutor(Executor executor) {
+	public final void setExecutor(Executor executor) {
 		this.executor = executor;
 	}
 	

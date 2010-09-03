@@ -15,6 +15,8 @@ import org.mokai.Message;
 import org.mokai.MessageProducer;
 import org.mokai.Receiver;
 import org.mokai.annotation.Resource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 
@@ -22,6 +24,8 @@ import org.mokai.annotation.Resource;
  */
 public class JettyConnector implements Receiver, Configurable, 
 		ExposableConfiguration<JettyConfiguration> {
+	
+	private Logger log = LoggerFactory.getLogger(JettyConnector.class);
 	
 	@Resource
 	private MessageProducer messageProducer;
@@ -80,7 +84,6 @@ public class JettyConnector implements Receiver, Configurable,
 									
 									// by default set the key to the header value 
 									String key = (String) entry.getKey();
-									System.out.println("key: " + key + ", value: " + entry.getValue());
 									
 									// check if there is a mapping for the key
 									if (configuration.getMapper().containsKey(key)) {
@@ -112,7 +115,7 @@ public class JettyConnector implements Receiver, Configurable,
 		try {
 			camelContext.stop();
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.warn("Exception while stopping the connector: " + e.getMessage(), e);
 		}
 	}
 

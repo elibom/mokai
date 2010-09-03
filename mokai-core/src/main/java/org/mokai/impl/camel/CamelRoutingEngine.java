@@ -17,6 +17,7 @@ import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.impl.DefaultCamelContext;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.mokai.ExecutionException;
 import org.mokai.Message;
 import org.mokai.ObjectAlreadyExistsException;
 import org.mokai.ObjectNotFoundException;
@@ -91,7 +92,7 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 	}
 
 	@Override
-	public final void start() {
+	public final void start() throws ExecutionException {
 		
 		if (!state.isStartable()) {
 			return;
@@ -100,7 +101,7 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 		try {
 			camelContext.start();
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			throw new ExecutionException(e);
 		}
 		
 		// start processors
@@ -125,7 +126,7 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 	}
 
 	@Override
-	public final void stop() {
+	public final void stop() throws ExecutionException {
 		
 		if (!state.isStoppable()) {
 			return;
@@ -154,11 +155,12 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 			
 			state = State.STOPPED;
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			throw new ExecutionException(e);
 		}
 	}
 	
-	private void init() {
+	private void init() throws ExecutionException {
+		
 		// create a default redelivery policy
 		redeliveryPolicy = new RedeliveryPolicy();		
 		
@@ -197,7 +199,7 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 			});
 			
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			throw new ExecutionException(e);
 		}
 		
 	}
@@ -227,23 +229,23 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 			ObjectAlreadyExistsException {
 		
 		// fix id
-		id = StringUtils.lowerCase(id);
-		id = StringUtils.deleteWhitespace(id);
+		String fixedId = StringUtils.lowerCase(id);
+		fixedId = StringUtils.deleteWhitespace(fixedId);
 		
 		// check if already exists
-		if (processors.containsKey(id)) {
-			throw new ObjectAlreadyExistsException("Processor with id " + id + " already exists");
+		if (processors.containsKey(fixedId)) {
+			throw new ObjectAlreadyExistsException("Processor with id " + fixedId + " already exists");
 		}
 		
 		// create and start the ProcessorService instance
 		CamelProcessorService processorService = 
-			new CamelProcessorService(id, priority, processor, camelContext);
+			new CamelProcessorService(fixedId, priority, processor, camelContext);
 		if (state.equals(State.STARTED)) {
 			processorService.start();
 		}
 		
 		// add to the map
-		processors.put(id, processorService);
+		processors.put(fixedId, processorService);
 		
 		return processorService;
 	}
@@ -300,22 +302,22 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 			throws IllegalArgumentException, ObjectAlreadyExistsException {
 		
 		// fix id
-		id = StringUtils.lowerCase(id);
-		id = StringUtils.deleteWhitespace(id);
+		String fixedId = StringUtils.lowerCase(id);
+		fixedId = StringUtils.deleteWhitespace(fixedId);
 		
 		// check if already exists
-		if (receivers.containsKey(id)) {
-			throw new ObjectAlreadyExistsException("Receiver with id " + id + " already exists");
+		if (receivers.containsKey(fixedId)) {
+			throw new ObjectAlreadyExistsException("Receiver with id " + fixedId + " already exists");
 		}
 		
 		// create and start the ReceiverService instance
-		CamelReceiverService receiverService = new CamelReceiverService(id, receiver, camelContext);
+		CamelReceiverService receiverService = new CamelReceiverService(fixedId, receiver, camelContext);
 		if (state.equals(State.STARTED)) {
 			receiverService.start();
 		}
 		
 		// add to the map
-		receivers.put(id, receiverService);
+		receivers.put(fixedId, receiverService);
 		
 		return receiverService;
 	}
@@ -363,9 +365,7 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 		MessageCriteria criteria = new MessageCriteria()
 			.addStatus(Message.Status.RETRYING)
 			.orderBy("creation_time")
-			.orderType(OrderType.UPWARDS)
-			.firstRecord(0)
-			.numRecords(500);
+			.orderType(OrderType.UPWARDS);
 			
 		Collection<Message> messages = messageStoreDelegate.list(criteria);
 		logCollectionSize(messages.size());

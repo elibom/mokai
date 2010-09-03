@@ -13,7 +13,7 @@ public class CheckBoxField extends InputField {
 	}
 
 	@Override
-	public String getType() {
+	public final String getType() {
 		return TYPE;
 	}
 

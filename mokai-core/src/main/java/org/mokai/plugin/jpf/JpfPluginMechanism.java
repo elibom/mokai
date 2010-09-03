@@ -85,8 +85,7 @@ public class JpfPluginMechanism implements PluginMechanism, Configurable {
 			ClassLoader classLoader = pluginManager.getPluginClassLoader(pluginDescriptor);
 			
 			try {
-				Class<?> clazz = classLoader.loadClass(className);
-				return clazz;
+				return classLoader.loadClass(className);
 			} catch (ClassNotFoundException e) {}
 		}
 		

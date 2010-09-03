@@ -60,16 +60,33 @@ public class CamelProcessorService implements ProcessorService {
 	
 	private CamelContext camelContext;
 	
+	/**
+	 * Used to send messages to Apache Camel endpoints.
+	 */
 	private ProducerTemplate camelProducer;
 	
+	/**
+	 * Maintains a list of Apache Camel routes that we can stop.
+	 * @see #start()
+	 * @see #stop()
+	 */
 	private List<RouteDefinition> routes;
 	
+	/**
+	 * The status of the processor service. Notice that this can differ from the
+	 * {@link Processor} status (if it implements {@link Monitorable}).
+	 * 
+	 * @see ProcessorService#getStatus()
+	 */
 	private Status status = Status.UNKNOWN;
 	
+	/**
+	 * We keep a record of the messages that have failed consecutively.
+	 */
 	private int failedMessages;
 	
 	/**
-	 * Constructor. Removes spaces from id argument and lower case it.
+	 * Constructor. The id is modified by removing spaces and lowercasing it.
 	 * 
 	 * @param id the id of the processor service. Shouldn't be null or empty.
 	 * @param priority the priority of the processor service (can be positive
@@ -87,8 +104,8 @@ public class CamelProcessorService implements ProcessorService {
 		Validate.notNull(processor);
 		Validate.notNull(camelContext);
 		
-		id = StringUtils.lowerCase(id);
-		this.id = StringUtils.deleteWhitespace(id);
+		String fixedId = StringUtils.lowerCase(id);
+		this.id = StringUtils.deleteWhitespace(fixedId);
 		this.priority = priority;
 		this.processor = processor;
 		
@@ -129,7 +146,7 @@ public class CamelProcessorService implements ProcessorService {
 		// internal queue so we can process it.
 		MessageProducer messageProducer = new MessageProducer() {
 			
-			ProducerTemplate producer = camelContext.createProducerTemplate();
+			private ProducerTemplate producer = camelContext.createProducerTemplate();
 
 			@Override
 			public void produce(Message message) {
@@ -162,7 +179,7 @@ public class CamelProcessorService implements ProcessorService {
 	}
 
 	@Override
-	public void setPriority(int priority) {
+	public final void setPriority(int priority) {
 		this.priority = priority;
 	}
 
@@ -341,7 +358,39 @@ public class CamelProcessorService implements ProcessorService {
 		
 		return retStatus;
 	}
+	
+	/**
+	 * This is the queue where messages are stored after the processor service
+	 * has accepted them. Remember that he {@link OutboundRouter#route(Exchange)} 
+	 * method is the responsible of choosing the processor service that will
+	 * handle the message.
+	 * 
+	 * @return an Apache Camel endpoint uri where the messages are queued
+	 * before processing them.
+	 * 
+	 * @see OutboundRouter
+	 */
+	private String getQueueUri() {
+		return "activemq:processor-" + id;
+	}
+	
+	/**
+	 * This is an endpoint where processors put the received messages before they
+	 * are passed through the post-receiving actions.
+	 * 
+	 * @return an Apache Camel endpoint Uri where the received messages are stored.
+	 */
+	private String getInternalUri() {
+		return "direct:processor-" + id;
+	}
 
+	/**
+	 * Starts consuming messages from the queue (returned by 
+	 * {@link CamelProcessorService#getQueueUri()} method) and builds the Apache 
+	 * Camel routes to process and receive messages from the {@link Processor}. 
+	 * If the {@link Processor} implements {@link Serviceable}, it will call the 
+	 * {@link Serviceable#doStart()} method.
+	 */
 	@Override
 	public final void start() throws ExecutionException {
 		
@@ -367,6 +416,7 @@ public class CamelProcessorService implements ProcessorService {
 				
 			} else { // if no routes yet then create them!
 				
+				// these are the outbound routes
 				RouteBuilder outboundRouteBuilder = new RouteBuilder() {
 
 					@Override
@@ -380,9 +430,7 @@ public class CamelProcessorService implements ProcessorService {
 							}
 							
 						}).to("activemq:failedmessages");
-						
-						//errorHandler(deadLetterChannel("activemq:failedmessages").maximumRedeliveries(1).maximumRedeliveryDelay(1000));
-						
+
 						ActionsProcessor preProcessingActionsProcessor = new ActionsProcessor(preProcessingActions);
 						ActionsProcessor postProcessingActionsProcessor = new ActionsProcessor(postProcessingActions);
 						
@@ -395,7 +443,7 @@ public class CamelProcessorService implements ProcessorService {
 						// execute the pre-processing actions
 						route.process(preProcessingActionsProcessor);
 						
-						// call the processor (this actually process the message)
+						// call the processor (this process the message)
 						route.process(new ConnectorProcessor());
 						
 						// execute the post-processing actions
@@ -408,6 +456,7 @@ public class CamelProcessorService implements ProcessorService {
 					
 				};
 			
+				// these are the inbound routes
 				RouteBuilder inboundRouteBuilder = new RouteBuilder() {
 		
 					@Override
@@ -443,6 +492,13 @@ public class CamelProcessorService implements ProcessorService {
 		}
 	}
 
+	/**
+	 * Starts consuming messages from the queue (returned by 
+	 * {@link CamelProcessorService#getQueueUri()} method) and stops
+	 * the Apache Camel routes. If the {@link Processor} implements
+	 * {@link Serviceable}, it calls the {@link Serviceable#doStop()}
+	 * method.
+	 */
 	@Override
 	public final void stop() {
 		try {
@@ -468,6 +524,11 @@ public class CamelProcessorService implements ProcessorService {
 		}
 	}
 	
+	/**
+	 * Calls the {@link #stop()} method. If the {@link Processor} implements
+	 * {@link Configurable}, it calls the {@link Configurable#destroy()}
+	 * method. 
+	 */
 	@Override
 	public final void destroy() {
 		try {
@@ -483,24 +544,23 @@ public class CamelProcessorService implements ProcessorService {
 			log.warn("Exception destroying processor " + id + ": " + e.getMessage(), e);
 		}
 	}
-
-	private String getQueueUri() {
-		return "activemq:processor-" + id;
-	}
-	
-	private String getInternalUri() {
-		return "direct:processor-" + id;
-	}
 	
 	public final void setRedeliveryPolicy(RedeliveryPolicy redeliveryPolicy) {
 		this.redeliveryPolicy = redeliveryPolicy;
 	}
 	
 	@Override
-	public String toString() {
+	public final String toString() {
 		return id;
 	}
 
+	/**
+	 * An Apache Camel Processor that calls the {@link Processor#process(Message)}
+	 * method. It uses the {@link RedeliveryPolicy} to retry the message if it
+	 * fails.
+	 * 
+	 * @author German Escobar
+	 */
 	private class ConnectorProcessor implements org.apache.camel.Processor {
 		
 		@Override
@@ -562,7 +622,8 @@ public class CamelProcessorService implements ProcessorService {
 	}
 	
 	/**
-	 * 
+	 * An Apache Camel Processor that sets the destination and the destination
+	 * type of the {@link Message}s
 	 * 
 	 * @author German Escobar
 	 */
@@ -578,7 +639,8 @@ public class CamelProcessorService implements ProcessorService {
 	}
 	
 	/**
-	 * 
+	 * An Apache Camel Processor that sets the source, source type and the
+	 * flow of the {@link Message}s.
 	 * 
 	 * @author German Escobar
 	 */

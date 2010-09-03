@@ -62,8 +62,7 @@ public class XmlConfigurationUtils {
 					throw new NoSuchMethodException("method convert must be declared static");
 				}
 				
-				Object ret = valueOfMethod.invoke(null, value);
-				return ret;
+				return valueOfMethod.invoke(null, value);
 				
 			} catch (InvocationTargetException e) {
 				if (e.getCause() != null && RuntimeException.class.isInstance(e.getCause())) {

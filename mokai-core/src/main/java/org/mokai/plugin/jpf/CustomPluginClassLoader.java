@@ -16,7 +16,7 @@ public class CustomPluginClassLoader extends StandardPluginClassLoader {
 	}
 
 	@Override
-	public void setProbeParentLoaderLast(boolean value) {
+	public final void setProbeParentLoaderLast(boolean value) {
 		super.setProbeParentLoaderLast(value);
 	}
 	

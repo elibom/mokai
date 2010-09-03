@@ -7,7 +7,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.web.context.WebApplicationContext;
 
 import com.vaadin.Application;
 import com.vaadin.terminal.gwt.server.ApplicationServlet;
@@ -19,7 +18,8 @@ public class SpringApplicationServlet extends ApplicationServlet implements Appl
 	private ApplicationContext applicationContext;
 
     /**
-     * Get the {@link AutowireCapableBeanFactory} associated with the containing Spring {@link WebApplicationContext}.
+     * Get the {@link AutowireCapableBeanFactory} associated with the containing Spring 
+     * {@link org.springframework.web.context.WebApplicationContext}.
      * This only works after the servlet has been initialized (via {@link #init init()}).
      *
      * @throws ServletException if the operation fails

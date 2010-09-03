@@ -32,7 +32,7 @@ public class RegExpAcceptor implements Acceptor, ExposableConfiguration<RegExpAc
 	}
 
 	@Override
-	public boolean accepts(Message message) {
+	public final boolean accepts(Message message) {
 			
 		String value = message.getProperty(field, String.class);
 			
@@ -49,7 +49,7 @@ public class RegExpAcceptor implements Acceptor, ExposableConfiguration<RegExpAc
 	}
 
 	@Override
-	public RegExpAcceptor getConfiguration() {
+	public final RegExpAcceptor getConfiguration() {
 		return this;
 	}
 
@@ -70,7 +70,7 @@ public class RegExpAcceptor implements Acceptor, ExposableConfiguration<RegExpAc
 	}
 
 	@Override
-	public String toString() {
+	public final String toString() {
 		return "RegExpAcceptor [field=" + field + ",regexp=" + regexp + "]";
 	}
 

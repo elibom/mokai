@@ -4,10 +4,15 @@ import org.apache.camel.Exchange;
 import org.apache.camel.RecipientList;
 import org.mokai.Message;
 
+/**
+ * 
+ * 
+ * @author German Escobar
+ */
 public class PersistenceRouter {
 
 	@RecipientList
-	public String route(Exchange exchange) {
+	public final String route(Exchange exchange) {
 		Message message = exchange.getIn().getBody(Message.class);
 		
 		if (message.getStatus().equals(Message.Status.PROCESSED)) {

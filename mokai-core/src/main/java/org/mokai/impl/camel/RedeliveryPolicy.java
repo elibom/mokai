@@ -1,11 +1,10 @@
 package org.mokai.impl.camel;
 
-import org.mokai.Processor;
 
 /**
  * Defines the maximum redeliveries and delay between attempts that the 
- * {@link CamelRoutingEngine} should perform on {@link Processor}s before
- * declaring the message as failed.
+ * {@link CamelRoutingEngine} should perform on {@link org.mokaiProcessor}s 
+ * before declaring the message as failed.
  * 
  * @author German Escobar
  */

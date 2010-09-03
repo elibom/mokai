@@ -55,7 +55,7 @@ public class JBossMQReceiver implements Receiver, ExposableConfiguration<JBossMQ
 	}
 
 	@Override
-	public void doStart() throws Exception {
+	public final void doStart() throws Exception {
 		
 		log.debug("starting JBossMQReceiver ... ");
 		
@@ -73,7 +73,7 @@ public class JBossMQReceiver implements Receiver, ExposableConfiguration<JBossMQ
 	}
 
 	@Override
-	public void doStop() throws Exception {
+	public final void doStop() throws Exception {
 		try {
 			started = false;
 			status = MonitorStatusBuilder.unknown();
@@ -96,13 +96,13 @@ public class JBossMQReceiver implements Receiver, ExposableConfiguration<JBossMQ
 	}
 	
 	@Override
-	public JBossMQConfiguration getConfiguration() {
+	public final JBossMQConfiguration getConfiguration() {
 		return configuration;
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void onMessage(javax.jms.Message jmsMessage) {
+	public final void onMessage(javax.jms.Message jmsMessage) {
 		
 		try {
 			// retrieve the type of the message
@@ -173,14 +173,14 @@ public class JBossMQReceiver implements Receiver, ExposableConfiguration<JBossMQ
 	}
 
 	@Override
-	public void onException(JMSException e) {
+	public final void onException(JMSException e) {
 		status = MonitorStatusBuilder.failed("connection lost: " + e.getMessage(), e);
 		
 		new Thread(new ConnectionThread(Integer.MAX_VALUE, configuration.getInitialReconnectDelay())).start();
 	}
 
 	@Override
-	public Status getStatus() {
+	public final Status getStatus() {
 		return status;
 	}
 	

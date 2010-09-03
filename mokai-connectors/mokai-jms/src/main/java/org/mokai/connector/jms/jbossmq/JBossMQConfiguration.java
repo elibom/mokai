@@ -32,55 +32,55 @@ public class JBossMQConfiguration {
 	@Label("Reconnect Delay")
     private long reconnectDelay = DEFAULT_RECONNECT_DELAY;
 
-	public String getHost() {
+	public final String getHost() {
 		return host;
 	}
 
-	public void setHost(String host) {
+	public final void setHost(String host) {
 		this.host = host;
 	}
 
-	public String getQueueName() {
+	public final String getQueueName() {
 		return queueName;
 	}
 
-	public void setQueueName(String queueName) {
+	public final void setQueueName(String queueName) {
 		this.queueName = queueName;
 	}
 
-	public Map<String, String> getMapper() {
+	public final Map<String, String> getMapper() {
 		return mapper;
 	}
 
-	public void setMapper(Map<String, String> mapper) {
+	public final void setMapper(Map<String, String> mapper) {
 		this.mapper = mapper;
 	}
 	
-	public void addMapper(String key, String value) {
+	public final void addMapper(String key, String value) {
 		mapper.put(key, value);
 	}
 
-	public String getBodyMapper() {
+	public final String getBodyMapper() {
 		return bodyMapper;
 	}
 
-	public void setBodyMapper(String bodyMapper) {
+	public final void setBodyMapper(String bodyMapper) {
 		this.bodyMapper = bodyMapper;
 	}
 
-	public long getInitialReconnectDelay() {
+	public final long getInitialReconnectDelay() {
 		return initialReconnectDelay;
 	}
 
-	public void setInitialReconnectDelay(long initialReconnectDelay) {
+	public final void setInitialReconnectDelay(long initialReconnectDelay) {
 		this.initialReconnectDelay = initialReconnectDelay;
 	}
 
-	public long getReconnectDelay() {
+	public final long getReconnectDelay() {
 		return reconnectDelay;
 	}
 
-	public void setReconnectDelay(long reconnectDelay) {
+	public final void setReconnectDelay(long reconnectDelay) {
 		this.reconnectDelay = reconnectDelay;
 	}
 	

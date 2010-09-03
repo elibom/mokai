@@ -3,7 +3,6 @@ package org.mokai.config.xml;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -98,7 +97,8 @@ public class ReceiverConfiguration implements Configuration {
 		final Receiver receiver = buildReceiverConnector(connectorElement);
 		
 		// build the post-receiving actions
-		final List<Action> postReceivingActions = buildActions(receiverElement.element("post-receiving-actions"));
+		final List<Action> postReceivingActions = XmlConfigurationUtils.buildActions(routingEngine, 
+				pluginMechanism, receiverElement.element("post-receiving-actions"));
 		
 		Runnable runnable = new Runnable() {
 
@@ -138,48 +138,10 @@ public class ReceiverConfiguration implements Configuration {
 			ExposableConfiguration<?> configurableConnector = 
 				(ExposableConfiguration<?>) receiverConnector;
 			
-			XmlUtils.setConfigurationFields(element, configurableConnector.getConfiguration(), routingEngine);
+			XmlConfigurationUtils.setConfigurationFields(element, configurableConnector.getConfiguration(), routingEngine);
 		}
 		
 		return receiverConnector;
-	}
-	
-	@SuppressWarnings("unchecked")
-	private List<Action> buildActions(Element actionsElement) throws Exception {
-		
-		List<Action> actions = new ArrayList<Action>();
-		
-		if (actionsElement == null) {
-			return actions;
-		}
-		
-		Iterator iterator = actionsElement.elementIterator();
-		while (iterator.hasNext()) {
-			Element actionElement = (Element) iterator.next();
-			
-			// create action instance
-			String className = actionElement.attributeValue("className");
-			Class<? extends Action> actionClass = null;
-			if (pluginMechanism != null) {
-				actionClass = (Class<? extends Action>) pluginMechanism.loadClass(className);
-			}
-			
-			if (actionClass == null) {
-				actionClass = (Class<? extends Action>) Class.forName(className);
-			}
-			
-			Action action = actionClass.newInstance();
-			
-			if (ExposableConfiguration.class.isInstance(action)) {
-				ExposableConfiguration<?> exposableAction = (ExposableConfiguration<?>) action;
-				
-				XmlUtils.setConfigurationFields(actionElement, exposableAction.getConfiguration(), routingEngine);
-			}
-			
-			actions.add(action);
-		}
-		
-		return actions;
 	}
 
 	@Override
@@ -188,7 +150,7 @@ public class ReceiverConfiguration implements Configuration {
 		try {
 			
 			Document document = createReceiversDocument();
-	        XmlUtils.writeDocument(document, path);
+	        XmlConfigurationUtils.writeDocument(document, path);
 	        
 		} catch (Exception e) {
 			throw new ConfigurationException(e);
@@ -214,7 +176,7 @@ public class ReceiverConfiguration implements Configuration {
         		ExposableConfiguration<?> configurableReceiver = 
         			(ExposableConfiguration<?>) receiver.getReceiver();
 
-        		XmlUtils.addConfigurationFields(connectorElement, configurableReceiver.getConfiguration());
+        		XmlConfigurationUtils.addConfigurationFields(connectorElement, configurableReceiver.getConfiguration());
         	}
         	
         	// save post receiving actions
@@ -230,7 +192,7 @@ public class ReceiverConfiguration implements Configuration {
         			if (ExposableConfiguration.class.isInstance(action)) {
         				ExposableConfiguration<?> configurableAction = (ExposableConfiguration<?>) action;
         				
-        				XmlUtils.addConfigurationFields(actionElement, configurableAction.getConfiguration());
+        				XmlConfigurationUtils.addConfigurationFields(actionElement, configurableAction.getConfiguration());
         			}
         		}
         		

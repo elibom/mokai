@@ -7,25 +7,30 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.XMLWriter;
+import org.mokai.Action;
 import org.mokai.ExecutionException;
+import org.mokai.ExposableConfiguration;
 import org.mokai.Processor;
 import org.mokai.RoutingEngine;
+import org.mokai.plugin.PluginMechanism;
 
 /**
- * Utility class to handle XML common tasks used by the {@link ProcessorConfiguration}
+ * Utility class to handle common tasks used by the {@link ProcessorConfiguration}
  * and {@link ReceiverConfiguration}.
  * 
  * @author German Escobar
  */
-public class XmlUtils {
+public class XmlConfigurationUtils {
 
 	/**
 	 * Converts a String value to the specified class.
@@ -33,8 +38,11 @@ public class XmlUtils {
 	 * @param clazz
 	 * @param value
 	 * @return the converted object from the String value.
+	 * @throws NoSuchMethodException 
+	 * @throws IllegalAccessException 
+	 * @throws IllegalArgumentException 
 	 */
-	public static <T> Object convert(Class<T> clazz, String value) throws Exception {
+	public static <T> Object convert(Class<T> clazz, String value) throws NoSuchMethodException, IllegalArgumentException, IllegalAccessException {
 		
 		if (Integer.class.equals(clazz) || int.class.equals(clazz)) {
 			return Integer.valueOf(value);
@@ -127,7 +135,9 @@ public class XmlUtils {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static void setConfigurationField(Element element, Object configuration, RoutingEngine routingEngine) throws Exception {
+	public static void setConfigurationField(Element element, Object configuration, 
+			RoutingEngine routingEngine) throws IllegalAccessException, SecurityException, 
+			NoSuchFieldException, IllegalArgumentException, NoSuchMethodException {
 		
 		if (element.getName().equals("property")) {
 			
@@ -136,7 +146,7 @@ public class XmlUtils {
 			// check if we have a value attribute
 			String valueAttribute = element.attributeValue("value");
 			if (valueAttribute != null) {
-				setValue(field, configuration, XmlUtils.convert(field.getType(), valueAttribute));
+				setValue(field, configuration, XmlConfigurationUtils.convert(field.getType(), valueAttribute));
 				return;
 			}
 			
@@ -144,7 +154,7 @@ public class XmlUtils {
 			if (element.isTextOnly()) {
 				String valueText = element.getText();
 				if (valueText != null) {
-					setValue(field, configuration, XmlUtils.convert(field.getType(), valueText));
+					setValue(field, configuration, XmlConfigurationUtils.convert(field.getType(), valueText));
 				}
 				return;
 			}
@@ -155,7 +165,7 @@ public class XmlUtils {
 				
 				String valueText = element.getText();
 				if (valueText != null && !"".equals(valueText)) {
-					setValue(field, configuration, XmlUtils.convert(field.getType(), valueText));
+					setValue(field, configuration, XmlConfigurationUtils.convert(field.getType(), valueText));
 				}
 				
 			} else if (elementValue.getName().equals("null")) {
@@ -188,7 +198,7 @@ public class XmlUtils {
 		
 	}
 	
-	private static Field retrieveField(Element element, Object object) throws Exception {
+	private static Field retrieveField(Element element, Object object) throws SecurityException, NoSuchFieldException {
 		// retrieve the field
 		String nameAttribute = element.attributeValue("name");
 		Field field = object.getClass().getDeclaredField(nameAttribute);
@@ -203,12 +213,68 @@ public class XmlUtils {
 	
 	@SuppressWarnings("unchecked")
 	public static void setConfigurationFields(Element parentElement, Object configuration, 
-			RoutingEngine routingEngine) throws Exception {
+			RoutingEngine routingEngine) throws SecurityException, IllegalArgumentException, 
+			IllegalAccessException, NoSuchFieldException, NoSuchMethodException {
 		
 		Iterator properties = parentElement.elementIterator();
 		while (properties.hasNext()) {
 			Element propertyElement = (Element) properties.next();
 			setConfigurationField(propertyElement, configuration, routingEngine);
 		}
+	}
+	
+	/**
+	 * Helper method to build {@link Action}s from an XML element.
+	 * 
+	 * @param routingEngine 
+	 * @param pluginMechanism
+	 * @param actionsElement
+	 * @return a list of {@link Action} objects or an empty list.
+	 * @throws ClassNotFoundException 
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
+	 * @throws NoSuchMethodException 
+	 * @throws NoSuchFieldException 
+	 * @throws IllegalArgumentException 
+	 * @throws SecurityException 
+	 * @throws Exception
+	 */
+	@SuppressWarnings("unchecked")
+	public static List<Action> buildActions(RoutingEngine routingEngine, 
+			PluginMechanism pluginMechanism, Element actionsElement) throws ClassNotFoundException, InstantiationException, IllegalAccessException, SecurityException, IllegalArgumentException, NoSuchFieldException, NoSuchMethodException {
+		
+		List<Action> actions = new ArrayList<Action>();
+		
+		if (actionsElement == null) {
+			return actions;
+		}
+		
+		Iterator iterator = actionsElement.elementIterator();
+		while (iterator.hasNext()) {
+			Element actionElement = (Element) iterator.next();
+			
+			// create action instance
+			String className = actionElement.attributeValue("className");
+			Class<? extends Action> actionClass = null;
+			if (pluginMechanism != null) {
+				actionClass = (Class<? extends Action>) pluginMechanism.loadClass(className);
+			}
+			
+			if (actionClass == null) {
+				actionClass = (Class<? extends Action>) Class.forName(className);
+			}
+			
+			Action action = actionClass.newInstance();
+			
+			if (ExposableConfiguration.class.isInstance(action)) {
+				ExposableConfiguration<?> exposableAction = (ExposableConfiguration<?>) action;
+				
+				XmlConfigurationUtils.setConfigurationFields(actionElement, exposableAction.getConfiguration(), routingEngine);
+			}
+			
+			actions.add(action);
+		}
+		
+		return actions;
 	}
 }

@@ -1,6 +1,5 @@
 package org.mokai.impl.camel;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -29,7 +28,6 @@ import org.mokai.Serviceable;
 import org.mokai.Message.Flow;
 import org.mokai.Message.SourceType;
 import org.mokai.Monitorable.Status;
-import org.mokai.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,7 +73,7 @@ public class CamelReceiverService implements ReceiverService {
 	
 	private void init() {
 		// add the message producer to connector
-		addMessageProducerToConnector(receiver);		
+		injectMessageProducerToConnector(receiver);		
 		
 		try {
 			
@@ -112,7 +110,7 @@ public class CamelReceiverService implements ReceiverService {
 		}
 	}
 	
-	private void addMessageProducerToConnector(Object connector) {
+	private void injectMessageProducerToConnector(Object connector) {
 		MessageProducer messageProducer = new MessageProducer() {
 			
 			ProducerTemplate producer = camelContext.createProducerTemplate();
@@ -134,19 +132,7 @@ public class CamelReceiverService implements ReceiverService {
 			
 		};
 		
-		Field[] fields = connector.getClass().getDeclaredFields();
-		for (Field field : fields) {
-			
-			if (field.isAnnotationPresent(Resource.class) 
-					&& field.getType().isInstance(messageProducer)) {
-				field.setAccessible(true);
-				try {
-					field.set(connector, messageProducer);
-				} catch (Exception e) {
-					throw new ExecutionException(e);
-				} 
-			}
-		}
+		ResourceInjector.inject(receiver, messageProducer);
 	}
 	
 	@Override

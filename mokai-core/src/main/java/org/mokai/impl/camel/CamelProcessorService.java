@@ -1,6 +1,5 @@
 package org.mokai.impl.camel;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -29,7 +28,6 @@ import org.mokai.ProcessorService;
 import org.mokai.Serviceable;
 import org.mokai.Message.DestinationType;
 import org.mokai.Monitorable.Status;
-import org.mokai.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,6 +70,7 @@ public class CamelProcessorService implements ProcessorService {
 	
 	/**
 	 * Constructor. Removes spaces from id argument and lower case it.
+	 * 
 	 * @param id the id of the processor service. Shouldn't be null or empty.
 	 * @param priority the priority of the processor service (can be positive
 	 * or negative)
@@ -106,23 +105,28 @@ public class CamelProcessorService implements ProcessorService {
 		this.camelContext = camelContext;
 		this.camelProducer = camelContext.createProducerTemplate();
 		
+		// add the message producer to the processor
+		injectMessageProducer(processor);
+		
 		try {
-			configureProcessor(processor);
+			if (Configurable.class.isInstance(processor)) {
+				Configurable configurableProcessor = (Configurable) processor;
+				configurableProcessor.configure();
+			}
 		} catch (Exception e) {
 			throw new ExecutionException(e);
 		}
 	}
 	
-	private void configureProcessor(Processor processor) throws Exception {
-		addMessageProducerToConnector(processor);
+	/**
+	 * Helper method to inject a {@link MessageProducer} into a processor.
+	 * 
+	 * @param processor
+	 */
+	private void injectMessageProducer(Processor processor) {
 		
-		if (Configurable.class.isInstance(processor)) {
-			Configurable configurableProcessor = (Configurable) processor;
-			configurableProcessor.configure();
-		}
-	}
-	
-	private void addMessageProducerToConnector(Object connector) {
+		// create the message producer that will send the message to an
+		// internal queue so we can process it.
 		MessageProducer messageProducer = new MessageProducer() {
 			
 			ProducerTemplate producer = camelContext.createProducerTemplate();
@@ -144,18 +148,7 @@ public class CamelProcessorService implements ProcessorService {
 			
 		};
 		
-		Field[] fields = connector.getClass().getDeclaredFields();
-		for (Field field : fields) {
-			if (field.isAnnotationPresent(Resource.class) 
-					&& field.getType().isInstance(messageProducer)) {
-				field.setAccessible(true);
-				try {
-					field.set(connector, messageProducer);
-				} catch (Exception e) {
-					throw new ExecutionException(e);
-				} 
-			}
-		}
+		ResourceInjector.inject(processor, messageProducer);
 	}
 	
 	@Override

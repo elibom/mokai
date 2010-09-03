@@ -102,13 +102,16 @@ public class ProcessorConfiguration implements Configuration {
 		final List<Acceptor> acceptors = buildAcceptors(processorElement.element("acceptors"));
 		
 		// build the pre-processing actions
-		final List<Action> preProcessingActions = buildActions(processorElement.element("pre-processing-actions"));
+		final List<Action> preProcessingActions = XmlConfigurationUtils.buildActions(routingEngine, 
+				pluginMechanism, processorElement.element("pre-processing-actions"));
 		
 		// build the post-processing actions
-		final List<Action> postProcessingActions = buildActions(processorElement.element("post-processing-actions"));
+		final List<Action> postProcessingActions = XmlConfigurationUtils.buildActions(routingEngine, 
+				pluginMechanism, processorElement.element("post-processing-actions"));
 		
 		// build the post-receiving actions
-		final List<Action> postReceivingActions = buildActions(processorElement.element("post-receiving-actions"));
+		final List<Action> postReceivingActions = XmlConfigurationUtils.buildActions(routingEngine, 
+				pluginMechanism, processorElement.element("post-receiving-actions"));
 		
 		Runnable runnable = new Runnable() {
 
@@ -165,7 +168,7 @@ public class ProcessorConfiguration implements Configuration {
 			ExposableConfiguration<?> configurableConnector = 
 				(ExposableConfiguration<?>) processorConnector;
 			
-			XmlUtils.setConfigurationFields(element, configurableConnector.getConfiguration(), routingEngine);
+			XmlConfigurationUtils.setConfigurationFields(element, configurableConnector.getConfiguration(), routingEngine);
 		}
 		
 		return processorConnector;
@@ -200,7 +203,7 @@ public class ProcessorConfiguration implements Configuration {
 			if (ExposableConfiguration.class.isInstance(acceptor)) {
 				ExposableConfiguration<?> exposableAcceptor = (ExposableConfiguration<?>) acceptor;
 				
-				XmlUtils.setConfigurationFields(acceptorElement, exposableAcceptor.getConfiguration(), routingEngine);
+				XmlConfigurationUtils.setConfigurationFields(acceptorElement, exposableAcceptor.getConfiguration(), routingEngine);
 			}
 
 			acceptors.add(acceptor);
@@ -209,43 +212,7 @@ public class ProcessorConfiguration implements Configuration {
 		return acceptors;
 	}
 	
-	@SuppressWarnings("unchecked")
-	private List<Action> buildActions(Element actionsElement) throws Exception {
-		
-		List<Action> actions = new ArrayList<Action>();
-		
-		if (actionsElement == null) {
-			return actions;
-		}
-		
-		Iterator iterator = actionsElement.elementIterator();
-		while (iterator.hasNext()) {
-			Element actionElement = (Element) iterator.next();
-			
-			// create action instance
-			String className = actionElement.attributeValue("className");
-			Class<? extends Action> actionClass = null;
-			if (pluginMechanism != null) {
-				actionClass = (Class<? extends Action>) pluginMechanism.loadClass(className);
-			}
-			
-			if (actionClass == null) {
-				actionClass = (Class<? extends Action>) Class.forName(className);
-			}
-			
-			Action action = actionClass.newInstance();
-			
-			if (ExposableConfiguration.class.isInstance(action)) {
-				ExposableConfiguration<?> exposableAction = (ExposableConfiguration<?>) action;
-				
-				XmlUtils.setConfigurationFields(actionElement, exposableAction.getConfiguration(), routingEngine);
-			}
-			
-			actions.add(action);
-		}
-		
-		return actions;
-	}
+	
 	
 
 	@Override
@@ -253,7 +220,7 @@ public class ProcessorConfiguration implements Configuration {
 		try {
 			
 	        Document document = createProcessorsDocument();
-	        XmlUtils.writeDocument(document, path);
+	        XmlConfigurationUtils.writeDocument(document, path);
 	        
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -281,7 +248,7 @@ public class ProcessorConfiguration implements Configuration {
         		ExposableConfiguration<?> configurableProcessor = 
         			(ExposableConfiguration<?>) processor.getProcessor();
         		
-        		XmlUtils.addConfigurationFields(connectorElement, configurableProcessor.getConfiguration());
+        		XmlConfigurationUtils.addConfigurationFields(connectorElement, configurableProcessor.getConfiguration());
         	}
         	
         	// add acceptors
@@ -295,7 +262,7 @@ public class ProcessorConfiguration implements Configuration {
 	        		if (ExposableConfiguration.class.isInstance(acceptor)) {
 	        			ExposableConfiguration<?> configurableAcceptor = (ExposableConfiguration<?>) acceptor;
 	        			
-	        			XmlUtils.addConfigurationFields(acceptorElement, configurableAcceptor.getConfiguration());
+	        			XmlConfigurationUtils.addConfigurationFields(acceptorElement, configurableAcceptor.getConfiguration());
 	        		}
 	        		
 	        	}
@@ -327,7 +294,7 @@ public class ProcessorConfiguration implements Configuration {
     			if (ExposableConfiguration.class.isInstance(action)) {
         			ExposableConfiguration<?> configurableAction = (ExposableConfiguration<?>) action;
         			
-        			XmlUtils.addConfigurationFields(actionElement, configurableAction.getConfiguration());
+        			XmlConfigurationUtils.addConfigurationFields(actionElement, configurableAction.getConfiguration());
         		}
     		}
     	}

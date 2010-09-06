@@ -1,5 +1,10 @@
 package org.mokai.persist.jdbc.util;
 
+/**
+ * Initializes the MySql schema. 
+ * 
+ * @author German Escobar
+ */
 public class MySqlInitializer extends DBInitializer {
 
 	@Override

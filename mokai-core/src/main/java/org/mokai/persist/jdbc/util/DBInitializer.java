@@ -8,6 +8,11 @@ import java.sql.Statement;
 
 import javax.sql.DataSource;
 
+/**
+ * Abstract class for initializing database schema.
+ * 
+ * @author German Escobar
+ */
 public abstract class DBInitializer {
 
 	private DataSource dataSource;

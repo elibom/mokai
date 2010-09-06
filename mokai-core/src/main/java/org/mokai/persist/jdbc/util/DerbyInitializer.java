@@ -1,5 +1,10 @@
 package org.mokai.persist.jdbc.util;
 
+/**
+ * Initializes the Derby schema.
+ * 
+ * @author German Escobar
+ */
 public class DerbyInitializer extends DBInitializer {
 
 	@Override

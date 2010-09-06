@@ -7,10 +7,7 @@ import org.mokai.Processor;
 
 /**
  * Factory and container of {@link ReceiverService} and {@link ProcessorService}
- * implementations that controls the flow of messages between receivers and 
- * processors.
- * 
- * 
+ * implementations. Controls the message flow inside the gateway.
  * 
  * @author German Escobar
  */

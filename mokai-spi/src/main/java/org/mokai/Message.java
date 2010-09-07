@@ -24,6 +24,13 @@ public class Message implements Serializable {
 	
 	public static final String SMS_TYPE = "sms";
 	
+	/**
+	 * The source type of the message. With the {@link Message#source} attribute, 
+	 * it answers the question: Who produced the message?
+	 * 
+	 * 
+	 * @author German Escobar
+	 */
 	public enum SourceType {
 		
 		RECEIVER(1), PROCESSOR(2), UNKNOWN(-1);
@@ -51,6 +58,12 @@ public class Message implements Serializable {
 		}
 	}
 	
+	/**
+	 * The destination type of the message. With the {@link Message#destination} attribute, 
+	 * it answers the question: Who processed the message?
+	 * 
+	 * @author German Escobar
+	 */
 	public enum DestinationType {
 		
 		PROCESSOR(1), UNKNOWN(-1);
@@ -76,6 +89,12 @@ public class Message implements Serializable {
 		}
 	}
 	
+	/**
+	 * Tells whether the message is outbound (from applications to external services) or 
+	 * inbound (from external services to applications)
+	 * 
+	 * @author German Escobar
+	 */
 	public enum Flow {
 		
 		INBOUND(1), OUTBOUND(2), UNKNOWN(-1);
@@ -102,6 +121,11 @@ public class Message implements Serializable {
 		}
 	}
 	
+	/**
+	 * Describes the status of the message.
+	 * 
+	 * @author German Escobar
+	 */
 	public enum Status {
 		
 		CREATED(1), PROCESSED(2), FAILED(3), UNROUTABLE(4), RETRYING(5);
@@ -133,8 +157,14 @@ public class Message implements Serializable {
 		}
 	}
 	
+	/**
+	 * Set and used by persistence mechanisms.
+	 */
 	private long id = NOT_PERSISTED;
 	
+	/**
+	 * The account to which the message belongs.
+	 */
 	private String accountId = ANONYMOUS_ACCOUNT_ID;
 	
 	/**
@@ -144,26 +174,59 @@ public class Message implements Serializable {
 	 */
 	private transient String password;
 	
+	/**
+	 * A reference string that applications can use to query the messages.
+	 */
 	private String reference = UUID.randomUUID().toString();
 	
+	/**
+	 * An String used to identify the message (e.g. sms, email, etc.)
+	 */
 	private String type;
 	
+	/**
+	 * @see Flow
+	 */
 	private Flow flow = Flow.UNKNOWN;
 	
+	/**
+	 * The id of the source of the message.
+	 */
 	private String source;
 	
+	/**
+	 * @see SourceType
+	 */
 	private SourceType sourceType = SourceType.UNKNOWN;
 	
+	/**
+	 * The id of the destination of the message
+	 */
 	private String destination;
 	
+	/**
+	 * @see DestinationType
+	 */
 	private DestinationType destinationType = DestinationType.UNKNOWN;
 	
+	/**
+	 * @see Status
+	 */
 	private Status status = Status.CREATED;
 	
+	/**
+	 * The properties of the message
+	 */
 	private Map<String,Object> properties = new HashMap<String,Object>();
 	
+	/**
+	 * The body of the message.
+	 */
 	private Object body;
 	
+	/**
+	 * The creation time of the message.
+	 */
 	private Date creationTime = new Date();
 	
 	public Message() {
@@ -174,6 +237,13 @@ public class Message implements Serializable {
 		this.type = type;
 	}
 	
+	/**
+	 * Helper method to determine if a message is from a specified type.
+	 * 
+	 * @param t the type to be checked.
+	 * @return true if the message is of the expected type, false
+	 * otherwise.
+	 */
 	public final boolean isType(String t) {
 		if (t == null) {
 			throw new IllegalArgumentException("Type not provided");

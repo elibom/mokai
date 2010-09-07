@@ -26,6 +26,7 @@ import org.mokai.ProcessorService;
 import org.mokai.RoutingEngine;
 import org.mokai.config.ConfigurationException;
 import org.mokai.config.xml.ProcessorConfiguration;
+import org.mokai.config.xml.ReceiverConfiguration;
 import org.mokai.plugin.PluginMechanism;
 import org.mokai.types.mock.MockAcceptor;
 import org.mokai.types.mock.MockAction;
@@ -40,17 +41,27 @@ public class ProcessorConfigurationTest {
 
 	@Test
 	public void testLoadGoodFile() throws Exception {
-		testGoodFile(null);		
+		String path = "src/test/resources/processors-test/good-processors.xml";
+		testGoodFile(path, null);		
 	}
 	
 	@Test
 	public void testLoadFileWithNotUsefulPluginMechanism() throws Exception {
+		String path = "src/test/resources/processors-test/good-processors.xml";
+		
 		PluginMechanism pluginMechanism = Mockito.mock(PluginMechanism.class);
-		testGoodFile(pluginMechanism);
+		testGoodFile(path, pluginMechanism);
 	}
 	
-	private void testGoodFile(PluginMechanism pluginMechanism) throws Exception {
-		String path = "src/test/resources/processors-test/good-processors.xml";
+	@Test(expectedExceptions=ConfigurationException.class)
+	public void shouldFailWithBadSchema() throws Exception {
+		String path = "src/test/resources/processors-test/badschema-processors.xml";
+		
+		testGoodFile(path, null);
+	}
+	
+	private void testGoodFile(String path, PluginMechanism pluginMechanism) throws Exception {
+		
 		
 		ProcessorService processorService1 = Mockito.mock(ProcessorService.class);
 		ProcessorService processorService2 = Mockito.mock(ProcessorService.class);
@@ -192,13 +203,26 @@ public class ProcessorConfigurationTest {
 	
 	@Test(expectedExceptions=ConfigurationException.class)
 	public void shouldFailLoadNonExistentClasses() throws Exception {
-		String path = "src/test/resources/processors-test/invalid-processors.xml";
+		String path = "src/test/resources/processors-test/nonexistentclass-processors.xml";
 
 		RoutingEngine routingEngine = Mockito.mock(RoutingEngine.class);
 		
 		ProcessorConfiguration config = new ProcessorConfiguration();
 		config.setRoutingEngine(routingEngine);
 		config.setPath(path);
+		
+		config.load();
+	}
+	
+	@Test(expectedExceptions=ConfigurationException.class)
+	public void shouldFailWithInvalidFile() throws Exception {
+		String path = "src/test/resources/processors-test/invalid-processors.xml";
+		
+		RoutingEngine routingEngine = Mockito.mock(RoutingEngine.class);
+		
+		ReceiverConfiguration config = new ReceiverConfiguration();
+		config.setPath(path);
+		config.setRoutingEngine(routingEngine);
 		
 		config.load();
 	}

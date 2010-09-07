@@ -133,45 +133,35 @@ public class XmlConfigurationUtils {
 		}
 	}
 	
+	/**
+	 * Helper method to handle <pre><property /></pre>, <pre><mapProperty /></pre>
+	 * and <pre><listProperty /></pre> elements. 
+	 * 
+	 * @param element the element to handle. It can be property, mapProperty and 
+	 * listProperty.
+	 * @param configuration the object to which we are going to set the property.
+	 * @param routingEngine the {@link RoutingEngine}. Not currently in use. 
+	 * 
+	 * @throws IllegalAccessException
+	 * @throws SecurityException
+	 * @throws NoSuchFieldException
+	 * @throws IllegalArgumentException
+	 * @throws NoSuchMethodException
+	 */
 	@SuppressWarnings("unchecked")
 	public static void setConfigurationField(Element element, Object configuration, 
 			RoutingEngine routingEngine) throws IllegalAccessException, SecurityException, 
 			NoSuchFieldException, IllegalArgumentException, NoSuchMethodException {
 		
 		if (element.getName().equals("property")) {
-			
+			// retrieve field
 			Field field = retrieveField(element, configuration);
 			
-			// check if we have a value attribute
-			String valueAttribute = element.attributeValue("value");
-			if (valueAttribute != null) {
-				setValue(field, configuration, XmlConfigurationUtils.convert(field.getType(), valueAttribute));
-				return;
-			}
-			
-			// check if the value was set directly
-			if (element.isTextOnly()) {
-				String valueText = element.getText();
-				if (valueText != null) {
-					setValue(field, configuration, XmlConfigurationUtils.convert(field.getType(), valueText));
-				}
-				return;
-			}
-			
-			// retrieve the child element 
-			Element elementValue = (Element) element.elementIterator().next();
-			if (elementValue.getName().equals("value")) {
-				
-				String valueText = element.getText();
-				if (valueText != null && !"".equals(valueText)) {
-					setValue(field, configuration, XmlConfigurationUtils.convert(field.getType(), valueText));
-				}
-				
-			} else if (elementValue.getName().equals("null")) {
-				
-				setValue(field, configuration, null);
-				
-			}
+			// retrieve value
+			String value = retrieveValue(element);
+
+			// set value
+			setValue(field, configuration, XmlConfigurationUtils.convert(field.getType(), value));
 			
 		} else if (element.getName().equals("mapProperty")) {
 			
@@ -193,6 +183,24 @@ public class XmlConfigurationUtils {
 			}
 			
 			setValue(field, configuration, map);
+			
+		} else if (element.getName().equals("listProperty")) {
+			Field field = retrieveField(element, configuration);
+			
+			if (!List.class.isAssignableFrom(field.getType())) {
+				throw new IllegalArgumentException("field " + field.getName() + " is not a List");
+			}
+			
+			List<String> list = new ArrayList<String>();
+			
+			Iterator iterator = element.elementIterator();
+			while (iterator.hasNext()) {
+				Element item = (Element) iterator.next();
+				String value = retrieveValue(item);
+				list.add(value);
+			}
+			
+			setValue(field, configuration, list);
 		}
 		
 	}
@@ -203,6 +211,49 @@ public class XmlConfigurationUtils {
 		Field field = object.getClass().getDeclaredField(nameAttribute);
 		
 		return field;
+	}
+	
+	/**
+	 * Helper method to retrieve a value from an element. It first checks if the element
+	 * has an attribute named 'value'. If it does, it returns that value, otherwise, it 
+	 * checks if the element is text only. If it is, it returns that value, otherwise, 
+	 * it checks if the element has a child <pre><value /></pre> element. If it does, it 
+	 * returns its text. Otherwise, it checks if the element has a <pre><null /></pre> 
+	 * element. If it does, returns null. In any other case, it returns null.
+	 *  
+	 * @param element the Element from which we want to retrieve the value.
+	 * @return a String value of the element or null if a <pre><null /></pre> element is
+	 * found or no value is found.
+	 */
+	private static String retrieveValue(Element element) {
+		// check if we have a value attribute
+		String valueText = element.attributeValue("value");
+		if (valueText != null) {
+			return valueText;
+		}
+		
+		// check if the value was set directly
+		if (element.isTextOnly()) {
+			valueText = element.getText();
+			if (valueText != null) {
+				return valueText;
+			}
+		}
+		
+		// retrieve the child element 
+		Element elementValue = (Element) element.elementIterator().next();
+		if (elementValue.getName().equals("value")) {
+			
+			valueText = element.getText();
+			if (valueText != null && !"".equals(valueText)) {
+				return valueText;
+			}
+			
+		} else if (elementValue.getName().equals("null")) {
+			return null;			
+		}
+		
+		return "";
 	}
 	
 	private static void setValue(Field field, Object object, Object value) throws IllegalAccessException {

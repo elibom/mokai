@@ -37,17 +37,20 @@ public class ReceiverConfigurationTest {
 
 	@Test
 	public void testLoadGoodFile() throws Exception {
-		testGoodFile(null);
+		String path = "src/test/resources/receivers-test/good-receivers.xml";
+		
+		testGoodFile(path, null);
 	}
 	
 	@Test
 	public void testLoadGoodFileNotUsefulPluginMechanism() throws Exception {
+		String path = "src/test/resources/receivers-test/good-receivers.xml";
+		
 		PluginMechanism pluginMechanism = Mockito.mock(PluginMechanism.class);
-		testGoodFile(pluginMechanism);
+		testGoodFile(path, pluginMechanism);
 	}
 	
-	private void testGoodFile(PluginMechanism pluginMechanism) throws Exception {
-		String path = "src/test/resources/receivers-test/good-receivers.xml";
+	private void testGoodFile(String path, PluginMechanism pluginMechanism) throws Exception {
 		
 		ReceiverService receiverService1 = Mockito.mock(ReceiverService.class);
 		ReceiverService receiverService2 = Mockito.mock(ReceiverService.class);
@@ -79,6 +82,26 @@ public class ReceiverConfigurationTest {
 		
 		Action testAction = new MockConfigurableAction("test", 2);
 		Mockito.verify(receiverService2).addPostReceivingAction(testAction);
+	}
+	
+	@Test(expectedExceptions=ConfigurationException.class)
+	public void shouldFailWithBadSchema() throws Exception {
+		String path = "src/test/resources/receivers-test/badschema-receivers.xml";
+		
+		testGoodFile(path, null);
+	}
+	
+	@Test(expectedExceptions=ConfigurationException.class)
+	public void shouldFailWithInvalidFile() throws Exception {
+		String path = "src/test/resources/receivers-test/invalid-receivers.xml";
+		
+		RoutingEngine routingEngine = Mockito.mock(RoutingEngine.class);
+		
+		ReceiverConfiguration config = new ReceiverConfiguration();
+		config.setPath(path);
+		config.setRoutingEngine(routingEngine);
+		
+		config.load();
 	}
 	
 	@Test
@@ -180,7 +203,7 @@ public class ReceiverConfigurationTest {
 	
 	@Test(expectedExceptions=ConfigurationException.class)
 	public void shouldFailLoadNonExistentClasses() throws Exception {
-		String path = "src/test/resources/receivers-test/invalid-receivers.xml";
+		String path = "src/test/resources/receivers-test/nonexistentclass-receivers.xml";
 
 		RoutingEngine routingEngine = Mockito.mock(RoutingEngine.class);
 		

@@ -80,6 +80,13 @@ public class ProcessorConfiguration implements Configuration {
 	public final void load(InputStream inputStream) throws Exception {
 		// create the document
 		SAXReader reader = new SAXReader();
+		reader.setEntityResolver(new SchemaEntityResolver());
+		reader.setValidation(true);
+		
+		reader.setFeature("http://xml.org/sax/features/validation", true);
+        reader.setFeature("http://apache.org/xml/features/validation/schema", true );
+        reader.setFeature("http://apache.org/xml/features/validation/schema-full-checking", true);
+		
 		Document document = reader.read(inputStream);
 		
 		// iterate through 'connector' elements
@@ -95,8 +102,7 @@ public class ProcessorConfiguration implements Configuration {
 	private void handleProcessorElement(final Element processorElement) throws Exception {
 		
 		// build the processor connector
-		Element connectorElement = processorElement.element("connector");
-		final Processor connector = buildProcessorConnector(connectorElement);
+		final Processor connector = buildProcessorConnector(processorElement);
 		
 		// build the acceptors
 		final List<Acceptor> acceptors = buildAcceptors(processorElement.element("acceptors"));
@@ -167,8 +173,12 @@ public class ProcessorConfiguration implements Configuration {
 		if (ExposableConfiguration.class.isInstance(processorConnector)) {
 			ExposableConfiguration<?> configurableConnector = 
 				(ExposableConfiguration<?>) processorConnector;
-			
-			XmlConfigurationUtils.setConfigurationFields(element, configurableConnector.getConfiguration(), routingEngine);
+
+			Element configurationElement = element.element("configuration");
+			if (configurationElement != null) {
+				XmlConfigurationUtils.setConfigurationFields(configurationElement, 
+						configurableConnector.getConfiguration(), routingEngine);
+			}
 		}
 		
 		return processorConnector;

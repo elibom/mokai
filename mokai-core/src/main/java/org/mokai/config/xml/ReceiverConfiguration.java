@@ -76,6 +76,13 @@ public class ReceiverConfiguration implements Configuration {
 			
 		// create the document
 		SAXReader reader = new SAXReader();
+		reader.setEntityResolver(new SchemaEntityResolver());
+		reader.setValidation(true);
+		
+		reader.setFeature("http://xml.org/sax/features/validation", true);
+        reader.setFeature("http://apache.org/xml/features/validation/schema", true );
+        reader.setFeature("http://apache.org/xml/features/validation/schema-full-checking", true);
+		
 		Document document = reader.read(inputStream);
 			
 		// iterate through 'receiver' elements
@@ -93,8 +100,7 @@ public class ReceiverConfiguration implements Configuration {
 	private void handleReceiverElement(final Element receiverElement) throws Exception {
 		
 		// build the receiver connector
-		Element connectorElement = receiverElement.element("connector");
-		final Receiver receiver = buildReceiverConnector(connectorElement);
+		final Receiver receiver = buildReceiverConnector(receiverElement);
 		
 		// build the post-receiving actions
 		final List<Action> postReceivingActions = XmlConfigurationUtils.buildActions(routingEngine, 
@@ -138,7 +144,11 @@ public class ReceiverConfiguration implements Configuration {
 			ExposableConfiguration<?> configurableConnector = 
 				(ExposableConfiguration<?>) receiverConnector;
 			
-			XmlConfigurationUtils.setConfigurationFields(element, configurableConnector.getConfiguration(), routingEngine);
+			Element configurationElement = element.element("configuration");
+			if (configurationElement != null) {
+				XmlConfigurationUtils.setConfigurationFields(configurationElement, 
+						configurableConnector.getConfiguration(), routingEngine);
+			}
 		}
 		
 		return receiverConnector;

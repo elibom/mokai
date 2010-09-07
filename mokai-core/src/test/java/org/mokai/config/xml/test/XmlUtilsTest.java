@@ -1,6 +1,7 @@
 package org.mokai.config.xml.test;
 
 import java.io.ByteArrayInputStream;
+import java.util.List;
 import java.util.Map;
 
 import junit.framework.Assert;
@@ -37,6 +38,26 @@ public class XmlUtilsTest {
 		
 		Assert.assertFalse(goodMap.isEmpty());
 		Assert.assertEquals("test2", goodMap.get("test1"));
+	}
+	
+	private List<String> goodList;
+	
+	public void testList() throws Exception {
+		if (goodList != null) {
+			goodList.clear();
+		}
+		
+		String xml = "<listProperty name='goodlist'><item value='test1' /><item>test2</item></listProperty>";
+		
+		// check root element
+		Element listElement = createElement(xml);
+		
+		XmlConfigurationUtils.setConfigurationField(listElement, this, null);
+		
+		Assert.assertFalse(goodList.isEmpty());
+		Assert.assertEquals(2, goodList.size());
+		Assert.assertTrue(goodList.get(0).equals("test1"));
+		Assert.assertTrue(goodList.get(1).equals("test2"));
 	}
 	
 	@Test(expectedExceptions=NoSuchFieldException.class)

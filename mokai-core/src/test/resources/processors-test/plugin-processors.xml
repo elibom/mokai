@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<processors>
-	<processor id="test" priority="10000">
-		<connector className="org.mokai.types.mock.MockConnector" />
+<processors xmlns="http://mokai.googlecode.com/processors" 
+		    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		    xsi:schemaLocation=
+		   		"http://mokai.googlecode.com/processors http://mokai.googlecode.com/svn/schema/processors-0.1.xsd">
+		   		
+	<processor id="test" priority="10000" className="org.mokai.types.mock.MockConnector">
 		
 		<acceptors>
 			<acceptor className="org.mokai.types.mock.MockAcceptor" />

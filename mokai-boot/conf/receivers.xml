@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<receivers>
+<receivers xmlns="http://mokaigateway.org/receivers" 
+		   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		   xsi:schemaLocation=
+			"http://mokaigateway.org/receivers http://mokaigateway.org/receivers-0.1.xsd">
   
-  <receiver id="jetty">
-  	<connector className="org.mokai.connector.camel.jetty.JettyConnector">
+  <receiver id="jetty" className="org.mokai.connector.camel.jetty.JettyConnector">
+  	<configuration>
    		<property name="port">9080</property>
     	<property name="context">test</property>
-    </connector>
+    </configuration>
   </receiver>
   
 </receivers>

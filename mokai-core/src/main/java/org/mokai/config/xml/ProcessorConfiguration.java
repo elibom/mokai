@@ -40,7 +40,7 @@ public class ProcessorConfiguration implements Configuration {
 	private static final int DEFAULT_POOL_SIZE = 3;
 	private static final int DEFAULT_MAX_POOL_SIZE = 4; 
 	
-	private String path = "data/processors.xml";
+	private String path = "conf/processors.xml";
 	
 	private RoutingEngine routingEngine;
 	

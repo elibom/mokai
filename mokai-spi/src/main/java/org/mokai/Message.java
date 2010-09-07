@@ -23,6 +23,7 @@ public class Message implements Serializable {
 	public static final String ANONYMOUS_ACCOUNT_ID = "anonymous";
 	
 	public static final String SMS_TYPE = "sms";
+	public static final String DELIVERY_RECEIPT_TYPE = "delivery-receipt";
 	
 	/**
 	 * The source type of the message. With the {@link Message#source} attribute, 

@@ -32,7 +32,7 @@ import org.mokai.plugin.PluginMechanism;
  */
 public class ReceiverConfiguration implements Configuration {
 	
-	private String path = "data/receivers.xml";
+	private String path = "conf/receivers.xml";
 	
 	private RoutingEngine routingEngine;
 	

@@ -7,6 +7,7 @@ import org.jsmpp.bean.Alphabet;
 import org.jsmpp.bean.BindType;
 import org.jsmpp.bean.DataSm;
 import org.jsmpp.bean.DeliverSm;
+import org.jsmpp.bean.DeliveryReceipt;
 import org.jsmpp.bean.ESMClass;
 import org.jsmpp.bean.GeneralDataCoding;
 import org.jsmpp.bean.MessageClass;
@@ -25,6 +26,7 @@ import org.jsmpp.session.MessageReceiverListener;
 import org.jsmpp.session.SMPPSession;
 import org.jsmpp.session.Session;
 import org.jsmpp.session.SessionStateListener;
+import org.jsmpp.util.InvalidDeliveryReceiptException;
 import org.mokai.ExecutionException;
 import org.mokai.ExposableConfiguration;
 import org.mokai.Message;
@@ -157,23 +159,27 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 				
 				if (pdu.isSmscDeliveryReceipt()) {
 					log.info("DeliveryReceipt short message: " + new String(pdu.getShortMessage()));
+					
+					try {
+						DeliveryReceipt deliveryReceipt = pdu.getShortMessageAsDeliveryReceipt();
+					
+						// create the message based on the delivery receipt
+						Message message = SmsMessageTranslator.createDeliveryReceipt(deliveryReceipt);
+						
+						// producer the message
+						produceMessage(message);
+						
+					} catch (InvalidDeliveryReceiptException e) {
+						log.error("InvalidDeliveryReceiptException while trying to parse deliveSm: " 
+								+ e.getMessage(), e);
+					}
 				} else {
 					
-					String to = pdu.getDestAddress();
-					String from = pdu.getSourceAddr();
-					String text = new String(pdu.getShortMessage());
+					// create the message based on the deliverSm
+					Message message = SmsMessageTranslator.createDeliverSm(pdu);
 					
-					Message message = new Message(Message.SMS_TYPE);
-					message.setProperty("to", to);
-					message.setProperty("from", from);
-					message.setProperty("text", text);
-					
-					if (messageProducer != null) {
-						messageProducer.produce(message);
-					} else {
-						// this should not happen
-						log.error("MessageProducer is null ... ignoring message");
-					}
+					// produce the message
+					produceMessage(message);
 				}
 					
 			}
@@ -243,6 +249,22 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		log.debug("connection bound");
 		
 		return session;
+	}
+	
+	/**
+	 * Helper method to produce a message. If the {@link MessageProducer}
+	 * is null, it just logs and ignores the message.
+	 * 
+	 * @param message the {@link Message} we are going to produce
+	 */
+	private void produceMessage(Message message) {
+		
+		if (messageProducer != null) {
+			messageProducer.produce(message);
+		} else {
+			// this should not happen
+			log.error("MessageProducer is null ... ignoring message");
+		}
 	}
 
 	/**

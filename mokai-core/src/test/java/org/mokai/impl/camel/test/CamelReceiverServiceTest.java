@@ -54,7 +54,7 @@ public class CamelReceiverServiceTest extends CamelBaseTest {
 		Assert.assertEquals("test", message.getSource());
 		Assert.assertEquals(Message.SourceType.RECEIVER, message.getSourceType());
 		Assert.assertEquals(Message.ANONYMOUS_ACCOUNT_ID, message.getAccountId());
-		Assert.assertEquals(Message.Flow.OUTBOUND, message.getFlow());
+		Assert.assertEquals(Message.Direction.OUTBOUND, message.getDirection());
 	}
 	
 	@Test

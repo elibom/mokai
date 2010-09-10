@@ -27,6 +27,7 @@ import org.mokai.Receiver;
 import org.mokai.ReceiverService;
 import org.mokai.RoutingEngine;
 import org.mokai.Service;
+import org.mokai.Message.Status;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.MessageStore;
 import org.mokai.persist.StoreException;
@@ -358,7 +359,7 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 		log.debug("running ... ");
 		
 		// update all the failed messages to retrying
-		messageStoreDelegate.updateFailedToRetrying();
+		//messageStoreDelegate.updateFailedToRetrying(Direction.OUTBOUND);
 		
 		ProducerTemplate producer = camelContext.createProducerTemplate();
 		
@@ -423,6 +424,14 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 		}
 
 		@Override
+		public void updateStatus(MessageCriteria criteria, Status newStatus)
+				throws StoreException {
+			delegate.updateStatus(criteria, newStatus);
+		}
+
+
+
+		@Override
 		public Collection<Message> list(MessageCriteria criteria)
 				throws StoreException {
 			return delegate.list(criteria);
@@ -431,11 +440,6 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 		@Override
 		public void saveOrUpdate(Message message) throws StoreException {
 			delegate.saveOrUpdate(message);
-		}
-
-		@Override
-		public void updateFailedToRetrying() throws StoreException {
-			delegate.updateFailedToRetrying();
 		}
 
 		public MessageStore getDelegate() {

@@ -164,7 +164,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 						DeliveryReceipt deliveryReceipt = pdu.getShortMessageAsDeliveryReceipt();
 					
 						// create the message based on the delivery receipt
-						Message message = SmsMessageTranslator.createDeliveryReceipt(deliveryReceipt);
+						Message message = SmsMessageTranslator.createDeliveryReceipt(pdu, deliveryReceipt);
 						
 						// producer the message
 						produceMessage(message);

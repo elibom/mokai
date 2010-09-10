@@ -652,7 +652,7 @@ public class CamelProcessorService implements ProcessorService {
 			
 			message.setSource(id);
 			message.setSourceType(Message.SourceType.PROCESSOR);
-			message.setFlow(Message.Flow.INBOUND);
+			message.setDirection(Message.Direction.INBOUND);
 		}
 		
 	}

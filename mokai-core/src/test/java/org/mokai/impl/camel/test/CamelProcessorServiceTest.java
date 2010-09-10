@@ -228,7 +228,7 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 		Assert.assertNotNull(message.getReference());
 		Assert.assertEquals("test", message.getSource());
 		Assert.assertEquals(Message.SourceType.PROCESSOR, message.getSourceType());
-		Assert.assertEquals(Message.Flow.INBOUND, message.getFlow());
+		Assert.assertEquals(Message.Direction.INBOUND, message.getDirection());
 	}
 	
 	/**

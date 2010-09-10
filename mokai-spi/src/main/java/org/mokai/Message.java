@@ -96,13 +96,13 @@ public class Message implements Serializable {
 	 * 
 	 * @author German Escobar
 	 */
-	public enum Flow {
+	public enum Direction {
 		
 		INBOUND(1), OUTBOUND(2), UNKNOWN(-1);
 		
 		private byte id;
 		
-		private Flow(int id) {
+		private Direction(int id) {
 			this.id = (byte) id;
 		}
 		
@@ -110,8 +110,8 @@ public class Message implements Serializable {
 			return id;
 		}
 		
-		public static Flow getFlow(byte b) {
-			for (Flow t : values()) {
+		public static Direction getFlow(byte b) {
+			for (Direction t : values()) {
 				if (t.value() == b) {
 					return t;
 				}
@@ -129,7 +129,35 @@ public class Message implements Serializable {
 	 */
 	public enum Status {
 		
-		CREATED(1), PROCESSED(2), FAILED(3), UNROUTABLE(4), RETRYING(5);
+		/**
+		 * The message was created. This is the default status.
+		 */
+		CREATED(1),
+		
+		/**
+		 * The message was processed by a processor. 
+		 */
+		PROCESSED(2), 
+		
+		/**
+		 * The message couldn't be processed by the selected processor.
+		 */
+		FAILED(3), 
+		
+		/**
+		 * The message couldn't be routed (no processor accepted it)
+		 */
+		UNROUTABLE(4),
+		
+		/**
+		 * The message failed, but now it is being retried.
+		 */
+		RETRYING(5), 
+		
+		/**
+		 * The message was unroutable, but now it's being re-routed
+		 */
+		REROUTING(6);
 		
 		private byte id;
 		
@@ -186,9 +214,9 @@ public class Message implements Serializable {
 	private String type;
 	
 	/**
-	 * @see Flow
+	 * @see Direction
 	 */
-	private Flow flow = Flow.UNKNOWN;
+	private Direction direction = Direction.UNKNOWN;
 	
 	/**
 	 * The id of the source of the message.
@@ -229,6 +257,11 @@ public class Message implements Serializable {
 	 * The creation time of the message.
 	 */
 	private Date creationTime = new Date();
+	
+	/**
+	 * The modification time of the message.
+	 */
+	private Date modificationTime = new Date();
 	
 	public Message() {
 		
@@ -329,12 +362,12 @@ public class Message implements Serializable {
 		this.type = type;
 	}
 
-	public final Flow getFlow() {
-		return flow;
+	public final Direction getDirection() {
+		return direction;
 	}
 
-	public final void setFlow(Flow flow) {
-		this.flow = flow;
+	public final void setDirection(Direction direction) {
+		this.direction = direction;
 	}
 
 	public final Status getStatus() {
@@ -381,6 +414,14 @@ public class Message implements Serializable {
 
 	public final void setCreationTime(Date creationTime) {
 		this.creationTime = creationTime;
+	}
+
+	public Date getModificationTime() {
+		return modificationTime;
+	}
+
+	public void setModificationTime(Date modificationTime) {
+		this.modificationTime = modificationTime;
 	}
 	
 }

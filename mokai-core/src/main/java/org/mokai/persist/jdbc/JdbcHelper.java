@@ -1,0 +1,76 @@
+package org.mokai.persist.jdbc;
+
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+import javax.sql.DataSource;
+
+/**
+ * Helper methods used by the {@link JdbcMessageStore} and other
+ * {@link MessageStore} implementations based on JDBC.
+ * 
+ * @author German Escobar
+ */
+public class JdbcHelper {
+
+	public static void checkCreateTable(DataSource dataSource, String schema, 
+			String tableName, String creationScript) throws SQLException {
+		
+		Connection connection = null;
+		ResultSet rs = null;
+		Statement statement = null;
+		
+		try {
+			// create the connection and the statement
+			connection = dataSource.getConnection();
+			statement = connection.createStatement();
+			
+			// check if the outbound message table exists or create it
+			DatabaseMetaData metadata = connection.getMetaData();
+			rs = metadata.getTables("", schema, tableName, null);
+			if (!rs.next() && creationScript != null) {
+				statement.executeUpdate(creationScript);
+			}
+
+		} finally {
+			if (rs != null) {
+				try { rs.close(); } catch (Exception e) { }
+			}
+			if (statement != null) {
+				try { statement.close(); } catch(Exception e) { }
+			}
+			if (connection != null) {
+				try { connection.close(); } catch(Exception e) { }
+			}
+		}
+	}
+	
+	/**
+	 * Helper method to retrieve the generated id after an insert.
+	 * 
+	 * @param stmt the statement used in the insert.
+	 * @return the generated id.
+	 * @throws SQLException if something goes wrong
+	 */
+	public static long retrieveGeneratedId(Statement stmt) throws SQLException {
+		ResultSet rsKeys = null;
+		
+		try {
+			rsKeys = stmt.getGeneratedKeys();
+			if (rsKeys.next()) {
+				long id = rsKeys.getLong(1);
+				return id;
+			}
+			
+			return -1;
+			
+		} finally {
+			if (rsKeys != null) {
+				try { rsKeys.close(); } catch (Exception e) {}
+			}
+		}
+	}
+}

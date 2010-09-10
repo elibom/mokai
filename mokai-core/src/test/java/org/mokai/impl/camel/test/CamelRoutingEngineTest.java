@@ -273,9 +273,8 @@ public class CamelRoutingEngineTest {
 			}
 
 			@Override
-			public void updateFailedToRetrying() throws StoreException {
-				
-			}
+			public void updateStatus(MessageCriteria criteria, Status newStatus)
+					throws StoreException {}
 			
 		};
 		

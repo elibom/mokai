@@ -30,6 +30,27 @@
 		<property name="pluginMechanism"><ref bean="pluginMechanism" /></property>
 	</bean> 
 	
+	<!-- MySQL Configuration -->
+	<!-- <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+    	<property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+    	<property name="url" value="jdbc:mysql://localhost:3306/mokai?autoReconnect=true"/>
+    	<property name="username" value="root"/>
+    	<property name="password" value="german"/>  
+	</bean>
+	
+	<bean id="dbInitializer" class="org.mokai.persist.jdbc.DbInitializer" init-method="initialize">
+		<property name="dataSource"><ref bean="dataSource" /></property>
+		<property name="tableScripts">
+			<map>
+				<entry 
+					key="#{ T(org.mokai.persist.jdbc.sms.TableScripts).MYSQL_OUTBOUND.tableName }" 
+					value="#{ T(org.mokai.persist.jdbc.sms.TableScripts).MYSQL_OUTBOUND.tableScript }">
+				</entry>
+			</map>
+		</property>
+	</bean>  -->
+	
+	<!-- Derby Configuration -->
 	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
     	<property name="driverClassName" value="org.apache.derby.jdbc.EmbeddedDriver"/>
     	<property name="url" value="jdbc:derby:data\\derby\\messages;create=true"/>
@@ -37,25 +58,26 @@
     	<property name="password" value=""/> 
 	</bean>
 	
-	<!-- <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
-    	<property name="driverClassName" value="com.mysql.jdbc.Driver"/>
-    	<property name="url" value="jdbc:mysql://localhost:3306/mokai?autoReconnect=true"/>
-    	<property name="username" value="root"/>
-    	<property name="password" value="german"/>  
-	</bean> -->
-	
-	<!-- <bean id="mySqlInitializer" class="org.mokai.persist.jdbc.util.MySqlInitializer" init-method="init">
+	<bean id="dbInitializer" class="org.mokai.persist.jdbc.DbInitializer" init-method="initialize">
 		<property name="dataSource"><ref bean="dataSource" /></property>
-	</bean> -->
-	
-	<bean id="derbyInitializer" class="org.mokai.persist.jdbc.util.DerbyInitializer" init-method="init">
-		<property name="dataSource"><ref bean="dataSource" /></property>
+		<property name="tableScripts">
+			<map>
+				<entry 
+					key="#{ T(org.mokai.persist.jdbc.sms.TableScripts).DERBY_OUTBOUND.tableName }" 
+					value="#{ T(org.mokai.persist.jdbc.sms.TableScripts).DERBY_OUTBOUND.tableScript }">
+				</entry>
+			</map>
+		</property>
 	</bean>
+	<!-- End of Derby Configuration -->
 	
-	<bean id="messageStore" class="org.mokai.persist.jdbc.JdbcSmsMessageStore">
+	<bean id="messageStore" class="org.mokai.persist.jdbc.JdbcMessageStore" depends-on="derbyInitializer">
 		<property name="dataSource"><ref bean="dataSource" /></property>
+		<property name="jdbcHandler"><ref bean="outboundSmsHandler" /></property>
 	</bean>
 	<!-- <bean id="messageStore" class="org.mokai.persist.impl.DefaultMessageStore" /> -->
+	
+	<bean id="outboundSmsHandler" class="org.mokai.persist.jdbc.sms.OutboundSmsHandler" />
 	
 	<bean id="faileMessagesMonitor" class="org.mokai.impl.camel.FailedMessagesMonitor" init-method="start" destroy-method="stop">
 		<property name="routingEngine"><ref bean="routingEngine" /></property>

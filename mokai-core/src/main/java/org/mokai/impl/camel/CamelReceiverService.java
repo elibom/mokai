@@ -25,7 +25,7 @@ import org.mokai.ObjectNotFoundException;
 import org.mokai.Receiver;
 import org.mokai.ReceiverService;
 import org.mokai.Serviceable;
-import org.mokai.Message.Flow;
+import org.mokai.Message.Direction;
 import org.mokai.Message.SourceType;
 import org.mokai.Monitorable.Status;
 import org.slf4j.Logger;
@@ -290,7 +290,7 @@ public class CamelReceiverService implements ReceiverService {
 			
 			message.setSourceType(SourceType.RECEIVER);
 			message.setSource(id);
-			message.setFlow(Flow.OUTBOUND);
+			message.setDirection(Direction.OUTBOUND);
 		}
 		
 	}

@@ -12,10 +12,16 @@ import org.mokai.Message;
  */
 public class SmsMessageTranslator {
 
-	public static Message createDeliveryReceipt(DeliveryReceipt deliveryReceipt) {
+	public static Message createDeliveryReceipt(DeliverSm deliverSm, DeliveryReceipt deliveryReceipt) {
 		
 		// create the message
 		Message message = new Message(Message.DELIVERY_RECEIPT_TYPE);
+		
+		String to = deliverSm.getDestAddress();
+		String from = deliverSm.getSourceAddr();
+		
+		message.setProperty("to", to);
+		message.setProperty("from", from);
 		
 		// set the id
 		message.setProperty("messageId", deliveryReceipt.getId());

@@ -16,6 +16,16 @@ import javax.sql.DataSource;
  */
 public class JdbcHelper {
 
+	/**
+	 * Checks if the table exists. If it doesn't, it creates it using the
+	 * supplied script.
+	 * 
+	 * @param dataSource the DataSource used to create the connection.
+	 * @param schema usually the database name, but can be null.
+	 * @param tableName the name of the table to create.
+	 * @param creationScript the script to create the exception
+	 * @throws SQLException if something goes wrong.
+	 */
 	public static void checkCreateTable(DataSource dataSource, String schema, 
 			String tableName, String creationScript) throws SQLException {
 		

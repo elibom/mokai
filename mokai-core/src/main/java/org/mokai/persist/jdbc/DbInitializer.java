@@ -7,6 +7,8 @@ import java.util.Map;
 import javax.sql.DataSource;
 
 /**
+ * Helper class to initialize the tables in the database. It first checks if the tables
+ * exists and if they don't, it creates them using the supplied scripts. 
  * 
  * @author German Escobar
  */
@@ -22,7 +24,7 @@ public class DbInitializer {
 	 * Checks if the tables from {@link #getTableScripts()} already exists. If they
 	 * don't, it creates them using the supplied script. 
 	 * 
-	 * @throws SQLException
+	 * @throws SQLException if something goes wrong.
 	 * @throws IllegalStateException if the dataSource is null
 	 */
 	public void initialize() throws SQLException, IllegalStateException {
@@ -43,7 +45,7 @@ public class DbInitializer {
 	}
 	
 	/**
-	 * Usually the database name.
+	 * Can be null. It is usually the database name.
 	 * 
 	 * @return the database schema to use.
 	 */
@@ -51,6 +53,11 @@ public class DbInitializer {
 		return this.dbSchema;
 	}
 	
+	/**
+	 * Can be null. it is usually the database name. 
+	 * 
+	 * @param dbSchema
+	 */
 	public void setDbSchema(String dbSchema) {
 		this.dbSchema = dbSchema;
 	}

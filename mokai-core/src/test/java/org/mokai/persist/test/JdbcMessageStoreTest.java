@@ -1,6 +1,7 @@
 package org.mokai.persist.test;
 
-import static org.mockito.Matchers.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -21,9 +22,8 @@ import org.mokai.Message.Direction;
 import org.mokai.Message.Status;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.RejectedException;
-import org.mokai.persist.StoreException;
-import org.mokai.persist.jdbc.JdbcHandler;
 import org.mokai.persist.jdbc.JdbcMessageStore;
+import org.mokai.persist.jdbc.MessageHandler;
 import org.testng.annotations.Test;
 
 /**
@@ -35,7 +35,7 @@ public class JdbcMessageStoreTest {
 	@Test
 	public void testSaveMessage() throws Exception {
 		
-		JdbcHandler handler = mock(JdbcHandler.class);
+		MessageHandler handler = mock(MessageHandler.class);
 		when(handler.supportsType(anyString())).thenReturn(true);
 		when(handler.supportsDirection(any(Direction.class))).thenReturn(true);
 		when(handler.insertMessage(any(Connection.class), any(Message.class)))
@@ -54,26 +54,9 @@ public class JdbcMessageStoreTest {
 		
 	}
 	
-	@Test(expectedExceptions=StoreException.class)
-	public void shouldFailIfUnsavedMessage() throws Exception {
-		
-		JdbcHandler handler = mock(JdbcHandler.class);
-		when(handler.supportsType(anyString())).thenReturn(true);
-		when(handler.supportsDirection(any(Direction.class))).thenReturn(true);
-		when(handler.insertMessage(any(Connection.class), any(Message.class)))
-			.thenReturn(-1L);
-		
-		DataSource dataSource = mockDataSource();
-		JdbcMessageStore messageStore = createMessageStore(dataSource, handler);
-		
-		Message message = new Message();
-		messageStore.saveOrUpdate(message);
-		
-	}
-	
 	@Test(expectedExceptions=RejectedException.class)
 	public void shouldFailSaveIfNotSupported() throws Exception {
-		JdbcHandler handler = mock(JdbcHandler.class);
+		MessageHandler handler = mock(MessageHandler.class);
 		
 		DataSource dataSource = mockDataSource();
 		JdbcMessageStore messageStore = createMessageStore(dataSource, handler);
@@ -85,7 +68,7 @@ public class JdbcMessageStoreTest {
 	@Test
 	public void testUpdateMessage() throws Exception {
 		
-		JdbcHandler handler = mock(JdbcHandler.class);
+		MessageHandler handler = mock(MessageHandler.class);
 		when(handler.supportsType(anyString())).thenReturn(true);
 		when(handler.supportsDirection(any(Direction.class))).thenReturn(true);
 		when(handler.updateMessage(any(Connection.class), any(Message.class)))
@@ -105,7 +88,7 @@ public class JdbcMessageStoreTest {
 	@Test(expectedExceptions=ObjectNotFoundException.class)
 	public void shouldFailToUpdateNonExistentId() throws Exception {
 		
-		JdbcHandler handler = mock(JdbcHandler.class);
+		MessageHandler handler = mock(MessageHandler.class);
 		when(handler.supportsType(anyString())).thenReturn(true);
 		when(handler.supportsDirection(any(Direction.class))).thenReturn(true);
 		when(handler.updateMessage(any(Connection.class), any(Message.class)))
@@ -121,7 +104,7 @@ public class JdbcMessageStoreTest {
 	
 	@Test(expectedExceptions=RejectedException.class)
 	public void shouldFailToUpdateIfNotSupported() throws Exception {
-		JdbcHandler handler = mock(JdbcHandler.class);
+		MessageHandler handler = mock(MessageHandler.class);
 		
 		DataSource dataSource = mockDataSource();
 		JdbcMessageStore messageStore = createMessageStore(dataSource, handler);
@@ -134,7 +117,7 @@ public class JdbcMessageStoreTest {
 	@Test(expectedExceptions=IllegalArgumentException.class)
 	public void shouldFailToSaveOrUpdateWithNullMessage() throws Exception {
 		
-		JdbcHandler handler = mock(JdbcHandler.class);
+		MessageHandler handler = mock(MessageHandler.class);
 		DataSource dataSource = mockDataSource();
 		JdbcMessageStore messageStore = createMessageStore(dataSource, handler);
 		
@@ -144,7 +127,7 @@ public class JdbcMessageStoreTest {
 	@Test
 	public void testUpdateStatusWithEmptyCriteria() throws Exception {
 		
-		JdbcHandler handler = mock(JdbcHandler.class);
+		MessageHandler handler = mock(MessageHandler.class);
 		DataSource dataSource = mockDataSource();
 		JdbcMessageStore messageStore = createMessageStore(dataSource, handler);
 		
@@ -158,7 +141,7 @@ public class JdbcMessageStoreTest {
 	@Test
 	public void testUpdateStatusWithNullMessageCriteria() throws Exception {
 		
-		JdbcHandler handler = mock(JdbcHandler.class);
+		MessageHandler handler = mock(MessageHandler.class);
 		DataSource dataSource = mockDataSource();
 		JdbcMessageStore messageStore = createMessageStore(dataSource, handler);
 		
@@ -171,7 +154,7 @@ public class JdbcMessageStoreTest {
 	@Test
 	public void testUpdateStatusWithTypeAndDirectionCriteria() throws Exception {
 		
-		JdbcHandler handler = mock(JdbcHandler.class);
+		MessageHandler handler = mock(MessageHandler.class);
 		when(handler.supportsType(anyString())).thenReturn(true);
 		when(handler.supportsDirection(any(Direction.class))).thenReturn(true);
 		
@@ -191,7 +174,7 @@ public class JdbcMessageStoreTest {
 	@Test
 	public void testUpdateStatusWithNotSupportedTypeCriteria() throws Exception {
 		
-		JdbcHandler handler = mock(JdbcHandler.class);
+		MessageHandler handler = mock(MessageHandler.class);
 		when(handler.supportsType(anyString())).thenReturn(false);
 		
 		DataSource dataSource = mockDataSource();
@@ -209,7 +192,7 @@ public class JdbcMessageStoreTest {
 	@Test
 	public void testUpdateStatusWithNotSupportedDirectionCriteria() throws Exception {
 		
-		JdbcHandler handler = mock(JdbcHandler.class);
+		MessageHandler handler = mock(MessageHandler.class);
 		when(handler.supportsDirection(any(Direction.class))).thenReturn(false);
 		
 		DataSource dataSource = mockDataSource();
@@ -226,7 +209,7 @@ public class JdbcMessageStoreTest {
 	
 	@Test(expectedExceptions=IllegalArgumentException.class)
 	public void shouldFailUpdateStatusNullStatus() throws Exception {
-		JdbcHandler handler = mock(JdbcHandler.class);
+		MessageHandler handler = mock(MessageHandler.class);
 		DataSource dataSource = mockDataSource();
 		JdbcMessageStore messageStore = createMessageStore(dataSource, handler);
 		
@@ -236,7 +219,7 @@ public class JdbcMessageStoreTest {
 	@Test
 	public void testListWithEmptyCriteria() throws Exception {
 		
-		JdbcHandler handler = mock(JdbcHandler.class);
+		MessageHandler handler = mock(MessageHandler.class);
 		when(handler.listMessages(any(Connection.class), any(MessageCriteria.class)))
 			.thenReturn(Collections.singleton(new Message()));
 		
@@ -251,7 +234,7 @@ public class JdbcMessageStoreTest {
 	@Test
 	public void testListWithNullCriteria() throws Exception {
 		
-		JdbcHandler handler = mock(JdbcHandler.class);
+		MessageHandler handler = mock(MessageHandler.class);
 		when(handler.listMessages(any(Connection.class), any(MessageCriteria.class)))
 			.thenReturn(Collections.singleton(new Message()));
 		
@@ -266,7 +249,7 @@ public class JdbcMessageStoreTest {
 	@Test
 	public void testListWithTypeAndDirectionCriteria() throws Exception {
 		
-		JdbcHandler handler = mock(JdbcHandler.class);
+		MessageHandler handler = mock(MessageHandler.class);
 		when(handler.supportsType(anyString())).thenReturn(true);
 		when(handler.supportsDirection(any(Direction.class))).thenReturn(true);
 		when(handler.listMessages(any(Connection.class), any(MessageCriteria.class)))
@@ -286,7 +269,7 @@ public class JdbcMessageStoreTest {
 	@Test
 	public void testListHandlerReturnsNull() throws Exception {
 		
-		JdbcHandler handler = mock(JdbcHandler.class);
+		MessageHandler handler = mock(MessageHandler.class);
 		when(handler.listMessages(any(Connection.class), any(MessageCriteria.class)))
 			.thenReturn(null);
 		
@@ -304,7 +287,7 @@ public class JdbcMessageStoreTest {
 	@Test
 	public void testListWithNotSupportedTypeCriteria() throws Exception {
 		
-		JdbcHandler handler = mock(JdbcHandler.class);
+		MessageHandler handler = mock(MessageHandler.class);
 		when(handler.supportsType(anyString())).thenReturn(false);
 		
 		DataSource dataSource = mockDataSource();
@@ -323,7 +306,7 @@ public class JdbcMessageStoreTest {
 	@Test
 	public void testListWithNotSupportedDirectionCriteria() throws Exception {
 		
-		JdbcHandler handler = mock(JdbcHandler.class);
+		MessageHandler handler = mock(MessageHandler.class);
 		when(handler.supportsDirection(any(Direction.class))).thenReturn(false);
 		
 		DataSource dataSource = mockDataSource();
@@ -369,20 +352,20 @@ public class JdbcMessageStoreTest {
 		return dataSource;
 	}
 	
-	private JdbcMessageStore createMessageStore(DataSource dataSource, JdbcHandler jdbcHandler) {
+	private JdbcMessageStore createMessageStore(DataSource dataSource, MessageHandler handler) {
 		
 		JdbcMessageStore messageStore = new JdbcMessageStore();
 		messageStore.setDataSource(dataSource);
-		messageStore.setJdbcHandler(jdbcHandler);
+		messageStore.setMessageHandler(handler);
 		
 		return messageStore;
 	}
 	
 	private JdbcMessageStore createMessageStoreNoDataSource() {
 	
-		JdbcHandler handler = mock(JdbcHandler.class);
+		MessageHandler handler = mock(MessageHandler.class);
 		JdbcMessageStore messageStore = new JdbcMessageStore();
-		messageStore.setJdbcHandler(handler);
+		messageStore.setMessageHandler(handler);
 		
 		return messageStore;
 	}

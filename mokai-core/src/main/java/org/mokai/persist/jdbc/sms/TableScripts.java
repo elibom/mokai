@@ -1,7 +1,15 @@
 package org.mokai.persist.jdbc.sms;
 
+/**
+ * Enumeration of provided scripts for SMS tables.
+ * 
+ * @author German Escobar
+ */
 public enum TableScripts {
 	
+	/**
+	 * Derby script to create an outbound table for sms messages.
+	 */
 	DERBY_OUTBOUND(OutboundSmsHandler.DEFAULT_TABLENAME, 
 			"CREATE TABLE " + OutboundSmsHandler.DEFAULT_TABLENAME + " (" +
 			"id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1), " +
@@ -22,6 +30,9 @@ public enum TableScripts {
 			"creation_time TIMESTAMP NOT NULL, " +
 			"modification_time TIMESTAMP)"), 
 			
+	/**
+	 * MySql script to create an outbound table for sms messages.
+	 */
 	MYSQL_OUTBOUND(OutboundSmsHandler.DEFAULT_TABLENAME, 
 			"CREATE TABLE " + OutboundSmsHandler.DEFAULT_TABLENAME + " (" +
 			"id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY, " +

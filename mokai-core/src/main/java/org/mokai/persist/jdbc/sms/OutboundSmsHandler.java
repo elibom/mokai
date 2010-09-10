@@ -19,10 +19,16 @@ import org.mokai.Message.SourceType;
 import org.mokai.Message.Status;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.MessageCriteria.OrderType;
-import org.mokai.persist.jdbc.JdbcHandler;
+import org.mokai.persist.jdbc.MessageHandler;
 import org.mokai.persist.jdbc.JdbcHelper;
 
-public class OutboundSmsHandler implements JdbcHandler {
+/**
+ * A {@link MessageHandler} implementation that supports messages with 
+ * type {@link Message#SMS_TYPE} and {@link Direction#OUTBOUND}.
+ * 
+ * @author German Escobar
+ */
+public class OutboundSmsHandler implements MessageHandler {
 	
 	public static final String DEFAULT_TABLENAME = "OUTBOUND_SMS";
 	

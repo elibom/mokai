@@ -13,9 +13,13 @@ import org.mokai.persist.MessageStore;
 import org.mokai.persist.StoreException;
 
 /**
- * A {@link MessageStore} implementation that maps message types to message stores.
- * This is useful if your application is handling different types of messages and
- * each type of message must be persisted independently.
+ * <p>A {@link MessageStore} implementation that maps message types to message 
+ * stores. This is useful if your application is handling different types of 
+ * messages and each type of message must be persisted independently (e.g. in 
+ * different tables).</p>
+ * 
+ * <p>If no {@link MessageStore} is found for a specific type, it will rely
+ * on a default {@link MessageStore}.</p> 
  * 
  * @author German Escobar
  */

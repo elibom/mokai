@@ -19,7 +19,10 @@ import org.mokai.persist.StoreException;
 
 /**
  * <p>An implementation of a {@link MessageStore} used to persist messages 
- * in a relational database. </p>
+ * in a relational database. It uses a {@link MessageHandler} to abstract 
+ * the way messages are inserted, updated, etc., allowing customization in 
+ * the way in which messages are persisted (one table per message, multiple 
+ * tables per message, one big table, etc.).</p>
  * 
  * @author German Escobar
  */
@@ -28,13 +31,29 @@ public class JdbcMessageStore implements MessageStore {
 	/**
 	 * The sql handler for sms messages.
 	 */
-	protected JdbcHandler jdbcHandler;
+	protected MessageHandler handler;
 	
 	/**
 	 * The datasource to create the connections to the db.
 	 */
 	protected DataSource dataSource;
 
+	/**
+	 * Checks if the handler supports the messages by calling the 
+	 * {@link MessageHandler#supportsType(String)} and 
+	 * {@link MessageHandler#supportsDirection(Direction)} methods.
+	 * If the handler supports the message, it delegates the operation to 
+	 * the handler: {@link MessageHandler#insertMessage(Connection, Message)}
+	 * if the message has not been persisted, or, 
+	 * {@link MessageHandler#updateMessage(Connection, Message)} if it is
+	 * already persisted. 
+	 * 
+	 * @throws StoreException wraps any underlying exception from the database.
+	 * @throws RejectedException if the handler doesn't supports the message.
+	 * @throws IllegalStateException if the dataSource is null.
+	 * @throws IllegalArgumentException if the message is null
+	 * @see Message#NOT_PERSISTED
+	 */
 	@Override
 	public final void saveOrUpdate(Message message) throws StoreException, RejectedException,
 			ObjectNotFoundException, IllegalStateException, IllegalArgumentException {
@@ -51,6 +70,14 @@ public class JdbcMessageStore implements MessageStore {
 		
 	}
 	
+	/**
+	 * Helper method to insert a message.
+	 * 
+	 * @param message the message to be inserted.
+	 * @throws StoreException wraps any underlying exception from the database.
+	 * @throws RejectedException if the handler doesn't supports the message.
+	 * @see #saveOrUpdate(Message)
+	 */
 	private void save(Message message) throws StoreException, RejectedException {
 		
 		Connection conn = null;
@@ -61,17 +88,14 @@ public class JdbcMessageStore implements MessageStore {
 			String type = message.getType();
 			Direction direction = message.getDirection();
 			
-			// check if the jdbcHandler supports the message
-			if (jdbcHandler.supportsType(type) && jdbcHandler.supportsDirection(direction)) {
-				long id = jdbcHandler.insertMessage(conn, message);
+			// check if the handler supports the message
+			if (handler.supportsType(type) && handler.supportsDirection(direction)) {
 				
-				if (id != -1) {
-					message.setId(id);
-				} else {
-					throw new StoreException(jdbcHandler.getClass().getName() 
-							+ ".insertMessage returned -1");
-				}
+				long id = handler.insertMessage(conn, message);				
+				message.setId(id);
+
 			} else {
+				
 				throw new RejectedException("this message store doesn't supports type '" 
 						+ type + "' and direction '" + direction + "'");
 			}
@@ -85,7 +109,16 @@ public class JdbcMessageStore implements MessageStore {
 		}
 	}
 	
-	private void update(Message message) throws StoreException, ObjectNotFoundException {
+	/**
+	 * Helper method to update a message.
+	 * 
+	 * @param message the message to be updated
+	 * @throws StoreException wraps any underlying exception from the database.
+	 * @throws RejectedException if the handler doesn't supports the message.
+	 * @throws ObjectNotFoundException if the message was not found.
+	 */
+	private void update(Message message) throws StoreException, RejectedException, 
+			ObjectNotFoundException {
 		
 		Connection conn = null;
 		
@@ -95,15 +128,16 @@ public class JdbcMessageStore implements MessageStore {
 			String type = message.getType();
 			Direction direction = message.getDirection();
 			
-			// check if the jdbcHandler supports the message
-			if (jdbcHandler.supportsType(type) && jdbcHandler.supportsDirection(direction)) {
+			// check if the handler supports the message
+			if (handler.supportsType(type) && handler.supportsDirection(direction)) {
 			
-				boolean found = jdbcHandler.updateMessage(conn, message);
-
+				boolean found = handler.updateMessage(conn, message);
 				if (!found) {
 					throw new ObjectNotFoundException("message with id " + message.getId() + " not found");
 				}
+				
 			} else {
+				
 				throw new RejectedException("this message store doesn't supports type '" 
 						+ type + "' and direction '" + direction + "'");
 			}
@@ -130,10 +164,10 @@ public class JdbcMessageStore implements MessageStore {
 			conn = dataSource.getConnection();
 			
 			// check if the jdbcHandler supports the criteria
-			boolean supports = supports(jdbcHandler, criteria);
+			boolean supports = supports(handler, criteria);
 			
 			if (supports) {
-				jdbcHandler.updateMessagesStatus(conn, criteria, newStatus);
+				handler.updateMessagesStatus(conn, criteria, newStatus);
 			}
 			
 		} catch (SQLException e) {
@@ -159,12 +193,12 @@ public class JdbcMessageStore implements MessageStore {
 			
 			conn = dataSource.getConnection();
 			
-			// check if the jdbcHandler supports the criteria
-			boolean supports = supports(jdbcHandler, criteria);
+			// check if the handler supports the criteria
+			boolean supports = supports(handler, criteria);
 			
 			Collection<Message> ret = null;		
 			if (supports) {
-				ret = jdbcHandler.listMessages(conn, criteria);
+				ret = handler.listMessages(conn, criteria);
 			}
 			
 			if (ret == null) {
@@ -183,31 +217,46 @@ public class JdbcMessageStore implements MessageStore {
 		
 	}
 	
-	private boolean supports(JdbcHandler jdbcHandler, MessageCriteria criteria) {
+	/**
+	 * Helper method to check if the {@link MessageHandler} supports the type
+	 * and the direction specified in the criteria. If the type and/or
+	 * direction are not set in the criteria, the handler supports them.
+	 *  
+	 * @param handler the message handler
+	 * @param criteria the {@link MessageCriteria} that holds the type and 
+	 * the direction.
+	 * @return true if the handler supports the criteria, false otherwise.
+	 */
+	private boolean supports(MessageHandler handler, MessageCriteria criteria) {
 		
 		boolean supports = true;
 		
 		if (criteria != null && criteria.getType() != null) {
-			supports = jdbcHandler.supportsType(criteria.getType());
+			supports = handler.supportsType(criteria.getType());
 		}
 		
 		if (criteria != null && criteria.getDirection() != null) {
-			supports = jdbcHandler.supportsDirection(criteria.getDirection());
+			supports = handler.supportsDirection(criteria.getDirection());
 		}
 		
 		return supports;
 	}
 	
+	/**
+	 * Helper method to check that the dataSource is not null.
+	 * 
+	 * @throws IllegalStateException if the dataSource is null.
+	 */
 	private void checkDataSourceNotNull() throws IllegalStateException {
 		if (dataSource == null) {
 			throw new IllegalStateException();
 		}
 	}
 
-	public void setJdbcHandler(JdbcHandler jdbcHandler) throws IllegalArgumentException {
-		Validate.notNull(jdbcHandler);
+	public void setMessageHandler(MessageHandler handler) throws IllegalArgumentException {
+		Validate.notNull(handler);
 		
-		this.jdbcHandler = jdbcHandler;
+		this.handler = handler;
 	}
 
 	/**

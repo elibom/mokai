@@ -41,7 +41,7 @@ public class MultiMessageStore implements MessageStore {
 	 * {@link MessageStore#saveOrUpdate(Message)} method of the {@link MessageStore}.
 	 */
 	@Override
-	public void saveOrUpdate(Message message) throws StoreException, IllegalArgumentException {
+	public final void saveOrUpdate(Message message) throws StoreException, IllegalArgumentException {
 		Validate.notNull(message, "no message provided");
 		
 		MessageStore messageStore = messageStores.get(message.getType());
@@ -60,7 +60,7 @@ public class MultiMessageStore implements MessageStore {
 	 * including the defaultMessageStore.
 	 */
 	@Override
-	public void updateStatus(MessageCriteria criteria, Status newStatus) 
+	public final void updateStatus(MessageCriteria criteria, Status newStatus) 
 			throws StoreException, IllegalArgumentException {
 		
 		Validate.notNull(criteria, "no MessageCriteria provided");
@@ -97,7 +97,7 @@ public class MultiMessageStore implements MessageStore {
 	 * Otherwise, it will aggregate the messages of all the {@link MessageStore}s.
 	 */
 	@Override
-	public Collection<Message> list(MessageCriteria criteria) throws StoreException {
+	public final Collection<Message> list(MessageCriteria criteria) throws StoreException {
 		
 		Validate.notNull(criteria);
 		
@@ -135,7 +135,7 @@ public class MultiMessageStore implements MessageStore {
 	 * @return a Map of registered message stores. The key of the map is the type
 	 * of the message.
 	 */
-	public Map<String, MessageStore> getMessageStores() {
+	public final Map<String, MessageStore> getMessageStores() {
 		return messageStores;
 	}
 
@@ -145,7 +145,7 @@ public class MultiMessageStore implements MessageStore {
 	 * 
 	 * @param messageStores a Map of {@link MessageStore} objects.
 	 */
-	public void setMessageStores(Map<String, MessageStore> messageStores) {
+	public final void setMessageStores(Map<String, MessageStore> messageStores) {
 		this.messageStores = messageStores;
 	}
 	
@@ -157,7 +157,7 @@ public class MultiMessageStore implements MessageStore {
 	 * @param messageStore the {@link MessageStore} implementation.
 	 * @throws IllegalArgumentException
 	 */
-	public void addMessageStore(String type, MessageStore messageStore) 
+	public final void addMessageStore(String type, MessageStore messageStore) 
 			throws IllegalArgumentException {
 		
 		Validate.notEmpty(type);
@@ -171,11 +171,17 @@ public class MultiMessageStore implements MessageStore {
 	 * 
 	 * @return a {@link MessageStore} implementation.
 	 */
-	public MessageStore getDefaultMessageStore() {
+	public final MessageStore getDefaultMessageStore() {
 		return defaultMessageStore;
 	}
 
-	public void setDefaultMessageStore(MessageStore defaultMessageStore)
+	/**
+	 * The default message store is used if no suitable message store is found.
+	 * 
+	 * @param defaultMessageStore
+	 * @throws IllegalArgumentException
+	 */
+	public final void setDefaultMessageStore(MessageStore defaultMessageStore)
 			throws IllegalArgumentException {
 		
 		Validate.notNull(defaultMessageStore);

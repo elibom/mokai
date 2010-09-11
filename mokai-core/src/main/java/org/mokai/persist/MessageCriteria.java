@@ -81,15 +81,15 @@ public class MessageCriteria implements Serializable {
 		return this;
 	}
 
-	public String getType() {
+	public final String getType() {
 		return type;
 	}
 
-	public void setType(String type) {
+	public final void setType(String type) {
 		this.type = type;
 	}
 	
-	public MessageCriteria type(String type) {
+	public final MessageCriteria type(String type) {
 		setType(type);
 		
 		return this;
@@ -123,43 +123,43 @@ public class MessageCriteria implements Serializable {
 		return this;
 	}
 
-	public String getDestination() {
+	public final String getDestination() {
 		return destination;
 	}
 
-	public void setDestination(String destination) {
+	public final void setDestination(String destination) {
 		this.destination = destination;
 	}
 	
-	public MessageCriteria destination(String destination) {
+	public final MessageCriteria destination(String destination) {
 		setDestination(destination);
 		
 		return this;
 	}
 	
-	public DestinationType getDestinationType() {
+	public final DestinationType getDestinationType() {
 		return destinationType;
 	}
 
-	public void setDestinationType(DestinationType destinationType) {
+	public final void setDestinationType(DestinationType destinationType) {
 		this.destinationType = destinationType;
 	}
 
-	public MessageCriteria destinationType(DestinationType destinationType) {
+	public final MessageCriteria destinationType(DestinationType destinationType) {
 		setDestinationType(destinationType);
 		
 		return this;
 	}
 
-	public Map<String, Object> getProperties() {
+	public final Map<String, Object> getProperties() {
 		return properties;
 	}
 
-	public void setProperties(Map<String, Object> properties) {
+	public final void setProperties(Map<String, Object> properties) {
 		this.properties = properties;
 	}
 	
-	public MessageCriteria addProperty(String key, Object value) {
+	public final MessageCriteria addProperty(String key, Object value) {
 		properties.put(key, value);
 		
 		return this;

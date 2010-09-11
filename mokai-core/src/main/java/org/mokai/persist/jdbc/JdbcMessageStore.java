@@ -152,7 +152,7 @@ public class JdbcMessageStore implements MessageStore {
 	}
 	
 	@Override
-	public void updateStatus(MessageCriteria criteria, Status newStatus) throws StoreException, 
+	public final void updateStatus(MessageCriteria criteria, Status newStatus) throws StoreException, 
 			IllegalStateException {
 		
 		checkDataSourceNotNull();
@@ -253,7 +253,7 @@ public class JdbcMessageStore implements MessageStore {
 		}
 	}
 
-	public void setMessageHandler(MessageHandler handler) throws IllegalArgumentException {
+	public final void setMessageHandler(MessageHandler handler) throws IllegalArgumentException {
 		Validate.notNull(handler);
 		
 		this.handler = handler;

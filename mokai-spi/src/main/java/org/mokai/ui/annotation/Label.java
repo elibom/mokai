@@ -8,6 +8,11 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+/**
+ * Specifies a custom label for the field.
+ * 
+ * @author German Escobar
+ */
 @Documented
 @Retention(value=RUNTIME)
 @Target(value=FIELD)

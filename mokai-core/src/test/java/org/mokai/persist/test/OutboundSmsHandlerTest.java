@@ -93,6 +93,22 @@ public class OutboundSmsHandlerTest {
 	}
 	
 	@Test
+	public void testSupportsSmsType() throws Exception {
+		OutboundSmsHandler handler = new OutboundSmsHandler();
+		Assert.assertTrue(handler.supportsType(Message.SMS_TYPE));
+		Assert.assertFalse(handler.supportsType("other"));
+		Assert.assertFalse(handler.supportsType("null"));
+	}
+	
+	public void testSupportsOutboundDirection() throws Exception {
+		OutboundSmsHandler handler = new OutboundSmsHandler();
+		Assert.assertTrue(handler.supportsDirection(Direction.OUTBOUND));
+		Assert.assertFalse(handler.supportsDirection(Direction.INBOUND));
+		Assert.assertFalse(handler.supportsDirection(Direction.UNKNOWN));
+		Assert.assertFalse(handler.supportsDirection(null));
+	}
+	
+	@Test
 	public void testInsertMessage() throws Exception {
 
 		final Message message = new Message(Message.SMS_TYPE);

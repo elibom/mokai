@@ -27,7 +27,7 @@ public class DbInitializer {
 	 * @throws SQLException if something goes wrong.
 	 * @throws IllegalStateException if the dataSource is null
 	 */
-	public void initialize() throws SQLException, IllegalStateException {
+	public final void initialize() throws SQLException, IllegalStateException {
 		
 		if (dataSource == null) {
 			throw new IllegalStateException("no provided dataSource");
@@ -49,7 +49,7 @@ public class DbInitializer {
 	 * 
 	 * @return the database schema to use.
 	 */
-	public String getDbSchema() {
+	public final String getDbSchema() {
 		return this.dbSchema;
 	}
 	
@@ -58,7 +58,7 @@ public class DbInitializer {
 	 * 
 	 * @param dbSchema
 	 */
-	public void setDbSchema(String dbSchema) {
+	public final void setDbSchema(String dbSchema) {
 		this.dbSchema = dbSchema;
 	}
 	
@@ -68,19 +68,19 @@ public class DbInitializer {
 	 * 
 	 * @return a {@link Map} of table scripts.
 	 */
-	public Map<String,String> getTableScripts() {
+	public final Map<String,String> getTableScripts() {
 		return this.tableScripts;
 	}
 
-	public void setTableScripts(Map<String, String> tableScripts) {
+	public final void setTableScripts(Map<String, String> tableScripts) {
 		this.tableScripts = tableScripts;
 	}
 	
-	public void addTableScript(String tableName, String tableScript) {
+	public final void addTableScript(String tableName, String tableScript) {
 		tableScripts.put(tableName, tableScript);
 	}
 
-	public void setDataSource(DataSource dataSource) {
+	public final void setDataSource(DataSource dataSource) {
 		this.dataSource = dataSource;
 	}
 	

@@ -29,7 +29,6 @@ public class Message implements Serializable {
 	 * The source type of the message. With the {@link Message#source} attribute, 
 	 * it answers the question: Who produced the message?
 	 * 
-	 * 
 	 * @author German Escobar
 	 */
 	public enum SourceType {
@@ -170,16 +169,11 @@ public class Message implements Serializable {
 		}
 		
 		public static Status getSatus(byte b) {
-			if (b == 1) {
-				return CREATED;
-			} else if (b == 2) {
-				return PROCESSED;
-			} else if (b == 3) {
-				return FAILED;
-			} else if (b == 4) {
-				return UNROUTABLE;
-			} else if (b == 5) {
-				return RETRYING;
+			
+			for (Status status : values()) {
+				if (b == status.value()) {
+					return status;
+				}
 			}
 			
 			throw new IllegalArgumentException("Status with id " + b + " not supported");
@@ -416,11 +410,11 @@ public class Message implements Serializable {
 		this.creationTime = creationTime;
 	}
 
-	public Date getModificationTime() {
+	public final Date getModificationTime() {
 		return modificationTime;
 	}
 
-	public void setModificationTime(Date modificationTime) {
+	public final void setModificationTime(Date modificationTime) {
 		this.modificationTime = modificationTime;
 	}
 	

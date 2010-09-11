@@ -11,8 +11,6 @@ import org.mokai.Message.Direction;
 import org.mokai.Message.Status;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.RejectedException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * <p>A {@link MessageHandler} implementation useful when we want to split inbound
@@ -26,8 +24,6 @@ import org.slf4j.LoggerFactory;
  * @author German Escobar
  */
 public class OutboundInboundHandler implements MessageHandler {
-	
-	private Logger log = LoggerFactory.getLogger(OutboundInboundHandler.class);
 	
 	/**
 	 * The handler for the outbound messages.
@@ -45,7 +41,7 @@ public class OutboundInboundHandler implements MessageHandler {
 	 * @throws IllegalStateException if at least one of the handlers is null.
 	 */
 	@Override
-	public boolean supportsType(String type) throws IllegalStateException {
+	public final boolean supportsType(String type) throws IllegalStateException {
 		
 		checkHandlersNotNull();
 	
@@ -70,7 +66,7 @@ public class OutboundInboundHandler implements MessageHandler {
 	 * @throws IllegalStateException if at least one of the handlers is null.
 	 */
 	@Override
-	public boolean supportsDirection(Direction direction) throws IllegalStateException {
+	public final boolean supportsDirection(Direction direction) throws IllegalStateException {
 		
 		checkHandlersNotNull();
 		
@@ -101,7 +97,7 @@ public class OutboundInboundHandler implements MessageHandler {
 	 * @throws IllegalStateException if at least one of the handlers is null.
 	 */
 	@Override
-	public long insertMessage(Connection conn, Message message) throws SQLException, 
+	public final long insertMessage(Connection conn, Message message) throws SQLException, 
 			RejectedException, IllegalStateException {
 		
 		checkHandlersNotNull();
@@ -133,7 +129,7 @@ public class OutboundInboundHandler implements MessageHandler {
 	 * @throws IllegalStateException if at least one of the handlers is null.
 	 */
 	@Override
-	public boolean updateMessage(Connection conn, Message message) throws SQLException, 
+	public final boolean updateMessage(Connection conn, Message message) throws SQLException, 
 			RejectedException, IllegalStateException {
 		
 		checkHandlersNotNull();
@@ -160,7 +156,7 @@ public class OutboundInboundHandler implements MessageHandler {
 	 * @throws IllegalStateException if at least one of the handlers is null.
 	 */
 	@Override
-	public void updateMessagesStatus(Connection conn, MessageCriteria criteria, Status newStatus) 
+	public final void updateMessagesStatus(Connection conn, MessageCriteria criteria, Status newStatus) 
 			throws SQLException, IllegalStateException {
 		
 		checkHandlersNotNull();
@@ -189,7 +185,7 @@ public class OutboundInboundHandler implements MessageHandler {
 	 * @throws IllegalStateException if at leas one of the handlers is null.
 	 */
 	@Override
-	public Collection<Message> listMessages(Connection conn, MessageCriteria criteria) throws SQLException, 
+	public final Collection<Message> listMessages(Connection conn, MessageCriteria criteria) throws SQLException, 
 			IllegalStateException {
 		
 		checkHandlersNotNull();
@@ -247,7 +243,7 @@ public class OutboundInboundHandler implements MessageHandler {
 	 * handling inbound messages.
 	 * @throws IllegalArgumentExceptio if the inboundHandler is null.
 	 */
-	public void setInboundHandler(MessageHandler inboundHandler) 
+	public final void setInboundHandler(MessageHandler inboundHandler) 
 			throws IllegalArgumentException {
 		
 		Validate.notNull(inboundHandler);

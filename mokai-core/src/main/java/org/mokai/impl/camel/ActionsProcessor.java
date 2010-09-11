@@ -23,7 +23,7 @@ public class ActionsProcessor implements Processor {
 	}
 
 	@Override
-	public void process(Exchange exchange) throws Exception {
+	public final void process(Exchange exchange) throws Exception {
 		Message message = exchange.getIn().getBody(Message.class);
 
 		for (Action action : actions) {

@@ -8,6 +8,11 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+/**
+ * Tells that the field is required.
+ * 
+ * @author German Escobar
+ */
 @Documented
 @Retention(value=RUNTIME)
 @Target(value=FIELD)

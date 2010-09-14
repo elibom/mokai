@@ -12,20 +12,28 @@ import org.mokai.annotation.Resource;
  * @author German Escobar
  */
 public class ResourceInjector {
-
-	public static void inject(Object object, Object objectToInject) {
+	
+	public static void inject(Object object, Object resource) {
 		
 		Field[] fields = object.getClass().getDeclaredFields();
 		for (Field field : fields) {
 			if (field.isAnnotationPresent(Resource.class) 
-					&& field.getType().isInstance(objectToInject)) {
+					&& field.getType().isInstance(resource)) {
 				field.setAccessible(true);
 				try {
-					field.set(object, objectToInject);
+					field.set(object, resource);
 				} catch (Exception e) {
 					throw new ExecutionException(e);
 				} 
 			}
+		}
+		
+	}
+	
+	public static void inject(Object object, ResourceRegistry resourceRegistry) {
+		
+		for (Object resource : resourceRegistry.getResources()) {
+			ResourceInjector.inject(object, resource);
 		}
 		
 	}

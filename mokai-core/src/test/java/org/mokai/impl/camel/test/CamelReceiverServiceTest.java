@@ -4,6 +4,7 @@ import java.util.List;
 
 import junit.framework.Assert;
 
+import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
@@ -13,11 +14,16 @@ import org.mokai.Configurable;
 import org.mokai.ExecutionException;
 import org.mokai.Message;
 import org.mokai.MessageProducer;
+import org.mokai.Monitorable;
 import org.mokai.Receiver;
 import org.mokai.Service;
 import org.mokai.Serviceable;
+import org.mokai.Monitorable.Status;
+import org.mokai.Service.State;
 import org.mokai.annotation.Resource;
 import org.mokai.impl.camel.CamelReceiverService;
+import org.mokai.impl.camel.ResourceRegistry;
+import org.mokai.persist.MessageStore;
 import org.testng.annotations.Test;
 
 /**
@@ -32,6 +38,8 @@ public class CamelReceiverServiceTest extends CamelBaseTest {
 		// validation route
 		addValidationRoute();
 		
+		CamelContext camelContext = resourceRegistry.getResource(CamelContext.class);
+		
 		// expected results
 		MockEndpoint resultEndpoint = camelContext.getEndpoint("mock:validate", MockEndpoint.class);
 		resultEndpoint.expectedMessageCount(1);
@@ -39,7 +47,7 @@ public class CamelReceiverServiceTest extends CamelBaseTest {
 		
 		// create receiver
 		SimpleReceiver receiver = new SimpleReceiver();
-		new CamelReceiverService("test", receiver, camelContext);
+		new CamelReceiverService("test", receiver, resourceRegistry);
 		
 		// send a message
 		receiver.receiveMessage(new Message());
@@ -63,12 +71,14 @@ public class CamelReceiverServiceTest extends CamelBaseTest {
 		// validation route
 		addValidationRoute();
 		
+		CamelContext camelContext = resourceRegistry.getResource(CamelContext.class);
+		
 		// expected results
 		MockEndpoint resultEndpoint = camelContext.getEndpoint("mock:validate", MockEndpoint.class);
 		resultEndpoint.expectedMessageCount(1);
 
 		SimpleReceiver receiver = new SimpleReceiver();
-		CamelReceiverService receiverService = new CamelReceiverService("test", receiver, camelContext);
+		CamelReceiverService receiverService = new CamelReceiverService("test", receiver, resourceRegistry);
 		
 		// add a post-receiving action
 		MockAction postReceivingAction = new MockAction();
@@ -98,41 +108,50 @@ public class CamelReceiverServiceTest extends CamelBaseTest {
 	}
 	
 	@Test(expectedExceptions=IllegalArgumentException.class)
-	public void shouldFailWithNullCamelContext() {
+	public void shouldFailWithNullResourceRegistry() {
 		SimpleReceiver receiver = new SimpleReceiver();
 		new CamelReceiverService("test", receiver, null);
 	}
 	
 	@Test(expectedExceptions=IllegalArgumentException.class)
+	public void shouldFailWithNullCamelContext() {
+		
+		ResourceRegistry resourceRegistry = new ResourceRegistry();
+		
+		SimpleReceiver receiver = new SimpleReceiver();
+		new CamelReceiverService("test", receiver, resourceRegistry);
+	}
+	
+	@Test(expectedExceptions=IllegalArgumentException.class)
 	public void shouldFailWithNullConnector() throws Exception {
-		new CamelReceiverService("test", null, camelContext);
+		new CamelReceiverService("test", null, resourceRegistry);
 	}
 	
 	@Test(expectedExceptions=IllegalArgumentException.class)
 	public void shouldFailWithNullId() throws Exception {
-		new CamelReceiverService(null, new SimpleReceiver(), camelContext);
+		new CamelReceiverService(null, new SimpleReceiver(), resourceRegistry);
 	}
 	
 	@Test(expectedExceptions=IllegalArgumentException.class)
 	public void shouldFailWithEmptyId() throws Exception {
-		new CamelReceiverService("", new SimpleReceiver(), camelContext);
+		new CamelReceiverService("", new SimpleReceiver(), resourceRegistry);
 	}
 	
 	@Test
 	public void testIdWithSpaces() throws Exception {
-		CamelReceiverService receiverService = new CamelReceiverService("T e s T", new SimpleReceiver(), camelContext);
+		CamelReceiverService receiverService = new CamelReceiverService("T e s T", new SimpleReceiver(), resourceRegistry);
 		Assert.assertEquals("test", receiverService.getId());
 	}
 	
 	@Test(expectedExceptions=IllegalArgumentException.class)
 	public void shouldFailWithNullAction() throws Exception {
-		CamelReceiverService receiverService = new CamelReceiverService("test", new SimpleReceiver(), camelContext);
+		CamelReceiverService receiverService = new CamelReceiverService("test", new SimpleReceiver(), resourceRegistry);
 		receiverService.addPostReceivingAction(null);
 	}
 	
 	@Test
 	public void testAddRemoveActions() throws Exception {
-		CamelReceiverService receiverService = new CamelReceiverService("test", new SimpleReceiver(), camelContext);
+		CamelReceiverService receiverService = new CamelReceiverService("test", new SimpleReceiver(), resourceRegistry);
 		
 		Action action1 = new MockAction();
 		Action action2 = new MockAction();
@@ -164,7 +183,7 @@ public class CamelReceiverServiceTest extends CamelBaseTest {
 	@Test(expectedExceptions=ExecutionException.class)
 	public void testActionException() throws Exception {
 		SimpleReceiver receiver = new SimpleReceiver();
-		CamelReceiverService receiverService = new CamelReceiverService("test", receiver, camelContext);
+		CamelReceiverService receiverService = new CamelReceiverService("test", receiver, resourceRegistry);
 		
 		Message message = new Message();
 		
@@ -177,9 +196,9 @@ public class CamelReceiverServiceTest extends CamelBaseTest {
 	}
 	
 	@Test
-	public void testNonServiceableConnector() {
+	public void testNonServiceableReceiver() {
 		CamelReceiverService receiverService = 
-			new CamelReceiverService("test", new SimpleReceiver(), camelContext);
+			new CamelReceiverService("test", new SimpleReceiver(), resourceRegistry);
 		
 		// test start
 		receiverService.start();
@@ -191,9 +210,9 @@ public class CamelReceiverServiceTest extends CamelBaseTest {
 	}
 	
 	@Test
-	public void testServiceableConnector() throws Exception {
+	public void testServiceableReceiver() throws Exception {
 		Receiver receiver = Mockito.mock(Receiver.class, Mockito.withSettings().extraInterfaces(Serviceable.class));
-		CamelReceiverService receiverService = new CamelReceiverService("test", receiver, camelContext);
+		CamelReceiverService receiverService = new CamelReceiverService("test", receiver, resourceRegistry);
 		
 		// test start
 		receiverService.start();
@@ -209,7 +228,7 @@ public class CamelReceiverServiceTest extends CamelBaseTest {
 		Receiver receiver = Mockito.mock(Receiver.class, Mockito.withSettings().extraInterfaces(Serviceable.class));
 		Mockito.doThrow(new NullPointerException()).when((Serviceable) receiver).doStart();
 		
-		CamelReceiverService receiverService = new CamelReceiverService("test", receiver, camelContext);
+		CamelReceiverService receiverService = new CamelReceiverService("test", receiver, resourceRegistry);
 		receiverService.start();
 	}
 	
@@ -218,15 +237,30 @@ public class CamelReceiverServiceTest extends CamelBaseTest {
 		Receiver receiver = Mockito.mock(Receiver.class, Mockito.withSettings().extraInterfaces(Serviceable.class));
 		Mockito.doThrow(new NullPointerException()).when((Serviceable) receiver).doStop();
 		
-		CamelReceiverService receiverService = new CamelReceiverService("test", receiver, camelContext);
+		CamelReceiverService receiverService = new CamelReceiverService("test", receiver, resourceRegistry);
 		receiverService.start();
 		receiverService.stop();
 	}
 	
 	@Test
-	public void testConfigurableConnector() throws Exception {
+	public void testReceiverServiceState() throws Exception {
+		
+		Receiver receiver = Mockito.mock(Receiver.class);
+		CamelReceiverService receiverService = new CamelReceiverService("test", receiver, resourceRegistry);
+		Assert.assertEquals(State.STOPPED, receiverService.getState());
+		
+		receiverService.start();
+		Assert.assertEquals(State.STARTED, receiverService.getState());
+		
+		receiverService.stop();
+		Assert.assertEquals(State.STOPPED, receiverService.getState());
+	}
+	
+	@Test
+	public void testConfigurableReceiver() throws Exception {
+		
 		Receiver receiver = Mockito.mock(Receiver.class, Mockito.withSettings().extraInterfaces(Configurable.class));
-		CamelReceiverService receiverService = new CamelReceiverService("test", receiver, camelContext);
+		CamelReceiverService receiverService = new CamelReceiverService("test", receiver, resourceRegistry);
 		
 		// verify
 		Mockito.verify((Configurable) receiver).configure();
@@ -237,11 +271,60 @@ public class CamelReceiverServiceTest extends CamelBaseTest {
 		Mockito.verify((Configurable) receiver).destroy();
 	}
 	
+	@Test
+	public void testReceiverStatus() throws Exception {
+		
+		Receiver receiver = Mockito.mock(Receiver.class);
+		CamelReceiverService receiverService = new CamelReceiverService("test", receiver, resourceRegistry);
+		
+		Assert.assertEquals(Status.UNKNOWN, receiverService.getStatus());
+	}
+	
+	@Test
+	public void testMonitorableReceiverStatus() throws Exception {
+		
+		Receiver receiver = Mockito.mock(Receiver.class, Mockito.withSettings().extraInterfaces(Monitorable.class));
+		Mockito.when(((Monitorable) receiver).getStatus()).thenReturn(Status.OK);
+		
+		CamelReceiverService receiverService = new CamelReceiverService("test", receiver, resourceRegistry);
+		
+		Assert.assertEquals(Status.OK, receiverService.getStatus());
+	}
+	
+	@Test
+	public void testInjectResourceToReceiver() throws Exception {
+		
+		// add the resource to the resource registry
+		resourceRegistry.putResource(MessageStore.class, Mockito.mock(MessageStore.class));
+		
+		ReceiverWithResource receiver = new ReceiverWithResource();
+		new CamelReceiverService("test", receiver, resourceRegistry);
+		
+		Assert.assertNotNull(receiver.getMessageStore());
+	}
+	
+	@Test
+	public void testInjectResourceToActions() throws Exception {
+		
+		// add he resource to the resource registry
+		resourceRegistry.putResource(MessageStore.class, Mockito.mock(MessageStore.class));
+		
+		Receiver receiver = Mockito.mock(Receiver.class);
+		CamelReceiverService receiverService = new CamelReceiverService("test", receiver, resourceRegistry);
+		
+		MockAction action = new MockAction();
+		receiverService.addPostReceivingAction(action);
+		Assert.assertNotNull(action.getMessageStore());
+		
+	}
+	
 	/**
 	 * Helper method to create the route that validates the output of the receivers.
 	 * @throws Exception
 	 */
 	private void addValidationRoute() throws Exception {
+		
+		CamelContext camelContext = resourceRegistry.getResource(CamelContext.class);
 		camelContext.addRoutes(new RouteBuilder() {
 
 			@Override
@@ -257,13 +340,28 @@ public class CamelReceiverServiceTest extends CamelBaseTest {
 	 * 
 	 * @author German Escobar
 	 */
-	protected class SimpleReceiver implements Receiver {
+	private class SimpleReceiver implements Receiver {
 		
 		@Resource
 		private MessageProducer messageProducer;
 		
 		public void receiveMessage(Message message) {
 			messageProducer.produce(message);
+		}
+	}
+	
+	/**
+	 * Simple receiver to test injection of resources.
+	 * 
+	 * @author German Escobar
+	 */
+	private class ReceiverWithResource implements Receiver {
+	
+		@Resource
+		private MessageStore messageStore;
+
+		public MessageStore getMessageStore() {
+			return messageStore;
 		}
 	}
 	

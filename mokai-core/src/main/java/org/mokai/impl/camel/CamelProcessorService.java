@@ -54,9 +54,9 @@ public class CamelProcessorService implements ProcessorService {
 	
 	private List<Action> postReceivingActions;
 	
-	private RedeliveryPolicy redeliveryPolicy;
-	
 	private State state;
+	
+	private ResourceRegistry resourceRegistry;
 	
 	private CamelContext camelContext;
 	
@@ -92,17 +92,19 @@ public class CamelProcessorService implements ProcessorService {
 	 * @param priority the priority of the processor service (can be positive
 	 * or negative)
 	 * @param processor the {@link Processor} implementation
-	 * @param camelContext a started {@link CamelContext} implementation.
+	 * @param resourceRegistry a populated {@link ResourceRegistry} implementation with
+	 * at least the CamelContext and the {@link RedeliveryPolicy}, among other resources.
 	 * @throws IllegalArgumentException if the id arg is null or empty, or if the 
 	 * processor arg is null.
 	 * @throws ExecutionException if an exception is thrown configuring the processor
 	 */
-	public CamelProcessorService(String id, int priority, Processor processor, CamelContext camelContext) 
+	public CamelProcessorService(String id, int priority, Processor processor, ResourceRegistry resourceRegistry) 
 			throws IllegalArgumentException, ExecutionException {
 		
-		Validate.notEmpty(id);
-		Validate.notNull(processor);
-		Validate.notNull(camelContext);
+		Validate.notEmpty(id, "An id must be provided");
+		Validate.notNull(processor, "A processor must be provided");
+		Validate.notNull(resourceRegistry, "A ResourceRegistry must be provided");
+		Validate.notNull(resourceRegistry.getResource(CamelContext.class), "A CamelContext must be provided");
 		
 		String fixedId = StringUtils.lowerCase(id);
 		this.id = StringUtils.deleteWhitespace(fixedId);
@@ -117,12 +119,13 @@ public class CamelProcessorService implements ProcessorService {
 		this.postProcessingActions = new ArrayList<Action>();
 		this.postReceivingActions = new ArrayList<Action>();
 		
-		this.redeliveryPolicy = new RedeliveryPolicy();
+		this.resourceRegistry = resourceRegistry;
 		
-		this.camelContext = camelContext;
+		this.camelContext = resourceRegistry.getResource(CamelContext.class);
 		this.camelProducer = camelContext.createProducerTemplate();
 		
 		// add the message producer to the processor
+		ResourceInjector.inject(processor, resourceRegistry);
 		injectMessageProducer(processor);
 		
 		try {
@@ -200,10 +203,15 @@ public class CamelProcessorService implements ProcessorService {
 		
 		Validate.notNull(acceptor);
 		
+		// check if the acceptor already exists
 		if (acceptors.contains(acceptor)) {
 			throw new ObjectAlreadyExistsException("Acceptor " + acceptor + " already exists");
 		}
 		
+		// inject the resources
+		ResourceInjector.inject(acceptor, resourceRegistry);
+		
+		// add the acceptor to the collection of acceptors
 		this.acceptors.add(acceptor);
 		
 		return this;
@@ -234,10 +242,15 @@ public class CamelProcessorService implements ProcessorService {
 		
 		Validate.notNull(action);
 		
+		// validate if the action already exists
 		if (preProcessingActions.contains(action)) {
 			throw new ObjectAlreadyExistsException("Action " + action + " already exists");
 		}
 		
+		// inject the resources
+		ResourceInjector.inject(action, resourceRegistry);
+		
+		// add the action to the collection of pre-processing actions
 		this.preProcessingActions.add(action);
 		
 		return this;
@@ -268,10 +281,15 @@ public class CamelProcessorService implements ProcessorService {
 		
 		Validate.notNull(action);
 		
+		// validate if the action already exists
 		if (postProcessingActions.contains(action)) {
 			throw new ObjectAlreadyExistsException("Action " + action + " already exists");
 		}
 		
+		// inject the resources
+		ResourceInjector.inject(action, resourceRegistry);
+		
+		// add the action to the collection of post-processing actions
 		this.postProcessingActions.add(action);
 		
 		return this;
@@ -302,10 +320,15 @@ public class CamelProcessorService implements ProcessorService {
 		
 		Validate.notNull(action);
 		
+		// validate if the action already exists
 		if (postReceivingActions.contains(action)) {
 			throw new ObjectAlreadyExistsException("Action " + action + " already exists");
 		}
 		
+		// inject the resources
+		ResourceInjector.inject(action, resourceRegistry);
+		
+		// add the action to the post-receiving actions
 		this.postReceivingActions.add(action);
 		
 		return this;
@@ -545,10 +568,6 @@ public class CamelProcessorService implements ProcessorService {
 		}
 	}
 	
-	public final void setRedeliveryPolicy(RedeliveryPolicy redeliveryPolicy) {
-		this.redeliveryPolicy = redeliveryPolicy;
-	}
-	
 	@Override
 	public final String toString() {
 		return id;
@@ -588,6 +607,7 @@ public class CamelProcessorService implements ProcessorService {
 			} catch (Exception e) {
 				
 				// only retry if we haven't exceeded the max redeliveries
+				RedeliveryPolicy redeliveryPolicy = getRedeliveryPolicy();
 				int maxRetries = redeliveryPolicy.getMaxRedeliveries();
 				if (attempt < maxRetries) {
 					log.warn("message failed, retrying " + attempt + " of " + maxRetries);
@@ -617,6 +637,16 @@ public class CamelProcessorService implements ProcessorService {
 				return false;
 				
 			}
+		}
+		
+		private RedeliveryPolicy getRedeliveryPolicy() {
+			
+			RedeliveryPolicy redeliveryPolicy = resourceRegistry.getResource(RedeliveryPolicy.class);
+			if (redeliveryPolicy == null) {
+				redeliveryPolicy = new RedeliveryPolicy();
+			}
+			
+			return redeliveryPolicy;
 		}
 		
 	}

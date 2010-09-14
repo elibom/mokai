@@ -48,16 +48,19 @@ public class CamelReceiverService implements ReceiverService {
 	
 	private State state;
 	
+	private ResourceRegistry resourceRegistry;
+	
 	private CamelContext camelContext;
 	
 	private List<RouteDefinition> routes;
 	
-	public CamelReceiverService(String id, Receiver receiver, CamelContext camelContext) 
+	public CamelReceiverService(String id, Receiver receiver, ResourceRegistry resourceRegistry) 
 			throws IllegalArgumentException, ExecutionException {
 		
 		Validate.notEmpty(id, "An Id must be provided");
-		Validate.notNull(receiver, "A connector must be provided");
-		Validate.notNull(camelContext, "A CamelContext must be provided");
+		Validate.notNull(receiver, "A receiver must be provided");
+		Validate.notNull(resourceRegistry, "A ResourceRegistry must be provided");
+		Validate.notNull(resourceRegistry.getResource(CamelContext.class), "A CamelContext must be provided");
 		
 		String fixedId = StringUtils.lowerCase(id);
 		this.id = StringUtils.deleteWhitespace(fixedId);
@@ -66,14 +69,17 @@ public class CamelReceiverService implements ReceiverService {
 		this.state = State.STOPPED;
 		this.postReceivingActions = new ArrayList<Action>();
 		
-		this.camelContext = camelContext;
+		this.resourceRegistry = resourceRegistry;
+		
+		this.camelContext = resourceRegistry.getResource(CamelContext.class);
 
 		init();
 	}
 	
 	private void init() {
 		// add the message producer to connector
-		injectMessageProducerToConnector(receiver);		
+		ResourceInjector.inject(receiver, resourceRegistry);
+		injectMessageProducer(receiver);		
 		
 		try {
 			
@@ -110,7 +116,7 @@ public class CamelReceiverService implements ReceiverService {
 		}
 	}
 	
-	private void injectMessageProducerToConnector(Object receiver) {
+	private void injectMessageProducer(Receiver receiver) {
 		MessageProducer messageProducer = new MessageProducer() {
 			
 			private ProducerTemplate producer = camelContext.createProducerTemplate();
@@ -171,10 +177,15 @@ public class CamelReceiverService implements ReceiverService {
 		
 		Validate.notNull(action);
 		
+		// validate if the action already exists
 		if (postReceivingActions.contains(action)) {
 			throw new ObjectAlreadyExistsException("Action " + action + " already exists");
 		}
 		
+		// inject the resources
+		ResourceInjector.inject(action, resourceRegistry);
+		
+		// add the action to the collection of post-receiving actions
 		postReceivingActions.add(action);
 		
 		return this;

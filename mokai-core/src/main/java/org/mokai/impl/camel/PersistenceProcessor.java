@@ -19,10 +19,10 @@ public class PersistenceProcessor implements Processor {
 	
 	private Logger log = LoggerFactory.getLogger(PersistenceProcessor.class);
 	
-	private MessageStore messageStore;
+	private ResourceRegistry resourceRegistry;
 	
-	public PersistenceProcessor(MessageStore messageStore) {
-		this.messageStore = messageStore;
+	public PersistenceProcessor(ResourceRegistry resourceRegistry) {
+		this.resourceRegistry = resourceRegistry;
 	}
 
 	@Override
@@ -30,6 +30,7 @@ public class PersistenceProcessor implements Processor {
 		Message message = (Message) exchange.getIn().getBody(Message.class);
 
 		try {
+			MessageStore messageStore = resourceRegistry.getResource(MessageStore.class);
 			messageStore.saveOrUpdate(message);
 		} catch (RejectedException e) {
 			log.warn("the message can't be persisted: " + e.getMessage());

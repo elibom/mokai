@@ -27,10 +27,10 @@ import org.mokai.Receiver;
 import org.mokai.ReceiverService;
 import org.mokai.RoutingEngine;
 import org.mokai.Service;
+import org.mokai.Message.Direction;
 import org.mokai.Message.Status;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.MessageStore;
-import org.mokai.persist.StoreException;
 import org.mokai.persist.MessageCriteria.OrderType;
 import org.mokai.persist.impl.DefaultMessageStore;
 import org.slf4j.Logger;
@@ -53,9 +53,7 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 	
 	private JmsComponent jmsComponent;
 	
-	private RedeliveryPolicy redeliveryPolicy;
-	
-	private MessageStoreDelegate messageStoreDelegate;
+	private ResourceRegistry resourceRegistry;
 	
 	private State state = State.STOPPED;
 	
@@ -85,6 +83,55 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 	public CamelRoutingEngine(JmsComponent jmsComponent) {
 		this.jmsComponent = jmsComponent;
 		init();
+	}
+	
+	private void init() throws ExecutionException {
+		
+		resourceRegistry = new ResourceRegistry();
+		
+		// create a default redelivery policy and add it to the resource registry
+		RedeliveryPolicy redeliveryPolicy = new RedeliveryPolicy();
+		resourceRegistry.putResource(RedeliveryPolicy.class, redeliveryPolicy);		
+		
+		// create a default message store and add it to the registry
+		MessageStore messageStore = new DefaultMessageStore();
+		resourceRegistry.putResource(MessageStore.class, messageStore);
+		
+		camelContext = new DefaultCamelContext();
+		resourceRegistry.putResource(CamelContext.class, camelContext);
+
+		camelContext.addComponent("activemq", jmsComponent);
+		
+		final OutboundRouter outboundRouter = new OutboundRouter();
+		outboundRouter.setRoutingContext(this);
+		
+		try {
+			camelContext.addRoutes(new RouteBuilder() {
+	
+				@Override
+				public void configure() throws Exception {
+					// internal router					
+					from("activemq:outboundRouter").bean(outboundRouter);
+					
+					// sent messages - we pass a delegate in case the MessageStore changes
+					PersistenceProcessor sentProcessor = new PersistenceProcessor(resourceRegistry);
+					from("direct:processedmessages").process(sentProcessor);
+					
+					// failed messages - we pass a delegate in case the MessageStore changes
+					PersistenceProcessor failedProcessor = new PersistenceProcessor(resourceRegistry);
+					from("activemq:failedmessages").process(failedProcessor);
+					
+					// unroutable messages - we pass a delegate in case the MessageStore changes
+					PersistenceProcessor unRoutableProcessor = new PersistenceProcessor(resourceRegistry);
+					from("activemq:unroutablemessages").process(unRoutableProcessor);
+				}
+				
+			});
+			
+		} catch (Exception e) {
+			throw new ExecutionException(e);
+		}
+		
 	}
 	
 	@Override
@@ -159,51 +206,6 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 			throw new ExecutionException(e);
 		}
 	}
-	
-	private void init() throws ExecutionException {
-		
-		// create a default redelivery policy
-		redeliveryPolicy = new RedeliveryPolicy();		
-		
-		// create a default message store and wrap it as a delegate
-		MessageStore delegate = new DefaultMessageStore();
-		messageStoreDelegate = new MessageStoreDelegate(delegate);
-		
-		camelContext = new DefaultCamelContext();
-
-		camelContext.addComponent("activemq", jmsComponent);
-		
-		final OutboundRouter outboundRouter = new OutboundRouter();
-		outboundRouter.setRoutingContext(this);
-		
-		try {
-			camelContext.addRoutes(new RouteBuilder() {
-	
-				@Override
-				public void configure() throws Exception {
-					// internal router					
-					from("activemq:outboundRouter").bean(outboundRouter);
-					
-					// sent messages - we pass a delegate in case the MessageStore changes
-					PersistenceProcessor sentProcessor = new PersistenceProcessor(messageStoreDelegate);
-					from("direct:processedmessages").process(sentProcessor);
-					
-					// failed messages - we pass a delegate in case the MessageStore changes
-					PersistenceProcessor failedProcessor = new PersistenceProcessor(messageStoreDelegate);
-					from("activemq:failedmessages").process(failedProcessor);
-					
-					// unroutable messages - we pass a delegate in case the MessageStore changes
-					PersistenceProcessor unRoutableProcessor = new PersistenceProcessor(messageStoreDelegate);
-					from("activemq:unroutablemessages").process(unRoutableProcessor);
-				}
-				
-			});
-			
-		} catch (Exception e) {
-			throw new ExecutionException(e);
-		}
-		
-	}
 
 	/*@SuppressWarnings("unused")
 	private JmsComponent createActiveMQComponent() {
@@ -240,7 +242,7 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 		
 		// create and start the ProcessorService instance
 		CamelProcessorService processorService = 
-			new CamelProcessorService(fixedId, priority, processor, camelContext);
+			new CamelProcessorService(fixedId, priority, processor, resourceRegistry);
 		if (state.equals(State.STARTED)) {
 			processorService.start();
 		}
@@ -312,7 +314,7 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 		}
 		
 		// create and start the ReceiverService instance
-		CamelReceiverService receiverService = new CamelReceiverService(fixedId, receiver, camelContext);
+		CamelReceiverService receiverService = new CamelReceiverService(fixedId, receiver, resourceRegistry);
 		if (state.equals(State.STARTED)) {
 			receiverService.start();
 		}
@@ -358,17 +360,22 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 	public final void retryFailedMessages() {
 		log.debug("running ... ");
 		
+		MessageStore messageStore = resourceRegistry.getResource(MessageStore.class); 
+		
 		// update all the failed messages to retrying
-		//messageStoreDelegate.updateFailedToRetrying(Direction.OUTBOUND);
+		MessageCriteria criteria = new MessageCriteria()
+			.addStatus(Status.FAILED)
+			.direction(Direction.OUTBOUND);
+		messageStore.updateStatus(criteria, Status.RETRYING);
 		
 		ProducerTemplate producer = camelContext.createProducerTemplate();
 		
-		MessageCriteria criteria = new MessageCriteria()
+		criteria = new MessageCriteria()
 			.addStatus(Message.Status.RETRYING)
 			.orderBy("creation_time")
 			.orderType(OrderType.UPWARDS);
-			
-		Collection<Message> messages = messageStoreDelegate.list(criteria);
+
+		Collection<Message> messages = messageStore.list(criteria);
 		logCollectionSize(messages.size());
 		for (Message message : messages) {
 			producer.sendBody("activemq:outboundRouter", ExchangePattern.InOnly, message);
@@ -388,68 +395,23 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 	}
 
 	public final RedeliveryPolicy getRedeliveryPolicy() {
-		return redeliveryPolicy;
+		return resourceRegistry.getResource(RedeliveryPolicy.class);
 	}
 
 	public final void setRedeliveryPolicy(RedeliveryPolicy redeliveryPolicy) {
-		this.redeliveryPolicy = redeliveryPolicy;
+		resourceRegistry.getResource(RedeliveryPolicy.class);
 	}
 
 	public final MessageStore getMessageStore() {
-		return messageStoreDelegate.getDelegate();
+		return resourceRegistry.getResource(MessageStore.class);
 	}
 
 	public final void setMessageStore(MessageStore messageStore) {
-		this.messageStoreDelegate.setDelegate(messageStore);
+		resourceRegistry.putResource(MessageStore.class, messageStore);
 	}
 
 	public final CamelContext getCamelContext() {
 		return camelContext;
-	}
-	
-	/**
-	 * This class is a {@link MessageStore} that delegates to another
-	 * {@link MessageStore}. The reason it exists, is that we can allow
-	 * to change the {@link MessageStore} dynamically through the 
-	 * {@link #setMessageStore(MessageStore} meth
-	 * 
-	 * @author German Escobar
-	 */
-	private class MessageStoreDelegate implements MessageStore {
-		
-		private MessageStore delegate;
-		
-		public MessageStoreDelegate(MessageStore delegate) {
-			this.delegate = delegate;
-		}
-
-		@Override
-		public void updateStatus(MessageCriteria criteria, Status newStatus)
-				throws StoreException {
-			delegate.updateStatus(criteria, newStatus);
-		}
-
-
-
-		@Override
-		public Collection<Message> list(MessageCriteria criteria)
-				throws StoreException {
-			return delegate.list(criteria);
-		}
-
-		@Override
-		public void saveOrUpdate(Message message) throws StoreException {
-			delegate.saveOrUpdate(message);
-		}
-
-		public MessageStore getDelegate() {
-			return delegate;
-		}
-
-		public void setDelegate(MessageStore delegate) {
-			this.delegate = delegate;
-		}
-		
 	}
 
 }

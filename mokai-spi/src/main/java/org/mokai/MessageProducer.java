@@ -1,15 +1,16 @@
 package org.mokai;
 
 /**
- * Used to produce messages from the connectors. 
+ * Used by {@link Receiver}s to inject messages into the gateway. 
  * 
  * @author German Escobar
  */
 public interface MessageProducer {
 
 	/**
-	 * Called when a message needs to be routed inside the framework. The 
-	 * destination where the message is routed is implementation specific.
+	 * Called by the {@link Receiver} when a message needs to be routed 
+	 * inside the gateway.
+	 * 
 	 * @param message the {@link Message} that is going to be routed
 	 * @throws IllegalArgumentException if message is null 
 	 * @throws ExecutionException wraps any exception thrown producing the 

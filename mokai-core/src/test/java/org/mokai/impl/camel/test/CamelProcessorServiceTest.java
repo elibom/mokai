@@ -8,6 +8,7 @@ import java.util.concurrent.TimeoutException;
 
 import junit.framework.Assert;
 
+import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
@@ -23,8 +24,13 @@ import org.mokai.Processor;
 import org.mokai.Service;
 import org.mokai.Serviceable;
 import org.mokai.Monitorable.Status;
+import org.mokai.Service.State;
 import org.mokai.annotation.Resource;
 import org.mokai.impl.camel.CamelProcessorService;
+import org.mokai.impl.camel.ResourceRegistry;
+import org.mokai.persist.MessageStore;
+import org.mokai.types.mock.MockAcceptor;
+import org.mokai.types.mock.MockConnector;
 import org.testng.annotations.Test;
 
 /**
@@ -44,7 +50,7 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 		
 		MockProcessor processor = new MockProcessor();
 		CamelProcessorService processorService = 
-			new CamelProcessorService("test", 0, processor, camelContext);
+			new CamelProcessorService("test", 0, processor, resourceRegistry);
 		processorService.start();
 		
 		Assert.assertEquals(Status.UNKNOWN, processorService.getStatus());
@@ -61,6 +67,22 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 		Assert.assertNotNull(message);
 		Assert.assertEquals("test", message.getDestination());
 		Assert.assertEquals(Message.DestinationType.PROCESSOR, message.getDestinationType());
+	}
+	
+	@Test
+	public void testProcessorServiceState() throws Exception {
+		
+		Processor processor = Mockito.mock(Processor.class);
+		CamelProcessorService processorService = 
+			new CamelProcessorService("test", 0, processor, resourceRegistry);
+		Assert.assertEquals(State.STOPPED, processorService.getState());
+		
+		processorService.start();
+		Assert.assertEquals(State.STARTED, processorService.getState());
+		
+		processorService.stop();
+		Assert.assertEquals(State.STOPPED, processorService.getState());
+		
 	}
 	
 	/**
@@ -80,7 +102,7 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 			.when(processor).process(Mockito.any(Message.class));
 		
 		CamelProcessorService processorService = 
-			new CamelProcessorService("test", 0, processor, camelContext);
+			new CamelProcessorService("test", 0, processor, resourceRegistry);
 		processorService.start();
 		
 		// check that the status is UNKNOWN
@@ -136,7 +158,7 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 			.thenReturn(Status.OK);
 		
 		CamelProcessorService processorService = 
-			new CamelProcessorService("test", 0, processor, camelContext);
+			new CamelProcessorService("test", 0, processor, resourceRegistry);
 		processorService.start();
 		
 		Assert.assertEquals(Status.OK, processorService.getStatus());
@@ -164,7 +186,7 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 			.thenReturn(Status.FAILED);
 		
 		CamelProcessorService processorService = 
-			new CamelProcessorService("test", 0, processor, camelContext);
+			new CamelProcessorService("test", 0, processor, resourceRegistry);
 		processorService.start();
 		
 		Assert.assertEquals(Status.FAILED, processorService.getStatus());
@@ -194,7 +216,7 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 			.thenReturn(Status.OK);
 		
 		CamelProcessorService processorService = 
-			new CamelProcessorService("test", 0, processor, camelContext);
+			new CamelProcessorService("test", 0, processor, resourceRegistry);
 		processorService.start();
 		Assert.assertEquals(Status.OK, processorService.getStatus());
 		
@@ -214,7 +236,7 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 		MockEndpoint inboundEndpoint = addInboundValidationRoute(1);
 
 		SimpleReceiverProcessor processor = new SimpleReceiverProcessor();
-		new CamelProcessorService("test", 0, processor, camelContext).start();
+		new CamelProcessorService("test", 0, processor, resourceRegistry).start();
 		
 		// simulate receiving message
 		processor.receiveMessage(new Message(Message.SMS_TYPE));
@@ -243,7 +265,7 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 		
 		MockProcessor processor = new MockProcessor();
 		CamelProcessorService processorService = 
-			new CamelProcessorService("test", 0, processor, camelContext);
+			new CamelProcessorService("test", 0, processor, resourceRegistry);
 		
 		// add a pre-processing action
 		MockAction preProcessingAction = new MockAction();
@@ -298,7 +320,7 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 		
 		SimpleReceiverProcessor processor = new SimpleReceiverProcessor();
 		CamelProcessorService processorService = 
-			new CamelProcessorService("test", 0, processor, camelContext);
+			new CamelProcessorService("test", 0, processor, resourceRegistry);
 		processorService.start();
 		
 		// add post-receiving action
@@ -328,58 +350,68 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 	}
 	
 	@Test(expectedExceptions=IllegalArgumentException.class)
-	public void shouldFailWithoutCamelContext() throws Exception {
+	public void shouldFailWithoutResourceRegistry() throws Exception {
 		MockProcessor processor = new MockProcessor();
 		new CamelProcessorService("test", 0, processor, null);
 	}
 	
 	@Test(expectedExceptions=IllegalArgumentException.class)
+	public void shouldFailWithoutCamelContext() throws Exception {
+		
+		// an empty resource registry
+		ResourceRegistry resourceRegistry = new ResourceRegistry();
+		
+		MockProcessor processor = new MockProcessor();
+		new CamelProcessorService("test", 0, processor, resourceRegistry);
+	}
+	
+	@Test(expectedExceptions=IllegalArgumentException.class)
 	public void shouldFailWithNullProcessor() throws Exception {
-		new CamelProcessorService("test", 0, null, camelContext);
+		new CamelProcessorService("test", 0, null, resourceRegistry);
 	}
 	
 	@Test(expectedExceptions=IllegalArgumentException.class)
 	public void shouldFailWithNullId() throws Exception {
-		new CamelProcessorService(null, 0, new MockProcessor(), camelContext);
+		new CamelProcessorService(null, 0, new MockProcessor(), resourceRegistry);
 	}
 	
 	@Test(expectedExceptions=IllegalArgumentException.class)
 	public void shouldFailWithNullAcceptor() throws Exception {
 		CamelProcessorService processorService = 
-			new CamelProcessorService("test", 0, new MockProcessor(), camelContext);
+			new CamelProcessorService("test", 0, new MockProcessor(), resourceRegistry);
 		processorService.addAcceptor(null);
 	}
 	
 	@Test(expectedExceptions=IllegalArgumentException.class)
 	public void shouldFailWithEmptyId() throws Exception {
-		new CamelProcessorService("", 0, new MockProcessor(), camelContext);
+		new CamelProcessorService("", 0, new MockProcessor(), resourceRegistry);
 	}
 	
 	@Test
 	public void testIdWithSpaces() throws Exception {
 		CamelProcessorService processorService = 
-			new CamelProcessorService("T e s T", 0, new MockProcessor(), camelContext);
+			new CamelProcessorService("T e s T", 0, new MockProcessor(), resourceRegistry);
 		Assert.assertEquals("test", processorService.getId());
 	}
 	
 	@Test(expectedExceptions=IllegalArgumentException.class)
 	public void shouldFailWithNullPreProcessingAction() throws Exception {
 		CamelProcessorService processorService = 
-			new CamelProcessorService("test", 0, new MockProcessor(), camelContext);
+			new CamelProcessorService("test", 0, new MockProcessor(), resourceRegistry);
 		processorService.addPreProcessingAction(null);
 	}
 	
 	@Test(expectedExceptions=IllegalArgumentException.class)
 	public void shouldFailWithNullPostProcessingAction() throws Exception {
 		CamelProcessorService processorService = 
-			new CamelProcessorService("test", 0, new MockProcessor(), camelContext);
+			new CamelProcessorService("test", 0, new MockProcessor(), resourceRegistry);
 		processorService.addPostProcessingAction(null);
 	}
 	
 	@Test(expectedExceptions=IllegalArgumentException.class)
 	public void shouldFailWithNullPostReceivingAction() throws Exception {
 		CamelProcessorService processorService = 
-			new CamelProcessorService("test", 0, new MockProcessor(), camelContext);
+			new CamelProcessorService("test", 0, new MockProcessor(), resourceRegistry);
 		processorService.addPostReceivingAction(null);
 	}
 	
@@ -404,7 +436,7 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 				return true;
 			}
 			
-		}, camelContext);
+		}, resourceRegistry);
 		processorService.start();
 		
 		simulateMessage(new Message(), "activemq:processor-test");
@@ -423,7 +455,7 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 	@Test
 	public void testAddRemoveAcceptors() throws Exception {
 		CamelProcessorService processorService = 
-			new CamelProcessorService("test", 0, new MockProcessor(), camelContext);
+			new CamelProcessorService("test", 0, new MockProcessor(), resourceRegistry);
 		
 		Acceptor acceptor1 = Mockito.mock(Acceptor.class);
 		Acceptor acceptor2 = Mockito.mock(Acceptor.class);
@@ -451,7 +483,7 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 	@Test
 	public void testAddRemovePreProcessingActions() throws Exception {
 		CamelProcessorService processorService = 
-			new CamelProcessorService("test", 0, new MockProcessor(), camelContext);
+			new CamelProcessorService("test", 0, new MockProcessor(), resourceRegistry);
 		
 		Action action1 = new MockAction();
 		Action action2 = new MockAction();
@@ -480,7 +512,7 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 	@Test
 	public void testAddRemovePostProcessingActions() throws Exception {
 		CamelProcessorService processorService = 
-			new CamelProcessorService("test", 0, new MockProcessor(), camelContext);
+			new CamelProcessorService("test", 0, new MockProcessor(), resourceRegistry);
 		
 		Action action1 = new MockAction();
 		Action action2 = new MockAction();
@@ -509,7 +541,7 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 	@Test
 	public void testAddRemovePostReceivingActions() throws Exception {
 		CamelProcessorService processorService = 
-			new CamelProcessorService("test", 0, new MockProcessor(), camelContext);
+			new CamelProcessorService("test", 0, new MockProcessor(), resourceRegistry);
 		
 		Action action1 = new MockAction();
 		Action action2 = new MockAction();
@@ -542,7 +574,7 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 		MockEndpoint failedEndpoint = addFailedValidationRoute(1);
 		
 		MockProcessor processor = new MockProcessor();
-		CamelProcessorService processorService = new CamelProcessorService("test", 0, processor, camelContext);
+		CamelProcessorService processorService = new CamelProcessorService("test", 0, processor, resourceRegistry);
 
 		Action action = Mockito.mock(Action.class);
 		Mockito.doThrow(new NullPointerException()).when(action).execute(Mockito.any(Message.class));
@@ -570,7 +602,7 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 	public void testNonServiceableConnector() throws Exception {
 		MockProcessor processor = new MockProcessor();
 		CamelProcessorService processorService = 
-			new CamelProcessorService("test", 0, processor, camelContext);
+			new CamelProcessorService("test", 0, processor, resourceRegistry);
 		
 		processorService.start();
 		Assert.assertEquals(Service.State.STARTED, processorService.getState());
@@ -587,7 +619,7 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 				Mockito.withSettings().extraInterfaces(Serviceable.class));
 		
 		CamelProcessorService processorService = 
-			new CamelProcessorService("test", 0, processor, camelContext);
+			new CamelProcessorService("test", 0, processor, resourceRegistry);
 		processorService.start();
 		
 		// verify
@@ -610,7 +642,7 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 		Mockito.doThrow(new NullPointerException()).when((Serviceable) processor).doStart();
 		
 		CamelProcessorService processorService = 
-			new CamelProcessorService("test", 0, processor, camelContext);
+			new CamelProcessorService("test", 0, processor, resourceRegistry);
 		processorService.start();
 	}
 	
@@ -622,7 +654,7 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 		Mockito.doThrow(new NullPointerException()).when((Serviceable) processor).doStop();
 		
 		CamelProcessorService processorService = 
-			new CamelProcessorService("test", 0, processor, camelContext);
+			new CamelProcessorService("test", 0, processor, resourceRegistry);
 		processorService.start();
 		
 		processorService.stop();
@@ -635,7 +667,7 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 				Mockito.withSettings().extraInterfaces(Configurable.class));
 		
 		CamelProcessorService processorService = 
-			new CamelProcessorService("test", 0, processor, camelContext);
+			new CamelProcessorService("test", 0, processor, resourceRegistry);
 		processorService.start();
 		
 		// verify
@@ -656,7 +688,7 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 		
 		MockProcessor processor = new MockProcessor();
 		CamelProcessorService processorService = 
-			new CamelProcessorService("test", 0, processor, camelContext);
+			new CamelProcessorService("test", 0, processor, resourceRegistry);
 		
 		try {
 			Future<Object> future = camelProducer.asyncRequestBody("activemq:processor-test", new Message());
@@ -682,12 +714,68 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 		Assert.assertEquals(0, processorService.getNumQueuedMessages());
 	}
 	
+	@Test
+	public void testInjectResourceToProcessor() throws Exception {
+
+		// add the resource to the resource registry
+		resourceRegistry.putResource(MessageStore.class, Mockito.mock(MessageStore.class));
+		
+		MockConnector processor = new MockConnector();
+		new CamelProcessorService("test", 0, processor, resourceRegistry);
+		
+		Assert.assertNotNull(processor.getMessageStore());
+	}
+	
+	@Test
+	public void testInjectResourceToAcceptor() throws Exception {
+		
+		// add he resource to the resource registry
+		resourceRegistry.putResource(MessageStore.class, Mockito.mock(MessageStore.class));
+		
+		Processor processor = Mockito.mock(Processor.class);
+		CamelProcessorService processorService = 
+			new CamelProcessorService("test", 0, processor, resourceRegistry);
+		
+		MockAcceptor acceptor = new MockAcceptor();
+		processorService.addAcceptor(acceptor);
+		
+		Assert.assertNotNull(acceptor.getMessageStore());
+	}
+	
+	@Test
+	public void testInjectResourceToActions() throws Exception {
+		
+		// add he resource to the resource registry
+		resourceRegistry.putResource(MessageStore.class, Mockito.mock(MessageStore.class));
+		
+		Processor processor = Mockito.mock(Processor.class);
+		CamelProcessorService processorService = 
+			new CamelProcessorService("test", 0, processor, resourceRegistry);
+		
+		// test inject resource to pre-processing action
+		MockAction action = new MockAction();
+		processorService.addPreProcessingAction(action);
+		Assert.assertNotNull(action.getMessageStore());
+		
+		// test inject resource to post-processing action
+		action = new MockAction();
+		processorService.addPostProcessingAction(action);
+		Assert.assertNotNull(action.getMessageStore());
+		
+		// test inject resource to post-receiving action
+		action = new MockAction();
+		processorService.addPostReceivingAction(action);
+		Assert.assertNotNull(action.getMessageStore());
+	}
+	
 	/**
 	 * Helper method to create the route that validates the output of the receivers.
 	 * @return
 	 * @throws Exception
 	 */
 	private MockEndpoint addInboundValidationRoute(int expectedMessages) throws Exception {
+		
+		CamelContext camelContext = resourceRegistry.getResource(CamelContext.class);
 		camelContext.addRoutes(new RouteBuilder() {
 
 			@Override
@@ -709,6 +797,8 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 	 * @throws Exception
 	 */
 	private MockEndpoint addOutboundValidationRoute(int expectedMessages) throws Exception {
+		
+		CamelContext camelContext = resourceRegistry.getResource(CamelContext.class);
 		camelContext.addRoutes(new RouteBuilder() {
 
 			@Override
@@ -730,6 +820,8 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 	 * @throws Exception
 	 */
 	private MockEndpoint addFailedValidationRoute(int expectedMessages) throws Exception {
+		
+		CamelContext camelContext = resourceRegistry.getResource(CamelContext.class);
 		camelContext.addRoutes(new RouteBuilder() {
 
 			@Override
@@ -792,7 +884,7 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 	 * 
 	 * @author German Escobar
 	 */
-	protected class SimpleReceiverProcessor implements Processor {
+	private class SimpleReceiverProcessor implements Processor {
 		
 		@Resource
 		private MessageProducer messageProducer;

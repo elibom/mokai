@@ -7,21 +7,27 @@ import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.impl.DefaultCamelContext;
 import org.mokai.Action;
 import org.mokai.Message;
+import org.mokai.annotation.Resource;
+import org.mokai.impl.camel.ResourceRegistry;
+import org.mokai.persist.MessageStore;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
 public class CamelBaseTest {
 
-	protected CamelContext camelContext;
+	protected ResourceRegistry resourceRegistry;
 	
 	protected ProducerTemplate camelProducer;
 	
 	@BeforeMethod
 	public void beforeTest() throws Exception {
-		camelContext = new DefaultCamelContext();
+		CamelContext camelContext = new DefaultCamelContext();
 		camelContext.addComponent("activemq", defaultJmsComponent());
 		
 		camelContext.start();
+		
+		resourceRegistry = new ResourceRegistry();
+		resourceRegistry.putResource(CamelContext.class, camelContext);
 		
 		camelProducer = camelContext.createProducerTemplate();
 	}
@@ -41,7 +47,10 @@ public class CamelBaseTest {
 	
 	@AfterMethod
 	public void afterTest() throws Exception {
-		camelContext.stop();
+		CamelContext camelContext = resourceRegistry.getResource(CamelContext.class);
+		if (camelContext != null) {
+			camelContext.stop();
+		}
 	}
 	
 	/**
@@ -51,6 +60,12 @@ public class CamelBaseTest {
 	 */
 	protected class MockAction implements Action {
 		public int changed;
+		
+		/**
+		 * This field is here to test inject resources
+		 */
+		@Resource
+		private MessageStore messageStore;
 	
 		@Override
 		public void execute(Message message) {
@@ -59,6 +74,10 @@ public class CamelBaseTest {
 		
 		public int getChanged() {
 			return changed;
+		}
+
+		public MessageStore getMessageStore() {
+			return messageStore;
 		}
 	}
 	

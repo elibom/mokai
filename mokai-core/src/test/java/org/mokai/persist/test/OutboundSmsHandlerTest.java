@@ -147,6 +147,7 @@ public class OutboundSmsHandlerTest {
 		message.setStatus(Status.RETRYING);
 		message.setDestination("test");
 		message.setDestinationType(DestinationType.PROCESSOR);
+		message.setProperty("receiptStatus", "DELIVRD");
 		
 		OutboundSmsHandler handler = new OutboundSmsHandler();
 		boolean found = handler.updateMessage(connection, message);
@@ -160,6 +161,8 @@ public class OutboundSmsHandlerTest {
 				Assert.assertEquals(message.getStatus().value(), rs.getByte("status"));
 				Assert.assertEquals(message.getDestination(), rs.getString("destination"));
 				Assert.assertEquals(message.getDestinationType().value(), rs.getByte("destinationtype"));
+				Assert.assertEquals(message.getProperty("receiptStatus", String.class), rs.getString("smsc_receiptstatus"));
+				Assert.assertEquals(null, rs.getTimestamp("smsc_receipttime"));
 			}
 			
 		});

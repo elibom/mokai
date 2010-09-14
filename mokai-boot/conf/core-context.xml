@@ -40,6 +40,7 @@
 	
 	<bean id="dbInitializer" class="org.mokai.persist.jdbc.DbInitializer" init-method="initialize">
 		<property name="dataSource"><ref bean="dataSource" /></property>
+		<property name="dbSchema" value="mokai" />
 		<property name="tableScripts">
 			<map>
 				<entry 
@@ -71,9 +72,9 @@
 	</bean>
 	<!-- End of Derby Configuration -->
 	
-	<bean id="messageStore" class="org.mokai.persist.jdbc.JdbcMessageStore" depends-on="derbyInitializer">
+	<bean id="messageStore" class="org.mokai.persist.jdbc.JdbcMessageStore" depends-on="dbInitializer">
 		<property name="dataSource"><ref bean="dataSource" /></property>
-		<property name="jdbcHandler"><ref bean="outboundSmsHandler" /></property>
+		<property name="messageHandler"><ref bean="outboundSmsHandler" /></property>
 	</bean>
 	<!-- <bean id="messageStore" class="org.mokai.persist.impl.DefaultMessageStore" /> -->
 	

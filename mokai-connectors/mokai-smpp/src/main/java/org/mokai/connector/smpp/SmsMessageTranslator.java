@@ -2,6 +2,7 @@ package org.mokai.connector.smpp;
 
 import org.jsmpp.bean.DeliverSm;
 import org.jsmpp.bean.DeliveryReceipt;
+import org.jsmpp.util.InvalidDeliveryReceiptException;
 import org.mokai.Message;
 
 /**
@@ -12,7 +13,9 @@ import org.mokai.Message;
  */
 public class SmsMessageTranslator {
 
-	public static Message createDeliveryReceipt(DeliverSm deliverSm, DeliveryReceipt deliveryReceipt) {
+	public static Message createDeliveryReceipt(DeliverSm deliverSm) throws InvalidDeliveryReceiptException {
+		
+		DeliveryReceipt deliveryReceipt = deliverSm.getShortMessageAsDeliveryReceipt();
 		
 		// create the message
 		Message message = new Message(Message.DELIVERY_RECEIPT_TYPE);
@@ -37,7 +40,7 @@ public class SmsMessageTranslator {
 		message.setProperty("doneDate", deliveryReceipt.getDoneDate());
 		
 		// set final status
-		message.setProperty("finalStatus", deliveryReceipt.getFinalStatus().value());
+		message.setProperty("finalStatus", deliveryReceipt.getFinalStatus().toString());
 		
 		return message;
 	}

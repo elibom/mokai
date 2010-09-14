@@ -1,13 +1,14 @@
 package org.mokai.connector.smpp;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Date;
 
 import org.jsmpp.bean.AlertNotification;
 import org.jsmpp.bean.Alphabet;
 import org.jsmpp.bean.BindType;
 import org.jsmpp.bean.DataSm;
 import org.jsmpp.bean.DeliverSm;
-import org.jsmpp.bean.DeliveryReceipt;
 import org.jsmpp.bean.ESMClass;
 import org.jsmpp.bean.GeneralDataCoding;
 import org.jsmpp.bean.MessageClass;
@@ -38,6 +39,8 @@ import org.mokai.Serviceable;
 import org.mokai.annotation.Description;
 import org.mokai.annotation.Name;
 import org.mokai.annotation.Resource;
+import org.mokai.persist.MessageCriteria;
+import org.mokai.persist.MessageStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,6 +72,12 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	 */
 	@Resource
 	private MessageProducer messageProducer;
+	
+	/**
+	 * Used to retrieve processed messages when a delivey receipt arrives
+	 */
+	@Resource
+	private MessageStore messageStore;
 	
 	private SMPPSession session = new SMPPSession();
 	
@@ -161,10 +170,13 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 					log.info("DeliveryReceipt short message: " + new String(pdu.getShortMessage()));
 					
 					try {
-						DeliveryReceipt deliveryReceipt = pdu.getShortMessageAsDeliveryReceipt();
 					
 						// create the message based on the delivery receipt
-						Message message = SmsMessageTranslator.createDeliveryReceipt(pdu, deliveryReceipt);
+						Message message = SmsMessageTranslator.createDeliveryReceipt(pdu);
+						
+						if (messageStore != null) {
+							findAndUpdateOriginalMessage(message, messageStore);
+						}
 						
 						// producer the message
 						produceMessage(message);
@@ -264,6 +276,37 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		} else {
 			// this should not happen
 			log.error("MessageProducer is null ... ignoring message");
+		}
+	}
+	
+	private void findAndUpdateOriginalMessage(Message message, MessageStore messageStore) {
+		
+		String messageId = message.getProperty("messageId", String.class);
+		log.debug("looking for message with SMSC message id: " + messageId);
+		
+		// create the criteria
+		MessageCriteria criteria = new MessageCriteria();
+		criteria.addProperty("smsc_messageid", messageId);
+		
+		// retrieve the messages
+		Collection<Message> messages = messageStore.list(criteria);
+		if (messages != null && !messages.isEmpty()) {
+			
+			Message originalMessage = messages.iterator().next();
+			log.debug("message with SMSC message id: " + messageId + " found");
+			
+			// set the information in the original message
+			message.setProperty("smsId", originalMessage.getId());
+			message.setReference(originalMessage.getReference());
+			
+			// update original message
+			String receiptStatus = message.getProperty("finalStatus", String.class);
+			originalMessage.setProperty("receiptStatus", receiptStatus);
+			originalMessage.setProperty("receiptTime", message.getProperty("doneDate", Date.class));
+			messageStore.saveOrUpdate(originalMessage);
+			
+			log.debug("message with id " + originalMessage.getId() + " updated with receiptStatus: " 
+					+ receiptStatus);
 		}
 	}
 

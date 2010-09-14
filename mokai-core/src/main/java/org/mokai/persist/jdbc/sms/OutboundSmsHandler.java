@@ -120,7 +120,9 @@ public class OutboundSmsHandler implements MessageHandler {
 		String strSQL = "UPDATE " + tableName + " SET " +
 				"status = ?, " +
 				"destination = ?, " +
-				"destinationtype = ? " +
+				"destinationtype = ?, " +
+				"smsc_receiptstatus = ?, " +
+				"smsc_receipttime = ? " +
 				"WHERE id = ?";
 		
 		PreparedStatement stmt = conn.prepareStatement(strSQL);
@@ -128,7 +130,17 @@ public class OutboundSmsHandler implements MessageHandler {
 		stmt.setByte(1, message.getStatus().value());
 		stmt.setString(2, message.getDestination());
 		stmt.setByte(3, message.getDestinationType().value());
-		stmt.setLong(4, message.getId());
+		stmt.setString(4, message.getProperty("receiptStatus", String.class));
+		
+		Date receiptTime = message.getProperty("receiptTime", Date.class);
+		if (receiptTime != null) {
+			stmt.setTimestamp(5, new Timestamp(receiptTime.getTime()));
+		} else {
+			stmt.setTimestamp(5, null);
+		}
+			
+		stmt.setLong(6, message.getId());
+		
 		
 		int affected = stmt.executeUpdate();
 		

@@ -105,13 +105,20 @@ public class JBossMQReceiver implements Receiver, ExposableConfiguration<JBossMQ
 	public final void onMessage(javax.jms.Message jmsMessage) {
 		
 		try {
+			// create the message
+			Message message = new Message();
+			
 			// retrieve the type of the message
 			String type = jmsMessage.getStringProperty("type");
-			if (type == null) {
-				type = Message.SMS_TYPE;
+			if (type != null) {
+				message.setType(type);
 			}
 			
-			Message message = new Message(type);
+			// retrieve the reference
+			String reference = jmsMessage.getStringProperty("reference");
+			if (reference != null) {
+				message.setReference(reference);
+			}
 			
 			// retrieve properties
 			Enumeration propertyNames = jmsMessage.getPropertyNames();

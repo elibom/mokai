@@ -187,6 +187,8 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 					}
 				} else {
 					
+					log.info("DeliverySm short message: " + new String(pdu.getShortMessage()));
+					
 					// create the message based on the deliverSm
 					Message message = SmsMessageTranslator.createDeliverSm(pdu);
 					
@@ -422,6 +424,14 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	                        Alphabet.ALPHA_DEFAULT),
 	                (byte) 0,
 	                submitSm.getShortMessage());
+			
+			// workaround to convert hexadecimal message id's into decimal
+			try {
+				int decimalMessageId = Integer.parseInt(messageId, 16);
+				messageId = decimalMessageId + "";
+			} catch (Exception e) {
+				log.debug("cannot convert message id " + messageId + " to decimal: " + e.getMessage());
+			}
 			
 			// update the message
 			message.setProperty("messageId", messageId);

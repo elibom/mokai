@@ -3,6 +3,10 @@ package org.mokai.connector.camel.jetty;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 
+ * @author German Escobar
+ */
 public class JettyConfiguration {
 
 	private String port = "9080";

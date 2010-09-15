@@ -14,6 +14,8 @@ import org.mokai.ExposableConfiguration;
 import org.mokai.Message;
 import org.mokai.MessageProducer;
 import org.mokai.Receiver;
+import org.mokai.annotation.Description;
+import org.mokai.annotation.Name;
 import org.mokai.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +24,8 @@ import org.slf4j.LoggerFactory;
  * 
  * @author German Escobar
  */
+@Name("Jetty")
+@Description("Receives messages through HTTP")
 public class JettyConnector implements Receiver, Configurable, 
 		ExposableConfiguration<JettyConfiguration> {
 	
@@ -58,12 +62,21 @@ public class JettyConnector implements Receiver, Configurable,
 
 					@Override
 					public void process(Exchange exchange) throws Exception {
+						
+						// retrieve the type of the message
 						String type = (String) exchange.getIn().getHeader("type");
 						if (type == null) {
 							type = Message.SMS_TYPE;
 						}
 						
+						// retrieve the reference of the message
+						String reference = (String) exchange.getIn().getHeader("reference");
+						
 						Message message = new Message(type);
+						
+						if (reference != null) {
+							message.setReference(reference);
+						}
 						
 						// retrieve the query part of the request
 						String query = (String) exchange.getIn().getHeader("CamelHttpQuery");
@@ -79,20 +92,17 @@ public class JettyConnector implements Receiver, Configurable,
 							
 							// iterate through the parameters and add them to the message properties
 							for (Map.Entry<Object,Object> entry : parameters.entrySet()) {
-								
-								if (!entry.getKey().equals("type")) {
+
+								// by default set the key to the header value 
+								String key = (String) entry.getKey();
 									
-									// by default set the key to the header value 
-									String key = (String) entry.getKey();
-									
-									// check if there is a mapping for the key
-									if (configuration.getMapper().containsKey(key)) {
-										key = configuration.getMapper().get(key);
-									}
-									
-									String value = (String) entry.getValue();
-									message.setProperty(key, value);
+								// check if there is a mapping for the key
+								if (configuration.getMapper().containsKey(key)) {
+									key = configuration.getMapper().get(key);
 								}
+									
+								String value = (String) entry.getValue();
+								message.setProperty(key, value);
 							}
 						}
 						

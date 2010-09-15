@@ -46,6 +46,7 @@ public class JettyConnectorTest {
 		
 		Message message = (Message) messageProducer.getMessage(0);
 		Assert.assertEquals(Message.SMS_TYPE, message.getType());
+		Assert.assertNotNull(message.getReference());
 		Assert.assertEquals(to, message.getProperty("to", String.class));
 		Assert.assertEquals(from, message.getProperty("from", String.class));
 		Assert.assertEquals(text, message.getProperty("text", String.class));

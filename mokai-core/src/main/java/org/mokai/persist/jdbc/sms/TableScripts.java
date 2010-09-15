@@ -47,9 +47,9 @@ public enum TableScripts {
 			"smsc_from VARCHAR(30), " +
 			"smsc_text VARCHAR(1000), " +
 			"smsc_messageid VARCHAR(50), " +
-			"smsc_commandstatus INTEGER, " +
+			"smsc_commandstatus TINYINT, " +
 			"smsc_receiptstatus VARCHAR(20), " +
-			"smsc_receipttime TIMESTAMP, " +
+			"smsc_receipttime DATETIME, " +
 			"creation_time DATETIME NOT NULL, " +
 			"modification_time DATETIME)");
 	

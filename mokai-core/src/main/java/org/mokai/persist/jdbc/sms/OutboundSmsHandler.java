@@ -35,7 +35,7 @@ public class OutboundSmsHandler implements MessageHandler {
 	private String tableName = DEFAULT_TABLENAME;
 	
 	@Override
-	public boolean supportsType(String type) {
+	public final boolean supportsType(String type) {
 		
 		if (type != null && type.equals(Message.SMS_TYPE)) {
 			return true;
@@ -45,7 +45,7 @@ public class OutboundSmsHandler implements MessageHandler {
 	}
 
 	@Override
-	public boolean supportsDirection(Direction direction) {
+	public final boolean supportsDirection(Direction direction) {
 		
 		if (direction != null && direction.equals(Direction.OUTBOUND)) {
 			return true;
@@ -55,7 +55,7 @@ public class OutboundSmsHandler implements MessageHandler {
 	}
 
 	@Override
-	public long insertMessage(Connection conn, Message message) throws SQLException {
+	public final long insertMessage(Connection conn, Message message) throws SQLException {
 		
 		// create the SQL
 		String strSQL = "INSERT INTO " + tableName + " (" +
@@ -115,7 +115,7 @@ public class OutboundSmsHandler implements MessageHandler {
 	}
 	
 	@Override
-	public boolean updateMessage(Connection conn, Message message) throws SQLException {
+	public final boolean updateMessage(Connection conn, Message message) throws SQLException {
 		
 		String strSQL = "UPDATE " + tableName + " SET " +
 				"status = ?, " +
@@ -152,7 +152,7 @@ public class OutboundSmsHandler implements MessageHandler {
 	}
 	
 	@Override
-	public void updateMessagesStatus(Connection conn, MessageCriteria criteria, 
+	public final void updateMessagesStatus(Connection conn, MessageCriteria criteria, 
 			Status newStatus) throws SQLException {
 		
 		List<Object> params = new ArrayList<Object>();
@@ -176,7 +176,7 @@ public class OutboundSmsHandler implements MessageHandler {
 	}
 
 	@Override
-	public Collection<Message> listMessages(Connection conn, MessageCriteria criteria) throws SQLException {
+	public final Collection<Message> listMessages(Connection conn, MessageCriteria criteria) throws SQLException {
 		
 		List<Object> params = new ArrayList<Object>(); 
 		
@@ -318,11 +318,11 @@ public class OutboundSmsHandler implements MessageHandler {
 		return messages;
 	}
 
-	public String getTableName() {
+	public final String getTableName() {
 		return tableName;
 	}
 
-	public void setTableName(String tableName) {
+	public final void setTableName(String tableName) {
 		this.tableName = tableName;
 	}
 	

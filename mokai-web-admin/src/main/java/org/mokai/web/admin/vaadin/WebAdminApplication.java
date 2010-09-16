@@ -16,7 +16,7 @@ public class WebAdminApplication extends Application {
 	private RoutingEngine routingEngine;
 
 	@Override
-	public void init() {
+	public final void init() {
 		Window mainWindow = new Window();
 		
 		mainWindow.addComponent(new Label("<h2>Processors</h2>", Label.CONTENT_XHTML));

@@ -12,6 +12,11 @@ import org.mokai.Message;
  * @author German Escobar
  */
 public class SmsMessageTranslator {
+	
+	/**
+	 * Hides the public constructor. 
+	 */
+	private SmsMessageTranslator() {}
 
 	public static Message createDeliveryReceipt(DeliverSm deliverSm) throws InvalidDeliveryReceiptException {
 		

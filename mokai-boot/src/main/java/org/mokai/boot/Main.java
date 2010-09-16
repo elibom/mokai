@@ -9,6 +9,11 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
  * @author German Escobar
  */
 public class Main {
+	
+	/**
+	 * This class shouldn't be instantiated.
+	 */
+	private Main() {}
 
 	public static void main(String[] args) {
 

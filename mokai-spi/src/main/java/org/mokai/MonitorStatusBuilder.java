@@ -8,6 +8,11 @@ import org.mokai.Monitorable.Status;
  * @author German Escobar
  */
 public class MonitorStatusBuilder {
+	
+	/**
+	 * This class is not supposed to be instantiated.
+	 */
+	private MonitorStatusBuilder() {}
 
 	public static Status unknown() {
 		return Status.UNKNOWN;

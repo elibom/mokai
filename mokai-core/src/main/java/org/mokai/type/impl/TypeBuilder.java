@@ -11,7 +11,13 @@ import org.mokai.type.ActionType;
 import org.mokai.type.ProcessorType;
 import org.mokai.type.ReceiverType;
 
+/**
+ * 
+ * @author German Escobar
+ */
 public class TypeBuilder {
+	
+	private TypeBuilder() {}
 
 	public static AcceptorType buildAcceptorType(Class<? extends Acceptor> acceptorClass) {
 		

@@ -46,7 +46,7 @@ public class SpringApplicationServlet extends ApplicationServlet implements Appl
      * @throws ServletException if creation or autowiring fails
      */
     @Override
-    protected Application getNewApplication(HttpServletRequest request) throws ServletException {
+    protected final Application getNewApplication(HttpServletRequest request) throws ServletException {
         
     	Class<? extends Application> cl = null;
     	
@@ -65,7 +65,7 @@ public class SpringApplicationServlet extends ApplicationServlet implements Appl
     }
 
 	@Override
-	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+	public final void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
 	}
 	

@@ -19,7 +19,7 @@ import org.java.plugin.standard.StandardPluginLifecycleHandler;
 public class CustomPluginLifecycleHandler extends StandardPluginLifecycleHandler {
 
 	@Override
-	protected PluginClassLoader createPluginClassLoader(final PluginDescriptor descr) {
+	protected final PluginClassLoader createPluginClassLoader(final PluginDescriptor descr) {
 		
 		final ClassLoader parentClassLoader = new ClassLoader() {
 

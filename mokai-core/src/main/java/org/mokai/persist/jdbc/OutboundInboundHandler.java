@@ -230,7 +230,7 @@ public class OutboundInboundHandler implements MessageHandler {
 	 * handling outbound messages.
 	 * @throws IllegalArgumentException if the outboundHandler is null.
 	 */
-	public void setOutboundHandler(MessageHandler outboundHandler)
+	public final void setOutboundHandler(MessageHandler outboundHandler)
 			throws IllegalArgumentException {
 		
 		Validate.notNull(outboundHandler);

@@ -31,6 +31,11 @@ import org.mokai.plugin.PluginMechanism;
  * @author German Escobar
  */
 public class XmlConfigurationUtils {
+	
+	/**
+	 * This class is not supposed to be instantiated.
+	 */
+	private XmlConfigurationUtils() {}
 
 	/**
 	 * Converts a String value to the specified class.

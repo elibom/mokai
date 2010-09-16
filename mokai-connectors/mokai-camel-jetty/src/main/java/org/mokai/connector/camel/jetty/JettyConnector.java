@@ -63,17 +63,18 @@ public class JettyConnector implements Receiver, Configurable,
 					@Override
 					public void process(Exchange exchange) throws Exception {
 						
+						Message message = new Message();
+						
 						// retrieve the type of the message
 						String type = (String) exchange.getIn().getHeader("type");
 						if (type == null) {
-							type = Message.SMS_TYPE;
+							message.setType(Message.SMS_TYPE);
+						} else {
+							message.setType(type);
 						}
 						
 						// retrieve the reference of the message
 						String reference = (String) exchange.getIn().getHeader("reference");
-						
-						Message message = new Message(type);
-						
 						if (reference != null) {
 							message.setReference(reference);
 						}
@@ -117,8 +118,6 @@ public class JettyConnector implements Receiver, Configurable,
 		camelContext.start();
 
 	}
-
-
 
 	@Override
 	public final void destroy() throws Exception {

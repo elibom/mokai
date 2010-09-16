@@ -15,6 +15,11 @@ import javax.sql.DataSource;
  * @author German Escobar
  */
 public class JdbcHelper {
+	
+	/**
+	 * Hides the public constructor.
+	 */
+	private JdbcHelper() {}
 
 	/**
 	 * Checks if the table exists. If it doesn't, it creates it using the

@@ -99,8 +99,7 @@ public class JBossMQReceiver implements Receiver, ExposableConfiguration<JBossMQ
 	public final JBossMQConfiguration getConfiguration() {
 		return configuration;
 	}
-
-	@SuppressWarnings("unchecked")
+	
 	@Override
 	public final void onMessage(javax.jms.Message jmsMessage) {
 		
@@ -108,33 +107,8 @@ public class JBossMQReceiver implements Receiver, ExposableConfiguration<JBossMQ
 			// create the message
 			Message message = new Message();
 			
-			// retrieve the type of the message
-			String type = jmsMessage.getStringProperty("type");
-			if (type != null) {
-				message.setType(type);
-			}
-			
-			// retrieve the reference
-			String reference = jmsMessage.getStringProperty("reference");
-			if (reference != null) {
-				message.setReference(reference);
-			}
-			
-			// retrieve properties
-			Enumeration propertyNames = jmsMessage.getPropertyNames();
-			while (propertyNames.hasMoreElements()) {
-				String propertyName = (String) propertyNames.nextElement();
-				Object propertyValue = jmsMessage.getObjectProperty(propertyName);
-				
-				String key = propertyName;
-				
-				// check if there is a mapper and apply it
-				if (configuration.getMapper().containsKey(key)) {
-					key = configuration.getMapper().get(key);
-				}
-				
-				message.setProperty(key, propertyValue);
-			}
+			// handle the message properties
+			handleMessageProperties(jmsMessage, message);
 			
 			// handle jms message body
 			handleMessageBody(jmsMessage, message);
@@ -144,6 +118,40 @@ public class JBossMQReceiver implements Receiver, ExposableConfiguration<JBossMQ
 			
 		} catch (JMSException e) {
 			log.error("Exception receiving message from JBossMQ: " + e.getMessage(), e);
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	private void handleMessageProperties(javax.jms.Message jmsMessage, Message message) throws JMSException {
+		
+		// retrieve the type of the message
+		String type = jmsMessage.getStringProperty("type");
+		if (type != null) {
+			message.setType(type);
+		} else {
+			message.setType(Message.SMS_TYPE);
+		}
+		
+		// retrieve the reference
+		String reference = jmsMessage.getStringProperty("reference");
+		if (reference != null) {
+			message.setReference(reference);
+		}
+		
+		// retrieve properties
+		Enumeration propertyNames = jmsMessage.getPropertyNames();
+		while (propertyNames.hasMoreElements()) {
+			String propertyName = (String) propertyNames.nextElement();
+			Object propertyValue = jmsMessage.getObjectProperty(propertyName);
+			
+			String key = propertyName;
+			
+			// check if there is a mapper and apply it
+			if (configuration.getMapper().containsKey(key)) {
+				key = configuration.getMapper().get(key);
+			}
+			
+			message.setProperty(key, propertyValue);
 		}
 	}
 	

@@ -23,7 +23,7 @@ public class SchemaEntityResolver implements EntityResolver {
 	private static final String MOKAI_NAMESPACE = "http://mokai.googlecode.com/svn/schema/";
 
 	@Override
-	public InputSource resolveEntity(String publicId, String systemId)
+	public final InputSource resolveEntity(String publicId, String systemId)
 			throws SAXException, IOException {
 		
 		if (systemId != null) {
@@ -50,7 +50,7 @@ public class SchemaEntityResolver implements EntityResolver {
 		return null;
 	}
 
-	protected InputStream resolveInMokaiNamespace(String path) {
+	protected final InputStream resolveInMokaiNamespace(String path) {
         return this.getClass().getClassLoader().getResourceAsStream(path);
     }
 }

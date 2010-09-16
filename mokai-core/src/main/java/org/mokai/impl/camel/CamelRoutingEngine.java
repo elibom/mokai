@@ -68,7 +68,7 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 	 * 
 	 * @return a Camel JmsComponent object.
 	 */
-	protected JmsComponent defaultJmsComponent() {
+	private JmsComponent defaultJmsComponent() {
 		// a simple activemq connection factory
 		ActiveMQConnectionFactory connectionFactory = 
 			new ActiveMQConnectionFactory("vm://broker1?broker.persistent=false");

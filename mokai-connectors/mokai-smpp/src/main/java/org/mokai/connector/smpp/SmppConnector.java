@@ -624,7 +624,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 				Message originalMessage = messages.iterator().next();
 				log.debug("message with SMSC message id: " + messageId + " found");
 				
-				// set the information in the original message
+				// set the information in the message we are routing
 				message.setProperty("smsId", originalMessage.getId());
 				message.setReference(originalMessage.getReference());
 				

@@ -96,6 +96,7 @@
 		<jpf.version>1.5</jpf.version>
 		<testng.version>5.9</testng.version>
 		<slf4j.version>1.6.1</slf4j.version>
+		<mockito.version>1.8.5</mockito.version>
 	</properties>
 
 	<build>

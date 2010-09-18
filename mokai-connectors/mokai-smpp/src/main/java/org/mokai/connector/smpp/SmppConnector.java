@@ -41,22 +41,14 @@ import org.mokai.annotation.Name;
 import org.mokai.annotation.Resource;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.MessageStore;
+import org.mokai.persist.RejectedException;
+import org.mokai.persist.StoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * A connector that sends and receives messages to an SMSC using the SMPP protocol.
- * When a message is received, it will create a {@link Message} object and will 
- * add the following properties to it:
- * 
- * <ul>
- * 	<li>"to" - the destination address of the SMS message.</li>
- *  <li>"from" - the source address of the SMS message.</li>
- *  <li>"text" - the text of the SMS message.</li>
- * </ul>
- * 
- * To check the properties that this component expects check the {@link #process(Message)}
- * method documentation.
+ * This implementation is based on JSMPP.
  * 
  * @author German Escobar
  */
@@ -79,6 +71,9 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	@Resource
 	private MessageStore messageStore;
 	
+	/**
+	 * This is the JSmpp session object used to connect to the SMSC.
+	 */
 	private SMPPSession session = new SMPPSession();
 	
 	/**
@@ -146,6 +141,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	/**
 	 * Helper method that creates a org.jsmpp.session.SMPPSession and tries 
 	 * to bind.
+	 * 
 	 * @return the bound SMPPSession
 	 * @throws IOException
 	 */
@@ -417,6 +413,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	
 	/**
 	 * Helper method that subclases can override to support additional type of messages
+	 * 
 	 * @param message the Message object to be tested for support
 	 * @return true if supports the message, false otherwise
 	 */
@@ -539,7 +536,8 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	}
 	
 	/**
-	 * The default message handler of incoming messages from the SMSC.
+	 * The default message handler of incoming messages from the SMSC. It handles short messages
+	 * and delivery receipts.
 	 * 
 	 * @author German Escobar
 	 */
@@ -556,34 +554,77 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			log.info("received deliverSm: " + deliverSm);
 			
 			if (deliverSm.isSmscDeliveryReceipt()) {
-				log.info("DeliveryReceipt short message: " + new String(deliverSm.getShortMessage()));
 				
-				try {
+				// this is a delivery receipt, handle it
+				handleDeliveryReceipt(deliverSm);
 				
-					// create the message based on the delivery receipt
-					Message message = SmsMessageTranslator.createDeliveryReceipt(deliverSm);
-					
-					if (messageStore != null) {
-						findAndUpdateOriginalMessage(message, messageStore);
-					}
-					
-					// producer the message
-					produceMessage(message);
-					
-				} catch (InvalidDeliveryReceiptException e) {
-					log.error("InvalidDeliveryReceiptException while trying to parse deliveSm: " 
-							+ e.getMessage(), e);
-				}
 			} else {
 				
-				log.info("DeliverySm short message: " + new String(deliverSm.getShortMessage()));
-				
-				// create the message based on the deliverSm
-				Message message = SmsMessageTranslator.createDeliverSm(deliverSm);
-				
-				// produce the message
-				produceMessage(message);
+				// this is a short message, handle it
+				handleShortMessage(deliverSm);
 			}
+		}
+		
+		/**
+		 * Helper method to handle a delivery receipt.
+		 * 
+		 * @param deliverSm
+		 * @see SmsMessageTranslator#createDeliveryReceipt(DeliverSm)
+		 */
+		private void handleDeliveryReceipt(DeliverSm deliverSm) {
+			log.info("DeliveryReceipt short message: " + new String(deliverSm.getShortMessage()));
+			
+			try {
+			
+				// create the message based on the delivery receipt
+				Message message = SmsMessageTranslator.createDeliveryReceipt(deliverSm);
+				
+				if (messageStore != null) {
+					
+					// try to find the original submitted message
+					String messageId = message.getProperty("messageId", String.class);
+					Message originalMessage = findOriginalMessage(messageStore, messageId);
+					
+					if (originalMessage != null) {
+						
+						// set the information on the message we are routing
+						message.setProperty("smsId", originalMessage.getId());
+						message.setReference(originalMessage.getReference());
+						
+						// update original message
+						String receiptStatus = message.getProperty("finalStatus", String.class);
+						Date doneDate = message.getProperty("doneDate", Date.class);
+						updateOriginalMessage(messageStore, originalMessage, receiptStatus, doneDate);
+						
+					} else {
+						log.warn("no submitted message was found with messageId: " + messageId);
+					}
+				}
+				
+				// producer the message
+				produceMessage(message);
+				
+			} catch (InvalidDeliveryReceiptException e) {
+				log.error("InvalidDeliveryReceiptException while trying to parse deliveSm: " 
+						+ e.getMessage(), e);
+			}
+		}
+		
+		/**
+		 * Helper method to handle a short message
+		 * 
+		 * @param deliverSm
+		 * @see SmsMessageTranslator#createShortMessage(DeliverSm)
+		 */
+		private void handleShortMessage(DeliverSm deliverSm) {
+			
+			log.info("DeliverySm short message: " + new String(deliverSm.getShortMessage()));
+			
+			// create the message based on the deliverSm
+			Message message = SmsMessageTranslator.createShortMessage(deliverSm);
+			
+			// produce the message
+			produceMessage(message);
 		}
 
 		@Override
@@ -608,9 +649,15 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			}
 		}
 		
-		private void findAndUpdateOriginalMessage(Message message, MessageStore messageStore) {
+		/**
+		 * Helper method to find the submitted message of a delivery receipt.
+		 * 
+		 * @param messageStore the {@link MessageStore} instance used to look for the submitted
+		 * message.
+		 * @param messageId the id that was returned by the SMSC when the message was submitted
+		 */
+		private Message findOriginalMessage(MessageStore messageStore, String messageId) {
 			
-			String messageId = message.getProperty("messageId", String.class);
 			log.debug("looking for message with SMSC message id: " + messageId);
 			
 			// create the criteria
@@ -624,20 +671,32 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 				Message originalMessage = messages.iterator().next();
 				log.debug("message with SMSC message id: " + messageId + " found");
 				
-				// set the information in the message we are routing
-				message.setProperty("smsId", originalMessage.getId());
-				message.setReference(originalMessage.getReference());
-				
-				// update original message
-				String receiptStatus = message.getProperty("finalStatus", String.class);
-				originalMessage.setProperty("receiptStatus", receiptStatus);
-				originalMessage.setProperty("receiptTime", message.getProperty("doneDate", Date.class));
-				messageStore.saveOrUpdate(originalMessage);
-				
-				log.debug("message with id " + originalMessage.getId() + " updated with receiptStatus: " 
-						+ receiptStatus);
+				return originalMessage;
 			}
+			
+			return null;
 		}	
+		
+		/**
+		 * Helper method to update the status and done date of a submitted message. 
+		 * 
+		 * @param messageStore
+		 * @param originalMessage
+		 * @param receiptStatus
+		 * @param doneDate
+		 * @throws StoreException
+		 * @throws RejectedException
+		 */
+		private void updateOriginalMessage(MessageStore messageStore, Message originalMessage, 
+				String receiptStatus, Date doneDate) throws StoreException, RejectedException {
+			
+			originalMessage.setProperty("receiptStatus", receiptStatus);
+			originalMessage.setProperty("receiptTime", doneDate);
+			messageStore.saveOrUpdate(originalMessage);
+			
+			log.debug("message with id " + originalMessage.getId() + " updated with receiptStatus: " 
+					+ receiptStatus);
+		}
 	}
 	
 	private class BindRequest {

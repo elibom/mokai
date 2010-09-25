@@ -1,6 +1,7 @@
 package org.mokai.connector.camel.jetty;
 
 import java.io.ByteArrayInputStream;
+import java.net.URLDecoder;
 import java.util.Map;
 import java.util.Properties;
 
@@ -103,6 +104,10 @@ public class JettyConnector implements Receiver, Configurable,
 								}
 									
 								String value = (String) entry.getValue();
+								
+								// decode the value
+								value = URLDecoder.decode(value, "UTF-8");
+								
 								message.setProperty(key, value);
 							}
 						}

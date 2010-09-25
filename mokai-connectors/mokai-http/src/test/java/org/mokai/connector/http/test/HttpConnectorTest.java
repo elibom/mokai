@@ -44,7 +44,7 @@ public class HttpConnectorTest {
 
 	@Test
 	public void testSimpleMessage() throws Exception {
-		MockRequestHandler mockHandler = new MockRequestHandler("to=3002175604&from=3542&text=test", HttpStatus.SC_OK);
+		MockRequestHandler mockHandler = new MockRequestHandler("to=3002175604&from=3542&text=test+á+script+@", HttpStatus.SC_OK);
 		testServer.register("/", mockHandler);
 		
 		HttpConfiguration configuration = new HttpConfiguration();
@@ -53,7 +53,7 @@ public class HttpConnectorTest {
 		Message message = new Message();
 		message.setProperty("to", "3002175604");
 		message.setProperty("from", "3542");
-		message.setProperty("text", "test");
+		message.setProperty("text", "test á script @");
 		
 		HttpConnector connector = new HttpConnector(configuration);
 		connector.process(message);

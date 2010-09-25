@@ -1,6 +1,7 @@
 package org.mokai.connector.camel.jetty.test;
 
 import java.lang.reflect.Field;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -35,7 +36,8 @@ public class JettyConnectorTest {
 		// create test HTTP call
 		String to = "3002175604";
 		String from = "3542";
-		String text = "test";
+		String originalText = "test á script @";
+		String text = URLEncoder.encode(originalText, "UTF-8");
 		
 		HttpClient client = new HttpClient();
 		GetMethod getMethod = new GetMethod("http://localhost:9080/test?to=" 
@@ -49,7 +51,7 @@ public class JettyConnectorTest {
 		Assert.assertNotNull(message.getReference());
 		Assert.assertEquals(to, message.getProperty("to", String.class));
 		Assert.assertEquals(from, message.getProperty("from", String.class));
-		Assert.assertEquals(text, message.getProperty("text", String.class));
+		Assert.assertEquals(originalText, message.getProperty("text", String.class));
 		
 		connector.destroy();
 		

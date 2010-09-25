@@ -1,5 +1,6 @@
 package org.mokai.connector.http;
 
+import java.net.URLEncoder;
 import java.util.Map;
 
 import org.apache.http.Header;
@@ -10,7 +11,11 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.mokai.ExposableConfiguration;
 import org.mokai.Message;
 import org.mokai.Processor;
+import org.mokai.annotation.Description;
+import org.mokai.annotation.Name;
 
+@Name("HTTP")
+@Description("Sends messages through HTTP")
 public class HttpConnector implements Processor, ExposableConfiguration<HttpConfiguration> {
 	
 	private HttpConfiguration configuration;
@@ -44,7 +49,10 @@ public class HttpConnector implements Processor, ExposableConfiguration<HttpConf
 				key = configuration.getMapper().get(key);
 			}
 			
-			url += key + "=" + entry.getValue();
+			String value = entry.getValue() + "";
+			value = URLEncoder.encode(value, "UTF-8");
+			
+			url += key + "=" + value;
 			
 			existsQuery = true;
 		}

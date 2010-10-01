@@ -37,11 +37,14 @@ public class JettyConnectorTest {
 		String to = "3002175604";
 		String from = "3542";
 		String originalText = "test á script @";
+		String account = "flycast";
+		String password = "test";
 		String text = URLEncoder.encode(originalText, "UTF-8");
 		
 		HttpClient client = new HttpClient();
 		GetMethod getMethod = new GetMethod("http://localhost:9080/test?to=" 
-				+ to + "&from=" + from + "&text=" + text);
+				+ to + "&from=" + from + "&text=" + text + "&account=" + account
+				+ "&password=" + password);
 		client.executeMethod(getMethod);
 		
 		Assert.assertEquals(1, messageProducer.messageCount());
@@ -52,6 +55,8 @@ public class JettyConnectorTest {
 		Assert.assertEquals(to, message.getProperty("to", String.class));
 		Assert.assertEquals(from, message.getProperty("from", String.class));
 		Assert.assertEquals(originalText, message.getProperty("text", String.class));
+		Assert.assertEquals(account, message.getAccountId());
+		Assert.assertEquals(password, message.getPassword());
 		
 		connector.destroy();
 		

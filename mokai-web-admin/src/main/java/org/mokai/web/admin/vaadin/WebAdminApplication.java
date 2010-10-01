@@ -1,5 +1,8 @@
 package org.mokai.web.admin.vaadin;
 
+import java.util.List;
+
+import org.mokai.ProcessorService;
 import org.mokai.RoutingEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.henrik.refresher.Refresher;
@@ -37,6 +40,10 @@ public class WebAdminApplication extends Application {
 		
 		mainWindow.addComponent(receiversTable);
 		
+		final Label checkLabel = new Label(getProcessorsString());
+		checkLabel.setStyleName("transparent");
+		mainWindow.addComponent(checkLabel);
+		
 		Refresher refresher = new Refresher();
 		refresher.setRefreshInterval(5000);
 		refresher.addListener(new Refresher.RefreshListener() {
@@ -47,6 +54,8 @@ public class WebAdminApplication extends Application {
 			public void refresh(Refresher source) {
 				processorsTable.loadData();
 				receiversTable.loadData();
+				
+				checkLabel.setValue(getProcessorsString());
 			}
 			
 		});
@@ -56,6 +65,17 @@ public class WebAdminApplication extends Application {
 		setTheme("mokai");
 		
 		setMainWindow(mainWindow);
+	}
+	
+	private String getProcessorsString() {
+		String ret = "";
+		
+		List<ProcessorService> processors = routingEngine.getProcessors();
+		for (final ProcessorService processor : processors) {
+			ret += processor.getId() + "_" + processor.getStatus();
+		}
+		
+		return ret;
 	}
 	
 

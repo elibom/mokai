@@ -15,3 +15,7 @@
 .v-table-cell-content-gray {
 	background-color: gray;
 }
+
+.transparent {
+	visibility: hidden;
+}

@@ -138,6 +138,17 @@ public class JBossMQReceiver implements Receiver, ExposableConfiguration<JBossMQ
 			message.setReference(reference);
 		}
 		
+		// retrieve the account and password
+		String account = jmsMessage.getStringProperty("account");
+		if (account != null) {
+			message.setAccountId(account);
+		}
+		
+		String password = jmsMessage.getStringProperty("password");
+		if (password != null) {
+			message.setPassword(password);
+		}
+		
 		// retrieve properties
 		Enumeration propertyNames = jmsMessage.getPropertyNames();
 		while (propertyNames.hasMoreElements()) {

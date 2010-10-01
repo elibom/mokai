@@ -80,6 +80,17 @@ public class JettyConnector implements Receiver, Configurable,
 							message.setReference(reference);
 						}
 						
+						// retrieve the account and password of the message
+						String account = (String) exchange.getIn().getHeader("account");
+						if (account != null) {
+							message.setAccountId(account);
+						}
+						
+						String password = (String) exchange.getIn().getHeader("password");
+						if (password != null) {
+							message.setPassword(password);
+						}
+						
 						// retrieve the query part of the request
 						String query = (String) exchange.getIn().getHeader("CamelHttpQuery");
 						

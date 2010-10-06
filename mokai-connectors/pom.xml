@@ -18,10 +18,7 @@
 	
 	<modules>
 		<module>mokai-smpp</module>
-		<!-- <module>mokai-http</module> -->
-		<!-- <module>mokai-jms</module> -->
 		<module>mokai-camel-jetty</module>
 		<module>mokai-http</module>
-		<module>mokai-jms</module>
 	</modules>
 </project>

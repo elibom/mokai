@@ -128,14 +128,8 @@ public class CamelProcessorService implements ProcessorService {
 		ResourceInjector.inject(processor, resourceRegistry);
 		injectMessageProducer(processor);
 		
-		try {
-			if (Configurable.class.isInstance(processor)) {
-				Configurable configurableProcessor = (Configurable) processor;
-				configurableProcessor.configure();
-			}
-		} catch (Exception e) {
-			throw new ExecutionException(e);
-		}
+		// configure the processor if it implements Configurable
+		LifecycleMethodsHelper.configure(processor);
 	}
 	
 	/**
@@ -199,7 +193,7 @@ public class CamelProcessorService implements ProcessorService {
 
 	@Override
 	public final ProcessorService addAcceptor(Acceptor acceptor) throws IllegalArgumentException, 
-			ObjectAlreadyExistsException {
+			ObjectAlreadyExistsException, ExecutionException {
 		
 		Validate.notNull(acceptor);
 		
@@ -210,6 +204,9 @@ public class CamelProcessorService implements ProcessorService {
 		
 		// inject the resources
 		ResourceInjector.inject(acceptor, resourceRegistry);
+		
+		// configure if it implements Configurable
+		LifecycleMethodsHelper.configure(acceptor);
 		
 		// add the acceptor to the collection of acceptors
 		this.acceptors.add(acceptor);
@@ -227,6 +224,9 @@ public class CamelProcessorService implements ProcessorService {
 		if (!removed) {
 			throw new ObjectNotFoundException("Acceptor " + acceptor + " not found");
 		}
+		
+		// destroy if it implements Configurable
+		LifecycleMethodsHelper.destroy(acceptor);
 		
 		return this;
 	}
@@ -250,6 +250,9 @@ public class CamelProcessorService implements ProcessorService {
 		// inject the resources
 		ResourceInjector.inject(action, resourceRegistry);
 		
+		// configure if it implements Configurable
+		LifecycleMethodsHelper.configure(action);
+		
 		// add the action to the collection of pre-processing actions
 		this.preProcessingActions.add(action);
 		
@@ -266,6 +269,9 @@ public class CamelProcessorService implements ProcessorService {
 		if (!removed) {
 			throw new ObjectNotFoundException("Action " + action + " not found");
 		}
+		
+		// destroy if it implements Configurable
+		LifecycleMethodsHelper.destroy(action);
 		
 		return this;
 	}
@@ -289,6 +295,9 @@ public class CamelProcessorService implements ProcessorService {
 		// inject the resources
 		ResourceInjector.inject(action, resourceRegistry);
 		
+		// configure if it implements Configurable
+		LifecycleMethodsHelper.configure(action);
+		
 		// add the action to the collection of post-processing actions
 		this.postProcessingActions.add(action);
 		
@@ -305,6 +314,9 @@ public class CamelProcessorService implements ProcessorService {
 		if (!removed) {
 			throw new ObjectNotFoundException("Action " + action + " not found");
 		}
+		
+		// destroy if it implements Configurable
+		LifecycleMethodsHelper.destroy(action);
 		
 		return this;
 	}
@@ -328,6 +340,9 @@ public class CamelProcessorService implements ProcessorService {
 		// inject the resources
 		ResourceInjector.inject(action, resourceRegistry);
 		
+		// configure if it implements Configurable
+		LifecycleMethodsHelper.configure(action);
+		
 		// add the action to the post-receiving actions
 		this.postReceivingActions.add(action);
 		
@@ -344,6 +359,9 @@ public class CamelProcessorService implements ProcessorService {
 		if (!remove) {
 			throw new ObjectNotFoundException("Action " + action + " not found");
 		}
+		
+		// destroy if it implements Configurable
+		LifecycleMethodsHelper.destroy(action);
 		
 		return this;
 	}
@@ -422,13 +440,10 @@ public class CamelProcessorService implements ProcessorService {
 			return;
 		}
 		
+		// start the connector if is Serviceable
+		LifecycleMethodsHelper.start(processor);
+		
 		try {
-			
-			// start the connector if is Serviceable
-			if (Serviceable.class.isInstance(processor)) {
-				Serviceable connectorService = (Serviceable) processor;
-				connectorService.doStart();
-			}
 			
 			// check if the routes already exists and start them
 			if (routes != null) {
@@ -524,18 +539,16 @@ public class CamelProcessorService implements ProcessorService {
 	 */
 	@Override
 	public final void stop() {
+		
+		if (!state.isStoppable()) {
+			log.warn("Processor " + id + " is already stopped, ignoring call");
+			return;
+		}
+			
+		// stop the processor if it implements Configurable
+		LifecycleMethodsHelper.stop(processor);
+			
 		try {
-			if (!state.isStoppable()) {
-				log.warn("Processor " + id + " is already stopped, ignoring call");
-				return;
-			}
-			
-			// stop the connector if is Serviceable
-			if (Serviceable.class.isInstance(processor)) {
-				Serviceable connectorService = (Serviceable) processor;
-				connectorService.doStop();
-			}
-			
 			// stop the routes
 			for (RouteDefinition route : routes) {
 				camelContext.stopRoute(route);
@@ -554,18 +567,11 @@ public class CamelProcessorService implements ProcessorService {
 	 */
 	@Override
 	public final void destroy() {
-		try {
-			
-			stop();
-			
-			if (Configurable.class.isInstance(processor)) {
-				Configurable configurableProcessor = (Configurable) processor;
-				configurableProcessor.destroy();
-			}
-			
-		} catch (Exception e) {
-			log.warn("Exception destroying processor " + id + ": " + e.getMessage(), e);
-		}
+		
+		// stop and destroy
+		stop();
+		LifecycleMethodsHelper.destroy(processor);
+		
 	}
 	
 	@Override

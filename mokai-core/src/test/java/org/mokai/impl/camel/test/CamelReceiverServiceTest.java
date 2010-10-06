@@ -180,6 +180,21 @@ public class CamelReceiverServiceTest extends CamelBaseTest {
 		
 	}
 	
+	@Test
+	public void testAddRemoveConfigurableAction() throws Exception {
+		CamelReceiverService receiverService = 
+			new CamelReceiverService("test", Mockito.mock(Receiver.class), resourceRegistry);
+		
+		Action configurableAction = Mockito.mock(Action.class, 
+				Mockito.withSettings().extraInterfaces(Configurable.class));
+		
+		receiverService.addPostReceivingAction(configurableAction);
+		receiverService.removePostReceivingAction(configurableAction);
+		
+		Mockito.verify((Configurable) configurableAction).configure();
+		Mockito.verify((Configurable) configurableAction).destroy();
+	}
+	
 	@Test(expectedExceptions=ExecutionException.class)
 	public void testActionException() throws Exception {
 		SimpleReceiver receiver = new SimpleReceiver();

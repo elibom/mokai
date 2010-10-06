@@ -14,7 +14,6 @@ import org.apache.camel.model.RouteDefinition;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.mokai.Action;
-import org.mokai.Configurable;
 import org.mokai.ExecutionException;
 import org.mokai.Message;
 import org.mokai.MessageProducer;
@@ -24,7 +23,6 @@ import org.mokai.ObjectAlreadyExistsException;
 import org.mokai.ObjectNotFoundException;
 import org.mokai.Receiver;
 import org.mokai.ReceiverService;
-import org.mokai.Serviceable;
 import org.mokai.Message.Direction;
 import org.mokai.Message.SourceType;
 import org.mokai.Monitorable.Status;
@@ -84,10 +82,7 @@ public class CamelReceiverService implements ReceiverService {
 		try {
 			
 			// configure connector
-			if (Configurable.class.isInstance(receiver)) {
-				Configurable configurableConnector = (Configurable) receiver;
-				configurableConnector.configure();
-			}
+			LifecycleMethodsHelper.configure(receiver);
 			
 			RouteBuilder routeBuilder = new RouteBuilder() {
 		
@@ -163,14 +158,6 @@ public class CamelReceiverService implements ReceiverService {
 		return MonitorStatusBuilder.unknown();
 	}
 
-	private boolean isServiceable() {
-		if (Serviceable.class.isInstance(receiver)) {
-			return true;
-		}
-		
-		return false;
-	}
-
 	@Override
 	public final ReceiverService addPostReceivingAction(Action action) throws IllegalArgumentException, 
 			ObjectAlreadyExistsException {
@@ -184,6 +171,9 @@ public class CamelReceiverService implements ReceiverService {
 		
 		// inject the resources
 		ResourceInjector.inject(action, resourceRegistry);
+		
+		// configure if it implements Configurable
+		LifecycleMethodsHelper.configure(action);
 		
 		// add the action to the collection of post-receiving actions
 		postReceivingActions.add(action);
@@ -201,6 +191,9 @@ public class CamelReceiverService implements ReceiverService {
 		if (!removed) {
 			throw new ObjectNotFoundException("Action " + action + " not found");
 		}
+		
+		// destroy if it implements Configurable
+		LifecycleMethodsHelper.destroy(action);
 		
 		return this;
 	}
@@ -229,13 +222,8 @@ public class CamelReceiverService implements ReceiverService {
 				return;
 			}
 			
-			// start the connector if is Serviceable
-			if (isServiceable()) {
-				Serviceable connectorService = (Serviceable) receiver;
-				connectorService.doStart();
-			} else {
-				log.warn("Receiver " + id + " is not Serviceable, ignoring call");
-			}
+			// start the receiver if it implements Serviceable
+			LifecycleMethodsHelper.start(receiver);
 			
 			state = State.STARTED;
 			
@@ -254,12 +242,8 @@ public class CamelReceiverService implements ReceiverService {
 				return;
 			}
 			
-			if (isServiceable()) {
-				Serviceable connectorService = (Serviceable) receiver;
-				connectorService.doStop();
-			} else {
-				log.warn("Receiver " + id + " is not Serviceable, ignoring call");
-			}
+			// stop the receiver if it implements Serviceable
+			LifecycleMethodsHelper.stop(receiver);
 			
 			state = State.STOPPED;
 			
@@ -274,11 +258,8 @@ public class CamelReceiverService implements ReceiverService {
 			
 			stop();
 			
-			// invoke the remove method on the connector
-			if (Configurable.class.isInstance(receiver)) {
-				Configurable configurableConnector = (Configurable) receiver;
-				configurableConnector.destroy();
-			}
+			// invoke the remove method on the receiver
+			LifecycleMethodsHelper.destroy(receiver);
 			
 			// stop the routes
 			for (RouteDefinition route : routes) {

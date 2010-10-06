@@ -568,6 +568,67 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 	}
 	
 	@Test
+	public void testAddRemoveConfigurableAcceptor() throws Exception {
+		CamelProcessorService processorService = 
+			new CamelProcessorService("test", 0, Mockito.mock(Processor.class), resourceRegistry);
+		
+		Acceptor configurableAcceptor = Mockito.mock(Acceptor.class, 
+				Mockito.withSettings().extraInterfaces(Configurable.class));
+		
+		processorService.addAcceptor(configurableAcceptor);
+		processorService.removeAcceptor(configurableAcceptor);
+		
+		Mockito.verify((Configurable) configurableAcceptor).configure();
+		Mockito.verify((Configurable) configurableAcceptor).destroy();
+		
+	}
+	
+	@Test
+	public void testAddRemoveConfigurablePreProcessingAction() throws Exception {
+		CamelProcessorService processorService = 
+			new CamelProcessorService("test", 0, Mockito.mock(Processor.class), resourceRegistry);
+		
+		Action configurableAction = Mockito.mock(Action.class, 
+				Mockito.withSettings().extraInterfaces(Configurable.class));
+		
+		processorService.addPreProcessingAction(configurableAction);
+		processorService.removePreProcessingAction(configurableAction);
+		
+		Mockito.verify((Configurable) configurableAction).configure();
+		Mockito.verify((Configurable) configurableAction).destroy();
+	}
+	
+	@Test
+	public void testAddRemoveConfigurablePostProcessingAction() throws Exception {
+		CamelProcessorService processorService = 
+			new CamelProcessorService("test", 0, Mockito.mock(Processor.class), resourceRegistry);
+		
+		Action configurableAction = Mockito.mock(Action.class, 
+				Mockito.withSettings().extraInterfaces(Configurable.class));
+		
+		processorService.addPostProcessingAction(configurableAction);
+		processorService.removePostProcessingAction(configurableAction);
+		
+		Mockito.verify((Configurable) configurableAction).configure();
+		Mockito.verify((Configurable) configurableAction).destroy();
+	}
+	
+	@Test
+	public void testAddRemoveConfigurablePostReceivingAction() throws Exception {
+		CamelProcessorService processorService = 
+			new CamelProcessorService("test", 0, Mockito.mock(Processor.class), resourceRegistry);
+		
+		Action configurableAction = Mockito.mock(Action.class, 
+				Mockito.withSettings().extraInterfaces(Configurable.class));
+		
+		processorService.addPostReceivingAction(configurableAction);
+		processorService.removePostReceivingAction(configurableAction);
+		
+		Mockito.verify((Configurable) configurableAction).configure();
+		Mockito.verify((Configurable) configurableAction).destroy();
+	}
+	
+	@Test
 	public void testPreProcessingActionException() throws Exception {
 
 		MockEndpoint outboundEndpoint = addOutboundValidationRoute(0);

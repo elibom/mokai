@@ -100,8 +100,8 @@
 	</properties>
 
 	<scm>
-		<url>scm:git:git@github.com:mokai/mokai.git</url>
-		<connection>scm:git:git@github.com:mokai/mokai.git</connection>
+		<url>scm:git:file://c/java/proyectos/mokai/mokai-parent</url>
+		<connection>scm:git:file://c/java/proyectos/mokai/mokai-parent</connection>
 	</scm>
 	
 	<build>

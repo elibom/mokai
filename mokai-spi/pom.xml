@@ -4,10 +4,9 @@
 	<parent>
 		<artifactId>mokai-parent</artifactId>
 		<groupId>org.mokai</groupId>
-		<version>0.1.0</version>
+		<version>0.1.1-SNAPSHOT</version>
 	</parent>
 
-	<groupId>org.mokai</groupId>
 	<artifactId>mokai-spi</artifactId>
 
 	<name>Mokai SPI</name>

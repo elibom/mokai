@@ -99,6 +99,11 @@
 		<mockito.version>1.8.5</mockito.version>
 	</properties>
 
+	<scm>
+		<url>scm:git:git@github.com:mokai/mokai.git</url>
+		<connection>scm:git:git@github.com:mokai/mokai.git</connection>
+	</scm>
+	
 	<build>
 		<pluginManagement>
 			<plugins>

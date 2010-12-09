@@ -2,9 +2,6 @@ package org.mokai.impl.camel.test;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import junit.framework.Assert;
 
@@ -20,11 +17,11 @@ import org.mokai.ExecutionException;
 import org.mokai.Message;
 import org.mokai.MessageProducer;
 import org.mokai.Monitorable;
+import org.mokai.Monitorable.Status;
 import org.mokai.Processor;
 import org.mokai.Service;
-import org.mokai.Serviceable;
-import org.mokai.Monitorable.Status;
 import org.mokai.Service.State;
+import org.mokai.Serviceable;
 import org.mokai.annotation.Resource;
 import org.mokai.impl.camel.CamelProcessorService;
 import org.mokai.impl.camel.ResourceRegistry;
@@ -744,20 +741,19 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 	@Test
 	public void testMessageStoppedProcessor() throws Exception {
 		
+		System.out.println("testMessageStoppedProcessor started");
+		
 		MockEndpoint outboundEndpoint = addOutboundValidationRoute(2);
+		outboundEndpoint.setResultWaitTime(3000);
 		MockEndpoint failedEndpoint = addFailedValidationRoute(0);
 		
 		MockProcessor processor = new MockProcessor();
 		CamelProcessorService processorService = 
 			new CamelProcessorService("test", 0, processor, resourceRegistry);
 		
-		try {
-			Future<Object> future = camelProducer.asyncRequestBody("activemq:processor-test", new Message());
-			future.get(3, TimeUnit.SECONDS);
-			Assert.fail();
-		} catch (TimeoutException e) {
-			
-		}
+		simulateMessage(new Message(), "activemq:processor-test");
+		
+		Thread.sleep(3000);
 		
 		Assert.assertEquals(1, processorService.getNumQueuedMessages());
 		

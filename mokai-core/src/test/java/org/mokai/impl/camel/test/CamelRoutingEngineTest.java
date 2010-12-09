@@ -236,7 +236,13 @@ public class CamelRoutingEngineTest {
 	
 	@Test
 	public void testSimpleMessageFlow() throws Exception {
+		final CyclicBarrier barrier = new CyclicBarrier(2);
+		
+		// a custom message store
+		MessageStore messageStore = new MockMessageStore(barrier, Status.PROCESSED);
+		
 		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
+		routingEngine.setMessageStore(messageStore);
 		routingEngine.start();
 		
 		// create the processor
@@ -247,7 +253,10 @@ public class CamelRoutingEngineTest {
 		
 		// send the message
 		ProducerTemplate producer = routingEngine.getCamelContext().createProducerTemplate();
-		producer.requestBody("activemq:outboundRouter", new Message());
+		producer.sendBody("activemq:outboundRouter", new Message());
+		
+		// wait
+		barrier.await(20, TimeUnit.SECONDS);
 		
 		Assert.assertEquals(1, processor.getCount());
 		
@@ -259,24 +268,7 @@ public class CamelRoutingEngineTest {
 		final CyclicBarrier barrier = new CyclicBarrier(2);
 		
 		// a custom message store
-		MessageStore messageStore = new MessageStore() {
-
-			@Override
-			public Collection<Message> list(MessageCriteria criteria)
-					throws StoreException {
-				return null;
-			}
-
-			@Override
-			public void saveOrUpdate(Message message) throws StoreException {
-				try { barrier.await(); } catch (Exception e) {}
-			}
-
-			@Override
-			public void updateStatus(MessageCriteria criteria, Status newStatus)
-					throws StoreException {}
-			
-		};
+		MessageStore messageStore = new MockMessageStore(barrier, Status.UNROUTABLE);
 		
 		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
 		routingEngine.setMessageStore(messageStore);
@@ -386,6 +378,37 @@ public class CamelRoutingEngineTest {
 		public boolean accepts(Message message) {
 			return true;
 		}
+		
+	}
+	
+	protected class MockMessageStore implements MessageStore {
+		
+		private CyclicBarrier barrier;
+		private Status status;
+		
+		public MockMessageStore(CyclicBarrier barrier, Status status) {
+			this.barrier = barrier;
+			this.status = status;
+		}
+		
+		@Override
+		public Collection<Message> list(MessageCriteria criteria)
+				throws StoreException {
+			return null;
+		}
+
+		@Override
+		public void saveOrUpdate(Message message) throws StoreException {
+			if (!message.getStatus().equals(status)) {
+				Assert.fail();
+			}
+			
+			try { barrier.await(); } catch (Exception e) {}
+		}
+
+		@Override
+		public void updateStatus(MessageCriteria criteria, Status newStatus)
+				throws StoreException {}
 		
 	}
 }

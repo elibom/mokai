@@ -30,6 +30,12 @@
 				<configuration>
 					<repositoryLayout>flat</repositoryLayout>
 					<includeConfigurationDirectoryInClasspath>true</includeConfigurationDirectoryInClasspath>
+					
+					
+					<defaultJvmSettings>
+            			<initialMemorySize>256M</initialMemorySize>
+            			<maxMemorySize>512M</maxMemorySize>
+            		</defaultJvmSettings>
 
 					<daemons>
 						<daemon>
@@ -41,7 +47,7 @@
 							<generatorConfigurations>
 								<generatorConfiguration>
 									<generator>jsw</generator>
-
+									
 									<configuration>
 										<property>
 											<name>set.default.REPO_DIR</name>
@@ -49,7 +55,15 @@
 										</property>
 										<property>
 											<name>wrapper.logfile</name>
-											<value>logs/wrapper.log</value>
+											<value>wrapper.log</value>
+										</property>
+										<property>
+											<name>wrapper.java.additional.1</name>
+											<value>-XX:PermSize=64M</value>
+										</property>
+										<property>
+											<name>wrapper.java.additional.2</name>
+											<value>-XX:MaxPermSize=128M</value>
 										</property>
 									</configuration>
 								</generatorConfiguration>

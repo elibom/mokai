@@ -51,7 +51,7 @@ public enum TableScripts {
 			"smsc_receiptstatus VARCHAR(20), " +
 			"smsc_receipttime DATETIME, " +
 			"creation_time DATETIME NOT NULL, " +
-			"modification_time DATETIME)");
+			"modification_time DATETIME) ENGINE=MyISAM");
 	
 	private String tableName;
 	private String tableScript;

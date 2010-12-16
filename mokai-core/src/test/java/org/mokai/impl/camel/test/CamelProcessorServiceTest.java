@@ -450,6 +450,39 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 	}
 	
 	@Test
+	public void testProcessorExceptionAndRecovery() throws Exception {
+		
+		MockEndpoint outboundEndpoint = addOutboundValidationRoute(1);
+		MockEndpoint failedEndpoint = addFailedValidationRoute(0);
+		
+		CamelProcessorService processorService = new CamelProcessorService("test", 0, new Processor() {
+			
+			private int times = 0;
+
+			@Override
+			public void process(Message message) {
+				if (times == 0) {
+					times++;
+					throw new NullPointerException();
+				}
+			}
+
+			@Override
+			public boolean supports(Message message) {
+				return true;
+			}
+			
+		}, resourceRegistry);
+		processorService.start();
+		
+		simulateMessage(new Message(), "activemq:processor-test");
+		
+		failedEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
+		outboundEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
+		
+	}
+	
+	@Test
 	public void testAddRemoveAcceptors() throws Exception {
 		CamelProcessorService processorService = 
 			new CamelProcessorService("test", 0, new MockProcessor(), resourceRegistry);

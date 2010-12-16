@@ -624,7 +624,9 @@ public class CamelProcessorService implements ProcessorService {
 					
 					// retry
 					attempt++;
-					process(message, attempt);
+					
+					// MOKAI-20 - return keyword was missing
+					return process(message, attempt);
 				} else {
 					log.error("message failed after " + maxRetries + " retries: " + e.getMessage(), e);
 					

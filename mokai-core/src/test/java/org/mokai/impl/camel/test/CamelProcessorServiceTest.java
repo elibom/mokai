@@ -676,8 +676,39 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 
 		simulateMessage(new Message(), "activemq:processor-test");
 		
-		failedEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
 		outboundEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
+		failedEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
+		
+		Exchange exchange = failedEndpoint.getReceivedExchanges().iterator().next();
+		Message smsMessage = exchange.getIn().getBody(Message.class);
+
+		Assert.assertEquals(Message.DestinationType.PROCESSOR, smsMessage.getDestinationType());
+		Assert.assertEquals("test", smsMessage.getDestination());
+		Assert.assertEquals(Message.Status.FAILED, smsMessage.getStatus());
+		
+		System.out.println("testPreProcessingActionException finished ...");
+	}
+	
+	@Test
+	public void testPostProcessingActionException() throws Exception {
+
+		MockEndpoint outboundEndpoint = addOutboundValidationRoute(0);
+		MockEndpoint failedEndpoint = addFailedValidationRoute(1);
+		
+		MockProcessor processor = new MockProcessor();
+		CamelProcessorService processorService = new CamelProcessorService("test", 0, processor, resourceRegistry);
+
+		Action action = Mockito.mock(Action.class);
+		Mockito.doThrow(new NullPointerException()).when(action).execute(Mockito.any(Message.class));
+		
+		processorService.addPostProcessingAction(action);
+
+		processorService.start();
+
+		simulateMessage(new Message(), "activemq:processor-test");
+		
+		outboundEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
+		failedEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
 		
 		Exchange exchange = failedEndpoint.getReceivedExchanges().iterator().next();
 		Message smsMessage = exchange.getIn().getBody(Message.class);
@@ -717,6 +748,7 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 		Assert.assertEquals(Service.State.STARTED, processorService.getState());
 		Mockito.verify((Serviceable) processor).doStart();
 		
+		
 		processorService.stop();
 		
 		// verify
@@ -749,26 +781,6 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 		processorService.start();
 		
 		processorService.stop();
-	}
-	
-	@Test
-	public void testConfigurableConnector() throws Exception {
-		// mock Processor and Configurable
-		Processor processor = Mockito.mock(Processor.class, 
-				Mockito.withSettings().extraInterfaces(Configurable.class));
-		
-		CamelProcessorService processorService = 
-			new CamelProcessorService("test", 0, processor, resourceRegistry);
-		processorService.start();
-		
-		// verify
-		Mockito.verify((Configurable) processor).configure();
-		
-		processorService.destroy();
-		
-		// verify
-		Assert.assertEquals(Service.State.STOPPED, processorService.getState());
-		Mockito.verify((Configurable) processor).destroy();
 	}
 	
 	@Test

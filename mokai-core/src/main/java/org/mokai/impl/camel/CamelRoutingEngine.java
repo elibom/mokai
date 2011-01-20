@@ -7,6 +7,10 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.camel.CamelContext;
@@ -19,6 +23,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.mokai.ExecutionException;
 import org.mokai.Message;
+import org.mokai.Message.Direction;
+import org.mokai.Message.Status;
 import org.mokai.ObjectAlreadyExistsException;
 import org.mokai.ObjectNotFoundException;
 import org.mokai.Processor;
@@ -27,11 +33,9 @@ import org.mokai.Receiver;
 import org.mokai.ReceiverService;
 import org.mokai.RoutingEngine;
 import org.mokai.Service;
-import org.mokai.Message.Direction;
-import org.mokai.Message.Status;
 import org.mokai.persist.MessageCriteria;
-import org.mokai.persist.MessageStore;
 import org.mokai.persist.MessageCriteria.OrderType;
+import org.mokai.persist.MessageStore;
 import org.mokai.persist.impl.DefaultMessageStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +60,9 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 	private ResourceRegistry resourceRegistry;
 	
 	private State state = State.STOPPED;
+	
+	private ExecutorService executor = 
+			new ThreadPoolExecutor(3, 6, Long.MAX_VALUE, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
 	
 	public CamelRoutingEngine() {
 		this.jmsComponent = defaultJmsComponent();
@@ -142,7 +149,10 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 	@Override
 	public final void start() throws ExecutionException {
 		
+		log.debug("Mokai starting ... ");
+		
 		if (!state.isStartable()) {
+			log.warn("Mokai already started!");
 			return;
 		}
 		
@@ -152,32 +162,64 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 			throw new ExecutionException(e);
 		}
 		
-		// start processors
-		for (ProcessorService processor : processors.values()) {
-			try {
-				processor.start();
-			} catch (Exception e) {
-				log.error("processor '" + processor.getId() + "' couldnt be started: "  + e.getMessage(), e);
-			}
+		// start processors in separate threads
+		for (final ProcessorService processor : processors.values()) {
+			
+			executor.execute(new Runnable() {
+
+				@Override
+				public void run() {
+					try {
+						processor.start();
+					} catch (Exception e) {
+						log.error("processor '" + processor.getId() + "' couldnt be started: "  + e.getMessage(), e);
+					}
+				}
+				
+			});	
 		}
 			
-		// start recievers
-		for (ReceiverService receiver : receivers.values()) {
-			try {
-				receiver.start();
-			} catch (Exception e) {
-				log.error("receiver '" + receiver.getId() + "' couldnt be started: " + e.getMessage(), e);
-			}
+		// start recievers in separate threads
+		for (final ReceiverService receiver : receivers.values()) {
+			
+			executor.execute(new Runnable() {
+
+				@Override
+				public void run() {
+					try {
+						receiver.start();
+					} catch (Exception e) {
+						log.error("receiver '" + receiver.getId() + "' couldnt be started: " + e.getMessage(), e);
+					}		
+				}
+				
+			});
+			
 		}
 			
 		state = State.STARTED;
+		
+		log.info("<<< Mokai started >>>");
 	}
 
 	@Override
 	public final void stop() throws ExecutionException {
 		
+		log.debug("Mokai stopping ... ");
+		
 		if (!state.isStoppable()) {
+			log.warn("Mokai already stopped!");
 			return;
+		}
+		
+		// stop receivers
+		for (ReceiverService receiver : receivers.values()) {
+			try {
+				receiver.stop();
+			} catch (Exception e) {
+				log.error("receiver '" + receiver.getId() + "' couldnt be destroyed: " + e.getMessage(), e);
+			}
+			
 		}
 		
 		// stop processors
@@ -185,16 +227,7 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 			try {
 				processor.stop();
 			} catch (Exception e) {
-				log.error("processor '" + processor.getId() + "' couldnt be stopped: "  + e.getMessage(), e);
-			}
-		}
-			
-		// stop receivers
-		for (ReceiverService receiver : receivers.values()) {
-			try {
-				receiver.stop();
-			} catch (Exception e) {
-				log.error("receiver '" + receiver.getId() + "' couldnt be stopped: " + e.getMessage(), e);
+				log.error("processor '" + processor.getId() + "' couldnt be destroyed: "  + e.getMessage(), e);
 			}
 		}
 			
@@ -205,6 +238,8 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 		} catch (Exception e) {
 			throw new ExecutionException(e);
 		}
+		
+		log.info("<<< Mokai stopped >>>");
 	}
 
 	/*@SuppressWarnings("unused")
@@ -228,27 +263,29 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 
 	@Override
 	public final ProcessorService createProcessor(String id, int priority,
-			Processor processor) throws IllegalArgumentException,
-			ObjectAlreadyExistsException {
+			Processor processor) throws IllegalArgumentException, ObjectAlreadyExistsException {
 		
 		// fix id
 		String fixedId = StringUtils.lowerCase(id);
-		fixedId = StringUtils.deleteWhitespace(fixedId);
+		fixedId = StringUtils.deleteWhitespace(fixedId);		
 		
 		// check if already exists
 		if (processors.containsKey(fixedId)) {
 			throw new ObjectAlreadyExistsException("Processor with id " + fixedId + " already exists");
 		}
 		
-		// create and start the ProcessorService instance
+		log.debug("creating processor with id: " + fixedId);
+		
+		// create the ProcessorService instance
 		CamelProcessorService processorService = 
 			new CamelProcessorService(fixedId, priority, processor, resourceRegistry);
-		if (state.equals(State.STARTED)) {
-			processorService.start();
-		}
 		
-		// add to the map
+		// configure the processor
+		LifecycleMethodsHelper.configure(processor);
+		
 		processors.put(fixedId, processorService);
+		
+		log.info("processor with id " + fixedId + " created");
 		
 		return processorService;
 	}
@@ -313,14 +350,14 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 			throw new ObjectAlreadyExistsException("Receiver with id " + fixedId + " already exists");
 		}
 		
-		// create and start the ReceiverService instance
-		CamelReceiverService receiverService = new CamelReceiverService(fixedId, receiver, resourceRegistry);
-		if (state.equals(State.STARTED)) {
-			receiverService.start();
-		}
+		log.debug("creating receiver with id: " + fixedId);
 		
-		// add to the map
+		// create the receiver instance, configure it and add it to the map
+		CamelReceiverService receiverService = new CamelReceiverService(fixedId, receiver, resourceRegistry);
+		LifecycleMethodsHelper.configure(receiver);
 		receivers.put(fixedId, receiverService);
+		
+		log.info("receiver with id '" + fixedId + "' created");
 		
 		return receiverService;
 	}

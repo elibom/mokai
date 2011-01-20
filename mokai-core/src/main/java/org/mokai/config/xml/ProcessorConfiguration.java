@@ -6,10 +6,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
@@ -37,18 +33,11 @@ public class ProcessorConfiguration implements Configuration {
 	
 	private Logger log = LoggerFactory.getLogger(ProcessorConfiguration.class);
 	
-	private static final int DEFAULT_POOL_SIZE = 3;
-	private static final int DEFAULT_MAX_POOL_SIZE = 4; 
-	
 	private String path = "conf/processors.xml";
 	
 	private RoutingEngine routingEngine;
 	
 	private PluginMechanism pluginMechanism;
-	
-	private Executor executor = 
-		new ThreadPoolExecutor(DEFAULT_POOL_SIZE, DEFAULT_MAX_POOL_SIZE, Long.MAX_VALUE, 
-				TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
 
 	@Override
 	public final void load() {
@@ -76,7 +65,7 @@ public class ProcessorConfiguration implements Configuration {
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	public final void load(InputStream inputStream) throws Exception {
 		// create the document
 		SAXReader reader = new SAXReader();
@@ -119,38 +108,29 @@ public class ProcessorConfiguration implements Configuration {
 		final List<Action> postReceivingActions = XmlConfigurationUtils.buildActions(routingEngine, 
 				pluginMechanism, processorElement.element("post-receiving-actions"));
 		
-		Runnable runnable = new Runnable() {
-
-			@Override
-			public void run() {
-				// create the processor service
-				String id = processorElement.attributeValue("id");
-				int priority = Integer.parseInt(processorElement.attributeValue("priority"));
-				ProcessorService processorService = routingEngine.createProcessor(id, priority, connector);
+		String id = processorElement.attributeValue("id");
+		int priority = Integer.parseInt(processorElement.attributeValue("priority"));
+		ProcessorService processorService = routingEngine.createProcessor(id, priority, connector);
+		
+		// add acceptors to the processor
+		for (Acceptor acceptor : acceptors) {
+			processorService.addAcceptor(acceptor);
+		}
 				
-				// add acceptors to the processor
-				for (Acceptor acceptor : acceptors) {
-					processorService.addAcceptor(acceptor);
-				}
+		// add pre-processing-actions to the processor 
+		for (Action action : preProcessingActions) {
+			processorService.addPreProcessingAction(action);
+		}
 				
-				// add pre-processing-actions to the processor 
-				for (Action action : preProcessingActions) {
-					processorService.addPreProcessingAction(action);
-				}
+		// add post-processing-actions to the processor
+		for (Action action : postProcessingActions) {
+			processorService.addPostProcessingAction(action);
+		}
 				
-				// add post-processing-actions to the processor
-				for (Action action : postProcessingActions) {
-					processorService.addPostProcessingAction(action);
-				}
-				
-				// add post-receiving-actions to the processor
-				for (Action action : postReceivingActions) {
-					processorService.addPostReceivingAction(action);
-				}
-			}
-			
-		};
-		executor.execute(runnable);
+		// add post-receiving-actions to the processor
+		for (Action action : postReceivingActions) {
+			processorService.addPostReceivingAction(action);
+		}
 		
 	}
 	
@@ -184,7 +164,7 @@ public class ProcessorConfiguration implements Configuration {
 		return processorConnector;
 	}
 	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private List<Acceptor> buildAcceptors(Element acceptorsElement) throws Exception {
 		
 		List<Acceptor> acceptors = new ArrayList<Acceptor>();
@@ -220,10 +200,7 @@ public class ProcessorConfiguration implements Configuration {
 		}
 		
 		return acceptors;
-	}
-	
-	
-	
+	}	
 
 	@Override
 	public final void save() {
@@ -320,10 +297,6 @@ public class ProcessorConfiguration implements Configuration {
 
 	public final void setPluginMechanism(PluginMechanism pluginMechanism) {
 		this.pluginMechanism = pluginMechanism;
-	}
-
-	public final void setExecutor(Executor executor) {
-		this.executor = executor;
 	}
 	
 }

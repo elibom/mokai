@@ -272,21 +272,6 @@ public class CamelReceiverServiceTest extends CamelBaseTest {
 	}
 	
 	@Test
-	public void testConfigurableReceiver() throws Exception {
-		
-		Receiver receiver = Mockito.mock(Receiver.class, Mockito.withSettings().extraInterfaces(Configurable.class));
-		CamelReceiverService receiverService = new CamelReceiverService("test", receiver, resourceRegistry);
-		
-		// verify
-		Mockito.verify((Configurable) receiver).configure();
-		
-		receiverService.destroy();
-		
-		// verify
-		Mockito.verify((Configurable) receiver).destroy();
-	}
-	
-	@Test
 	public void testReceiverStatus() throws Exception {
 		
 		Receiver receiver = Mockito.mock(Receiver.class);

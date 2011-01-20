@@ -7,9 +7,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import junit.framework.Assert;
 
@@ -63,17 +60,12 @@ public class ReceiverConfigurationTest {
 			.when(routingEngine.createReceiver(Mockito.eq("test-2"), Mockito.any(Receiver.class)))
 			.thenReturn(receiverService2);
 		
-		ThreadPoolExecutor executor = 
-			new ThreadPoolExecutor(1, 1, Long.MAX_VALUE, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>()); 
-		
 		ReceiverConfiguration config = new ReceiverConfiguration();
 		config.setPath(path);
 		config.setRoutingEngine(routingEngine);
 		config.setPluginMechanism(pluginMechanism);
-		config.setExecutor(executor);
 		
 		config.load();
-		executor.awaitTermination(3000, TimeUnit.MILLISECONDS);
 		
 		// check that we have created 2 receivers
 		Mockito.verify(routingEngine, Mockito.times(2)).createReceiver(Mockito.anyString(), Mockito.any(Receiver.class));
@@ -126,17 +118,12 @@ public class ReceiverConfigurationTest {
 		
 		PluginMechanism pluginMechanism = mockPluginMechanism();
 		
-		ThreadPoolExecutor executor = 
-			new ThreadPoolExecutor(1, 1, Long.MAX_VALUE, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>()); 
-		
 		ReceiverConfiguration config = new ReceiverConfiguration();
 		config.setPath(path);
 		config.setRoutingEngine(routingEngine);
 		config.setPluginMechanism(pluginMechanism);
-		config.setExecutor(executor);
 		
 		config.load();
-		executor.awaitTermination(3000, TimeUnit.MILLISECONDS);
 		
 		Mockito.verify(pluginMechanism).loadClass(Mockito.endsWith("MockConnector"));
 		Mockito.verify(pluginMechanism).loadClass(Mockito.endsWith("MockAction"));
@@ -420,7 +407,7 @@ public class ReceiverConfigurationTest {
 		
 		new ValidateDoc(file) {
 
-			@SuppressWarnings("unchecked")
+			@SuppressWarnings("rawtypes")
 			@Override
 			public void validate(Element rootElement) {
 				Assert.assertEquals("receivers", rootElement.getName());

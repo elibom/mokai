@@ -18,16 +18,16 @@ import org.mokai.Action;
 import org.mokai.Configurable;
 import org.mokai.ExecutionException;
 import org.mokai.Message;
+import org.mokai.Message.DestinationType;
 import org.mokai.MessageProducer;
 import org.mokai.MonitorStatusBuilder;
 import org.mokai.Monitorable;
+import org.mokai.Monitorable.Status;
 import org.mokai.ObjectAlreadyExistsException;
 import org.mokai.ObjectNotFoundException;
 import org.mokai.Processor;
 import org.mokai.ProcessorService;
 import org.mokai.Serviceable;
-import org.mokai.Message.DestinationType;
-import org.mokai.Monitorable.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -128,8 +128,83 @@ public class CamelProcessorService implements ProcessorService {
 		ResourceInjector.inject(processor, resourceRegistry);
 		injectMessageProducer(processor);
 		
-		// configure the processor if it implements Configurable
-		LifecycleMethodsHelper.configure(processor);
+	}
+	
+	private void initRoutes() throws ExecutionException {
+		
+		// these are the outbound routes
+		RouteBuilder outboundRouteBuilder = new RouteBuilder() {
+
+			@Override
+			public void configure() throws Exception {
+				onException(Exception.class).process(new org.apache.camel.Processor() {
+
+					@Override
+					public void process(Exchange exchange) throws Exception {
+						Message message = exchange.getIn().getBody(Message.class);
+						message.setStatus(Message.Status.FAILED);
+					}
+					
+				}).to("activemq:failedmessages");
+
+				ActionsProcessor preProcessingActionsProcessor = new ActionsProcessor(preProcessingActions);
+				ActionsProcessor postProcessingActionsProcessor = new ActionsProcessor(postProcessingActions);
+				
+				// from the queue
+				RouteDefinition route = from(getQueueUri());
+				
+				// set the source and type of the Message
+				route.process(new OutboundMessageProcessor());
+				
+				// execute the pre-processing actions
+				route.process(preProcessingActionsProcessor);
+				
+				// call the processor (this process the message)
+				route.process(new ConnectorProcessor());
+				
+				// execute the post-processing actions
+				route.process(postProcessingActionsProcessor);
+				
+				// route to the processed messages
+				route.to("direct:processedmessages");
+					
+			}
+			
+		};
+	
+		// these are the inbound routes
+		RouteBuilder inboundRouteBuilder = new RouteBuilder() {
+
+			@Override
+			public void configure() throws Exception {
+				ActionsProcessor postReceivingActionsProcessor = new ActionsProcessor(postReceivingActions);
+				
+				// from the component that receives the messages from the MessageProducer	
+				RouteDefinition route = from(getInternalUri());
+				
+				// add the source and type of the Message
+				route.process(new InboundMessageProcessor());
+				
+				// execute the post-receiving actions
+				route.process(postReceivingActionsProcessor);
+				
+				// route to the inbound router
+				route.to("activemq:inboundRouter");
+			}
+			
+		};
+		
+		try {
+			camelContext.addRoutes(outboundRouteBuilder);
+			camelContext.addRoutes(inboundRouteBuilder);
+			
+			routes = outboundRouteBuilder.getRouteCollection().getRoutes();
+			routes.addAll(inboundRouteBuilder.getRouteCollection().getRoutes());
+			
+		} catch (Exception e) {
+			throw new ExecutionException(e);
+		}
+		
 	}
 	
 	/**
@@ -445,82 +520,15 @@ public class CamelProcessorService implements ProcessorService {
 		
 		try {
 			
-			// check if the routes already exists and start them
-			if (routes != null) {
-				
+			// create the routes
+			if (routes == null) {
+				initRoutes();				
+			} else {
+			
+				// start the routes
 				for (RouteDefinition route : routes) {
 					camelContext.startRoute(route);
 				}
-				
-			} else { // if no routes yet then create them!
-				
-				// these are the outbound routes
-				RouteBuilder outboundRouteBuilder = new RouteBuilder() {
-
-					@Override
-					public void configure() throws Exception {
-						onException(Exception.class).process(new org.apache.camel.Processor() {
-
-							@Override
-							public void process(Exchange exchange) throws Exception {
-								Message message = exchange.getIn().getBody(Message.class);
-								message.setStatus(Message.Status.FAILED);
-							}
-							
-						}).to("activemq:failedmessages");
-
-						ActionsProcessor preProcessingActionsProcessor = new ActionsProcessor(preProcessingActions);
-						ActionsProcessor postProcessingActionsProcessor = new ActionsProcessor(postProcessingActions);
-						
-						// from the queue
-						RouteDefinition route = from(getQueueUri());
-						
-						// set the source and type of the Message
-						route.process(new OutboundMessageProcessor());
-						
-						// execute the pre-processing actions
-						route.process(preProcessingActionsProcessor);
-						
-						// call the processor (this process the message)
-						route.process(new ConnectorProcessor());
-						
-						// execute the post-processing actions
-						route.process(postProcessingActionsProcessor);
-						
-						// route to the processed messages
-						route.to("direct:processedmessages");
-							
-					}
-					
-				};
-			
-				// these are the inbound routes
-				RouteBuilder inboundRouteBuilder = new RouteBuilder() {
-		
-					@Override
-					public void configure() throws Exception {
-						ActionsProcessor postReceivingActionsProcessor = new ActionsProcessor(postReceivingActions);
-						
-						// from the component that receives the messages from the MessageProducer	
-						RouteDefinition route = from(getInternalUri());
-						
-						// add the source and type of the Message
-						route.process(new InboundMessageProcessor());
-						
-						// execute the post-receiving actions
-						route.process(postReceivingActionsProcessor);
-						
-						// route to the inbound router
-						route.to("activemq:inboundRouter");
-					}
-					
-				};
-				
-				camelContext.addRoutes(outboundRouteBuilder);
-				camelContext.addRoutes(inboundRouteBuilder);
-				
-				routes = outboundRouteBuilder.getRouteCollection().getRoutes();
-				routes.addAll(inboundRouteBuilder.getRouteCollection().getRoutes());
 				
 			}
 			

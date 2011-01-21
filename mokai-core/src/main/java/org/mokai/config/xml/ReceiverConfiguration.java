@@ -6,10 +6,6 @@ import java.io.InputStream;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
@@ -37,9 +33,6 @@ public class ReceiverConfiguration implements Configuration {
 	private RoutingEngine routingEngine;
 	
 	private PluginMechanism pluginMechanism;
-	
-	private Executor executor = 
-		new ThreadPoolExecutor(3, 6, Long.MAX_VALUE, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
 
 	@Override
 	public final void load() throws ConfigurationException {
@@ -71,7 +64,7 @@ public class ReceiverConfiguration implements Configuration {
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	public final void load(InputStream inputStream) throws Exception {
 			
 		// create the document
@@ -106,22 +99,13 @@ public class ReceiverConfiguration implements Configuration {
 		final List<Action> postReceivingActions = XmlConfigurationUtils.buildActions(routingEngine, 
 				pluginMechanism, receiverElement.element("post-receiving-actions"));
 		
-		Runnable runnable = new Runnable() {
-
-			@Override
-			public void run() {
-				// create the receiver service
-				String id = receiverElement.attributeValue("id");
-				ReceiverService receiverService = routingEngine.createReceiver(id, receiver);
+		String id = receiverElement.attributeValue("id");
+		ReceiverService receiverService = routingEngine.createReceiver(id, receiver);
 				
-				// add post-receiving actions to receiver
-				for (Action action : postReceivingActions) {
-					receiverService.addPostReceivingAction(action);
-				}	
-			}
-			
-		};
-		executor.execute(runnable);
+		// add post-receiving actions to receiver
+		for (Action action : postReceivingActions) {
+			receiverService.addPostReceivingAction(action);
+		}	
 		
 	}
 	
@@ -222,10 +206,6 @@ public class ReceiverConfiguration implements Configuration {
 
 	public final void setPluginMechanism(PluginMechanism pluginMechanism) {
 		this.pluginMechanism = pluginMechanism;
-	}
-
-	public final void setExecutor(Executor executor) {
-		this.executor = executor;
 	}
 	
 }

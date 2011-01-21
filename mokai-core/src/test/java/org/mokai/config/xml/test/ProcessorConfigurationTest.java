@@ -7,9 +7,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import junit.framework.Assert;
 
@@ -37,6 +34,8 @@ import org.mokai.types.mock.MockConnector;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
+import static org.mockito.Mockito.*;
+
 public class ProcessorConfigurationTest {
 
 	@Test
@@ -49,7 +48,7 @@ public class ProcessorConfigurationTest {
 	public void testLoadFileWithNotUsefulPluginMechanism() throws Exception {
 		String path = "src/test/resources/processors-test/good-processors.xml";
 		
-		PluginMechanism pluginMechanism = Mockito.mock(PluginMechanism.class);
+		PluginMechanism pluginMechanism = mock(PluginMechanism.class);
 		testGoodFile(path, pluginMechanism);
 	}
 	
@@ -62,34 +61,28 @@ public class ProcessorConfigurationTest {
 	
 	private void testGoodFile(String path, PluginMechanism pluginMechanism) throws Exception {
 		
+		ProcessorService processorService1 = mock(ProcessorService.class);
+		ProcessorService processorService2 = mock(ProcessorService.class);
 		
-		ProcessorService processorService1 = Mockito.mock(ProcessorService.class);
-		ProcessorService processorService2 = Mockito.mock(ProcessorService.class);
-		
-		RoutingEngine routingEngine = Mockito.mock(RoutingEngine.class);
-		Mockito
-			.when(routingEngine.createProcessor(Mockito.eq("test-1"), Mockito.anyInt(), Mockito.any(Processor.class)))
+		RoutingEngine routingEngine = mock(RoutingEngine.class);
+		when(routingEngine.createProcessor(eq("test-1"), anyInt(), any(Processor.class)))
 			.thenAnswer(new ProcessorServiceAnswer(processorService1, 500));
-		Mockito
-			.when(routingEngine.createProcessor(Mockito.eq("test-2"), Mockito.anyInt(), Mockito.any(Processor.class)))
+		when(routingEngine.createProcessor(eq("test-2"), anyInt(), any(Processor.class)))
 			.thenAnswer(new ProcessorServiceAnswer(processorService2, 500));
-		
-		ThreadPoolExecutor executor = createThreadPool(); 
+	
 		
 		ProcessorConfiguration config = new ProcessorConfiguration();
 		config.setRoutingEngine(routingEngine);
 		config.setPluginMechanism(pluginMechanism);
 		config.setPath(path);
-		config.setExecutor(executor);
 		
 		config.load();
-		executor.awaitTermination(3000, TimeUnit.MILLISECONDS);
 		
 		// check that we have created two processors
-		Mockito.verify(routingEngine)
-			.createProcessor(Mockito.eq("test-1"), Mockito.anyInt(), Mockito.eq(new MockConfigurableConnector("test1", 3)));
-		Mockito.verify(routingEngine)
-			.createProcessor(Mockito.eq("test-2"), Mockito.anyInt(), Mockito.eq(new MockConfigurableConnector("test2", 5)));
+		verify(routingEngine)
+			.createProcessor(eq("test-1"), anyInt(), eq(new MockConfigurableConnector("test1", 3)));
+		verify(routingEngine)
+			.createProcessor(eq("test-2"), anyInt(), eq(new MockConfigurableConnector("test2", 5)));
 		
 		// check that nothing was added to processor service 1
 		Mockito.verify(processorService1, Mockito.never()).addAcceptor(Mockito.any(Acceptor.class));
@@ -101,10 +94,6 @@ public class ProcessorConfigurationTest {
 		Mockito.verify(processorService2).addPreProcessingAction(new MockConfigurableAction("t1", 1));
 		Mockito.verify(processorService2).addPostProcessingAction(new MockConfigurableAction("t2", 2));
 		Mockito.verify(processorService2).addPostReceivingAction(new MockConfigurableAction("t3", 3));
-	}
-	
-	private ThreadPoolExecutor createThreadPool() {
-		return new ThreadPoolExecutor(1, 1, Long.MAX_VALUE, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
 	}
 
 	@Test
@@ -126,7 +115,6 @@ public class ProcessorConfigurationTest {
 		config.setPath(path);
 		
 		config.load();
-		// we dont need to wait as the plugin mechanism is called before the executor
 		
 		Mockito.verify(pluginMechanism).loadClass(Mockito.endsWith("MockConnector"));
 		Mockito.verify(pluginMechanism).loadClass(Mockito.endsWith("MockAcceptor"));
@@ -539,7 +527,7 @@ public class ProcessorConfigurationTest {
 		
 	}
 	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	private void validateProperties(Element parentElement, String config1, String config2) {
 		// validate connector properties
 		Assert.assertEquals(2, parentElement.elements("property").size());

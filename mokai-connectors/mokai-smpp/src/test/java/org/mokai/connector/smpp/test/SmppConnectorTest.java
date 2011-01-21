@@ -2,11 +2,9 @@ package org.mokai.connector.smpp.test;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import org.mockito.Mockito;
 import org.mokai.ExecutionException;
 import org.mokai.Message;
 import org.mokai.MessageProducer;
@@ -14,8 +12,6 @@ import org.mokai.Monitorable.Status;
 import org.mokai.annotation.Resource;
 import org.mokai.connector.smpp.SmppConfiguration;
 import org.mokai.connector.smpp.SmppConnector;
-import org.mokai.persist.MessageCriteria;
-import org.mokai.persist.MessageStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smpp.smscsim.Simulator;
@@ -183,14 +179,6 @@ public class SmppConnectorTest {
 	@Test
 	public void testReceiveDeliveryReceipt() throws Exception {
 		log.info("starting testReceiveDeliveryReceipt ... ");
-
-		Message m = new Message(Message.SMS_TYPE);
-		m.setReference("1234");
-		m.setId(1);
-		
-		MessageStore messageStore = Mockito.mock(MessageStore.class);
-		Mockito.when(messageStore.list(Mockito.any(MessageCriteria.class)))
-			.thenReturn(Collections.singleton(m));
 		
 		MockMessageProducer messageProducer = new MockMessageProducer();
 		
@@ -202,7 +190,6 @@ public class SmppConnectorTest {
 		
 		SmppConnector connector = new SmppConnector(configuration);
 		injectResource(messageProducer, connector);
-		injectResource(messageStore, connector);
 		connector.doStart();
 		
 		waitUntilStatus(connector, DEFAULT_TIMEOUT, Status.OK);
@@ -223,50 +210,6 @@ public class SmppConnectorTest {
 		Assert.assertEquals(from, message.getProperty("from", String.class));
 		Assert.assertEquals("1234", message.getProperty("messageId", String.class));
 		Assert.assertEquals("DELIVRD", message.getProperty("finalStatus", String.class));
-		Assert.assertEquals("1", message.getProperty("smsId", Long.class) + "");
-		Assert.assertEquals("1234", message.getReference());
-		
-	}
-	
-	@Test
-	public void testReceiveDeliveryReceiptNotFound() throws Exception {
-		log.info("starting testReceiveDeliveryReceiptNotFound ... ");
-		
-		MessageStore messageStore = Mockito.mock(MessageStore.class);
-		MockMessageProducer messageProducer = new MockMessageProducer();
-		
-		SmppConfiguration configuration = new SmppConfiguration();
-		configuration.setHost("localhost");
-		configuration.setPort(8321);
-		configuration.setSystemId("test");
-		configuration.setPassword("test");
-		
-		SmppConnector connector = new SmppConnector(configuration);
-		injectResource(messageProducer, connector);
-		injectResource(messageStore, connector);
-		connector.doStart();
-		
-		waitUntilStatus(connector, DEFAULT_TIMEOUT, Status.OK);
-		
-		String from = "3542";
-		String to = "3002175604";
-		
-		simulator.simlateDeliveryReceipt("test", from, to, "1234", "DELIVRD", 0);
-		
-		long timeout = 2000;
-		if (!receiveMessage(messageProducer, timeout)) {
-			Assert.fail("the message was not received");
-		}
-		
-		Message message = (Message) messageProducer.getMessage(0);
-		Assert.assertEquals(message.getType(), Message.DELIVERY_RECEIPT_TYPE);
-		Assert.assertEquals(to, message.getProperty("to", String.class));
-		Assert.assertEquals(from, message.getProperty("from", String.class));
-		Assert.assertEquals("1234", message.getProperty("messageId", String.class));
-		Assert.assertEquals("DELIVRD", message.getProperty("finalStatus", String.class));
-		Assert.assertNull(message.getProperty("smsId"));
-		
-		Mockito.verify(messageStore).list(Mockito.any(MessageCriteria.class));
 		
 	}
 	

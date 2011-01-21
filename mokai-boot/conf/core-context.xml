@@ -9,10 +9,17 @@
 			http://www.springframework.org/schema/jdbc/spring-jdbc-3.0.xsd
 			http://camel.apache.org/schema/spring 
 			http://camel.apache.org/schema/spring/camel-spring.xsd">
-	
+			
+	<!-- Camel Routing Engine - Lifecycle -->
+	<bean id="routingEngineLifecyle" class="org.mokai.boot.RoutingEngineLifecycle" init-method="start" 
+			destroy-method="stop">
+		<property name="routingEngine"><ref bean="routingEngine" /></property>
+		<property name="receiverConfiguration"><ref bean="receiverConfiguration" /></property>
+		<property name="processorConfiguration"><ref bean="processorConfiguration" /></property>
+	</bean>
+
 	<!-- Routing Engine -->
-	<bean id="routingEngine" class="org.mokai.impl.camel.CamelRoutingEngine" 
-			init-method="start" destroy-method="stop">
+	<bean id="routingEngine" class="org.mokai.impl.camel.CamelRoutingEngine">
 		<constructor-arg ref="jmsComponent" />	
 		<property name="messageStore"><ref bean="messageStore" /></property>
 	</bean>
@@ -20,12 +27,12 @@
 	<bean id="pluginMechanism" class="org.mokai.plugin.jpf.JpfPluginMechanism" init-method="configure" 
 			destroy-method="destroy" />
 	
-	<bean id="receiverConfiguration" class="org.mokai.config.xml.ReceiverConfiguration" init-method="load">
+	<bean id="receiverConfiguration" class="org.mokai.config.xml.ReceiverConfiguration">
 		<property name="routingEngine"><ref bean="routingEngine" /></property>
 		<property name="pluginMechanism"><ref bean="pluginMechanism" /></property>
 	</bean>
 	
-	<bean id="processorConfiguration" class="org.mokai.config.xml.ProcessorConfiguration" init-method="load">
+	<bean id="processorConfiguration" class="org.mokai.config.xml.ProcessorConfiguration">
 		<property name="routingEngine"><ref bean="routingEngine" /></property>
 		<property name="pluginMechanism"><ref bean="pluginMechanism" /></property>
 	</bean> 

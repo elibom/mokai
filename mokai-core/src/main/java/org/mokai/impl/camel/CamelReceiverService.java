@@ -81,9 +81,6 @@ public class CamelReceiverService implements ReceiverService {
 		
 		try {
 			
-			// configure connector
-			LifecycleMethodsHelper.configure(receiver);
-			
 			RouteBuilder routeBuilder = new RouteBuilder() {
 		
 				@Override

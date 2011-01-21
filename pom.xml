@@ -90,8 +90,8 @@
 
 	<properties>
 		<spring.version>3.0.3.RELEASE</spring.version>
-		<camel.version>2.4.0</camel.version>
-		<activemq.version>5.2.0</activemq.version>
+		<camel.version>2.5.0</camel.version>
+		<activemq.version>5.4.2</activemq.version>
 		<jpf.version>1.5</jpf.version>
 		<testng.version>5.9</testng.version>
 		<slf4j.version>1.6.1</slf4j.version>

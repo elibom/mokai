@@ -24,7 +24,7 @@ public class LifecycleMethodsHelper {
 	 * @throws ExecutionException if the doStart method throws an exception.
 	 */
 	public static void start(Object object) throws ExecutionException {
-		
+
 		try {
 			// start the object if it implements Serviceable
 			if (Serviceable.class.isInstance(object)) {
@@ -98,4 +98,5 @@ public class LifecycleMethodsHelper {
 		}
 		
 	}
+	
 }

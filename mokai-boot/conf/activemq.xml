@@ -7,7 +7,7 @@
         http://activemq.apache.org/schema/core
         http://activemq.apache.org/schema/core/activemq-core-5.2.0.xsd">
 
-<amq:broker brokerName="broker1" persistent="true" dataDirectory="data/activemq">
+<amq:broker brokerName="broker1" persistent="true" useShutdownHook="false" dataDirectory="data/activemq">
 	<amq:managementContext>
 		<amq:managementContext createConnector="true" connectorPort="1190" />
 	</amq:managementContext>

@@ -2,6 +2,7 @@ package org.mokai.impl.camel.test;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
@@ -11,7 +12,9 @@ import junit.framework.Assert;
 import org.apache.camel.ProducerTemplate;
 import org.mockito.Mockito;
 import org.mokai.Acceptor;
+import org.mokai.Configurable;
 import org.mokai.Message;
+import org.mokai.Message.Status;
 import org.mokai.ObjectAlreadyExistsException;
 import org.mokai.ObjectNotFoundException;
 import org.mokai.Processor;
@@ -19,11 +22,11 @@ import org.mokai.ProcessorService;
 import org.mokai.Receiver;
 import org.mokai.ReceiverService;
 import org.mokai.Service;
-import org.mokai.Message.Status;
 import org.mokai.impl.camel.CamelRoutingEngine;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.MessageStore;
 import org.mokai.persist.StoreException;
+import org.mokai.types.mock.MockServiceableConnector;
 import org.testng.annotations.Test;
 
 public class CamelRoutingEngineTest {
@@ -38,6 +41,7 @@ public class CamelRoutingEngineTest {
 		// create a processor service
 		ProcessorService ps1 = 
 			routingEngine.createProcessor("test1", 2000, processor);
+		ps1.start();
 		
 		// check that the processor service was created successfully
 		Assert.assertNotNull(ps1);
@@ -50,8 +54,11 @@ public class CamelRoutingEngineTest {
 		// create a second and third processor
 		ProcessorService ps2 = 
 			routingEngine.createProcessor("test2", 0, processor);
+		ps2.start();
+		
 		ProcessorService ps3 =
 			routingEngine.createProcessor("test3", 1000, processor);
+		ps3.start();
 		
 		processorServices = routingEngine.getProcessors();
 		Assert.assertEquals(3, processorServices.size());
@@ -83,15 +90,32 @@ public class CamelRoutingEngineTest {
 	}
 	
 	@Test
+	public void testCreateConfigurableProcessor() throws Exception {
+		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
+		routingEngine.start();
+		
+		Processor processor = Mockito.mock(Processor.class, 
+				Mockito.withSettings().extraInterfaces(Configurable.class));
+		
+		// create a processor service
+		routingEngine.createProcessor("test1", 2000, processor);
+		
+		Mockito.verify((Configurable) processor).configure();
+		
+		routingEngine.stop();
+	}
+	
+	@Test
 	public void testRetrieveProcessor() throws Exception {
 		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
 		routingEngine.start();
 		
 		Processor processor = Mockito.mock(Processor.class);
 		
-		// create a processor service
+		// create and start a processor service
 		ProcessorService processorService = 
 			routingEngine.createProcessor("test", 2000, processor);
+		processorService.start();
 		
 		// retrieve an existing processor
 		ProcessorService psTest = routingEngine.getProcessor("test");
@@ -145,6 +169,7 @@ public class CamelRoutingEngineTest {
 		
 		ReceiverService rs1 = 
 			routingEngine.createReceiver("test1", receiver);
+		rs1.start();
 		
 		// check that the receiver service was created successfully
 		Assert.assertNotNull(rs1);
@@ -157,8 +182,10 @@ public class CamelRoutingEngineTest {
 		// create a second and third receiver
 		ReceiverService rs2 = 
 			routingEngine.createReceiver("test2", receiver);
+		rs2.start();
 		ReceiverService rs3 = 
 			routingEngine.createReceiver("test3", receiver);
+		rs3.start();
 		
 		receivers = routingEngine.getReceivers();
 		Assert.assertEquals(3, receivers.size());
@@ -181,14 +208,31 @@ public class CamelRoutingEngineTest {
 		routingEngine.stop();
 	}
 	
+	@Test
+	public void testCreateConfigurableReceiver() throws Exception {
+		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
+		routingEngine.start();
+		
+		Receiver receiver = Mockito.mock(Receiver.class, 
+				Mockito.withSettings().extraInterfaces(Configurable.class));
+		
+		routingEngine.createReceiver("test1", receiver);
+		
+		Mockito.verify((Configurable) receiver).configure();
+		
+		routingEngine.stop();
+
+	}
+	
 	public void testRetrieveReciever() throws Exception {
 		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
 		routingEngine.start();
 		
 		Receiver receiver = Mockito.mock(Receiver.class);
 		
-		// create a receiver service
+		// create and start a receiver service
 		ReceiverService receiverService = routingEngine.createReceiver("test", receiver);
+		receiverService.start();
 		
 		// try to retrieve an existing receiver
 		ReceiverService rsTest = routingEngine.getReceiver("test");
@@ -235,8 +279,34 @@ public class CamelRoutingEngineTest {
 	}
 	
 	@Test
-	public void testSimpleMessageFlow() throws Exception {
+	public void testStartRoutingEngineWithSlowConnectors() throws Exception {
 		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
+		
+		Processor processor = new MockServiceableConnector().withStartWaitTime(5000);
+		Receiver receiver = new MockServiceableConnector().withStartWaitTime(5000);
+		
+		routingEngine.createProcessor("test", 1000, processor);
+		routingEngine.createReceiver("test", receiver);
+		
+		long startTime = new Date().getTime();
+		routingEngine.start();
+		long endTime = new Date().getTime();
+		
+		Assert.assertTrue((endTime - startTime) < 5000);
+		
+		routingEngine.stop();
+		
+	}
+	
+	@Test
+	public void testSimpleMessageFlow() throws Exception {
+		final CyclicBarrier barrier = new CyclicBarrier(2);
+		
+		// a custom message store
+		MessageStore messageStore = new MockMessageStore(barrier, Status.PROCESSED);
+		
+		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
+		routingEngine.setMessageStore(messageStore);
 		routingEngine.start();
 		
 		// create the processor
@@ -244,10 +314,14 @@ public class CamelRoutingEngineTest {
 		ProcessorService processorService = 
 			routingEngine.createProcessor("1", 1000, processor);
 		processorService.addAcceptor(new MockAcceptor());
+		processorService.start();
 		
 		// send the message
 		ProducerTemplate producer = routingEngine.getCamelContext().createProducerTemplate();
-		producer.requestBody("activemq:outboundRouter", new Message());
+		producer.sendBody("activemq:outboundRouter", new Message());
+		
+		// wait
+		barrier.await(20, TimeUnit.SECONDS);
 		
 		Assert.assertEquals(1, processor.getCount());
 		
@@ -259,24 +333,7 @@ public class CamelRoutingEngineTest {
 		final CyclicBarrier barrier = new CyclicBarrier(2);
 		
 		// a custom message store
-		MessageStore messageStore = new MessageStore() {
-
-			@Override
-			public Collection<Message> list(MessageCriteria criteria)
-					throws StoreException {
-				return null;
-			}
-
-			@Override
-			public void saveOrUpdate(Message message) throws StoreException {
-				try { barrier.await(); } catch (Exception e) {}
-			}
-
-			@Override
-			public void updateStatus(MessageCriteria criteria, Status newStatus)
-					throws StoreException {}
-			
-		};
+		MessageStore messageStore = new MockMessageStore(barrier, Status.UNROUTABLE);
 		
 		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
 		routingEngine.setMessageStore(messageStore);
@@ -294,6 +351,7 @@ public class CamelRoutingEngineTest {
 			}
 			
 		});
+		processorService.start();
 		
 		// send the message
 		ProducerTemplate producer = routingEngine.getCamelContext().createProducerTemplate();
@@ -338,6 +396,7 @@ public class CamelRoutingEngineTest {
 			}
 			
 		});
+		processorService.start();
 		
 		// retry failed messages
 		routingEngine.retryFailedMessages();
@@ -386,6 +445,37 @@ public class CamelRoutingEngineTest {
 		public boolean accepts(Message message) {
 			return true;
 		}
+		
+	}
+	
+	protected class MockMessageStore implements MessageStore {
+		
+		private CyclicBarrier barrier;
+		private Status status;
+		
+		public MockMessageStore(CyclicBarrier barrier, Status status) {
+			this.barrier = barrier;
+			this.status = status;
+		}
+		
+		@Override
+		public Collection<Message> list(MessageCriteria criteria)
+				throws StoreException {
+			return null;
+		}
+
+		@Override
+		public void saveOrUpdate(Message message) throws StoreException {
+			if (!message.getStatus().equals(status)) {
+				Assert.fail();
+			}
+			
+			try { barrier.await(); } catch (Exception e) {}
+		}
+
+		@Override
+		public void updateStatus(MessageCriteria criteria, Status newStatus)
+				throws StoreException {}
 		
 	}
 }

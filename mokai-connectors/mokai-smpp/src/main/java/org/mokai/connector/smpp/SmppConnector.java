@@ -176,6 +176,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
                         bindRequest.ton,
                         bindRequest.npi,
                         ""));
+		session.setTransactionTimer(5000);
 		log.debug("connection bound");
 		
 		return session;
@@ -263,6 +264,10 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	 */
 	@Override
 	public final void process(Message message) throws Exception {
+		
+		log.debug("processing message: " + message.getProperty("to", String.class) 
+				+ " - " + message.getProperty("text", String.class));
+		
 		if (!status.equals(Status.OK)) {
 			throw new IllegalStateException("SMPP client not connected.");
 		}

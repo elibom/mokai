@@ -110,7 +110,8 @@ public class DeliveryReceiptHandlerAction implements Action, Configurable,
 			
 			// try to find the original submitted message
 			String messageId = message.getProperty("messageId", String.class);
-			Message originalMessage = findOriginalMessage(messageStore, messageId);
+			String to = message.getProperty("to", String.class);
+			Message originalMessage = findOriginalMessage(messageStore, messageId, to);
 				
 			if (originalMessage != null) {
 					
@@ -139,14 +140,16 @@ public class DeliveryReceiptHandlerAction implements Action, Configurable,
 		 * @param messageStore the {@link MessageStore} instance used to look for the submitted
 		 * message.
 		 * @param messageId the id that was returned by the SMSC when the message was submitted
+		 * @param to the smsc destination of the message
 		 */
-		private Message findOriginalMessage(MessageStore messageStore, String messageId) {
+		private Message findOriginalMessage(MessageStore messageStore, String messageId, String to) {
 			
-			log.debug("looking for message with SMSC message id: " + messageId);
+			log.debug("looking for message with SMSC message id: " + messageId + " and to: " + to);
 			
 			// create the criteria
 			MessageCriteria criteria = new MessageCriteria();
 			criteria.addProperty("smsc_messageid", messageId);
+			criteria.addProperty("smsc_to", to);
 
 			Collection<Message> messages = messageStore.list(criteria);
 			if (messages != null && !messages.isEmpty()) {

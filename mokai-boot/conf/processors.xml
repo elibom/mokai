@@ -19,5 +19,8 @@
       </acceptor>
     </acceptors>
     
+    <post-receiving-actions>
+	  <action className="org.mokai.action.smpp.DeliveryReceiptHandlerAction" />
+	</post-receiving-actions>
   </processor>
 </processors>

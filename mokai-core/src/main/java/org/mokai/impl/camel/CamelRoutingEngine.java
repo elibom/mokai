@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +24,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.mokai.ExecutionException;
 import org.mokai.Message;
-import org.mokai.Message.Direction;
 import org.mokai.Message.Status;
 import org.mokai.ObjectAlreadyExistsException;
 import org.mokai.ObjectNotFoundException;
@@ -399,22 +399,22 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 		
 		MessageStore messageStore = resourceRegistry.getResource(MessageStore.class); 
 		
-		// update all the failed messages to retrying
-		MessageCriteria criteria = new MessageCriteria()
-			.addStatus(Status.FAILED)
-			.direction(Direction.OUTBOUND);
-		messageStore.updateStatus(criteria, Status.RETRYING);
-		
 		ProducerTemplate producer = camelContext.createProducerTemplate();
 		
-		criteria = new MessageCriteria()
-			.addStatus(Message.Status.RETRYING)
+		MessageCriteria criteria = new MessageCriteria()
+			.addStatus(Message.Status.FAILED)
 			.orderBy("creation_time")
 			.orderType(OrderType.UPWARDS);
 
 		Collection<Message> messages = messageStore.list(criteria);
-		logCollectionSize(messages.size());
+		logCollectionSize(messages.size()); // log the size of the collection
 		for (Message message : messages) {
+			
+			// update the message and send it
+			message.setStatus(Status.RETRYING);
+			message.setModificationTime(new Date());
+			messageStore.saveOrUpdate(message);
+			
 			producer.sendBody("activemq:outboundRouter", ExchangePattern.InOnly, message);
 		}
 		

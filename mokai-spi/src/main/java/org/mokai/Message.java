@@ -154,9 +154,9 @@ public class Message implements Serializable {
 		RETRYING(5), 
 		
 		/**
-		 * The message was unroutable, but now it's being re-routed
+		 * The message is being re-routed
 		 */
-		REROUTING(6);
+		REROUTED(6);
 		
 		private byte id;
 		

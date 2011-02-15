@@ -62,17 +62,30 @@ public class DeliveryReceiptHandlerActionTest {
 		Mockito.when(messageStore.list(Mockito.any(MessageCriteria.class)))
 				.thenReturn(new ArrayList<Message>());
 		
-		Message deliveryReceipt = new Message(Message.DELIVERY_RECEIPT_TYPE);
+		final Message deliveryReceipt = new Message(Message.DELIVERY_RECEIPT_TYPE);
 		deliveryReceipt.setProperty("messageId", "1");
 		deliveryReceipt.setProperty("finalStatus", "DELIVRD");
 		Date doneDate = new Date();
 		deliveryReceipt.setProperty("doneDate", doneDate);
 		
-		DeliveryReceiptHandlerAction action = new DeliveryReceiptHandlerAction();
+		final DeliveryReceiptHandlerAction action = new DeliveryReceiptHandlerAction();
 		action.configure();
 		injectResource(messageStore, action);
 		
-		action.execute(deliveryReceipt);
+		new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				
+				try {
+					action.execute(deliveryReceipt);
+				} catch (Exception e) {
+					Assert.fail(e.getMessage(), e);
+				}
+				
+			}
+			
+		}).start();
 		
 		// wait for 2 seconds so we are sure no message arrived
 		Thread.sleep(2000);

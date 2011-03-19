@@ -2,6 +2,7 @@ package org.mokai.action.smpp;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -11,6 +12,7 @@ import org.mokai.ExposableConfiguration;
 import org.mokai.Message;
 import org.mokai.annotation.Resource;
 import org.mokai.persist.MessageCriteria;
+import org.mokai.persist.MessageCriteria.OrderType;
 import org.mokai.persist.MessageStore;
 import org.mokai.persist.RejectedException;
 import org.mokai.persist.StoreException;
@@ -84,7 +86,8 @@ public class DeliveryReceiptHandlerAction implements Action, Configurable,
 		// try to find the original submitted message
 		String messageId = message.getProperty("messageId", String.class);
 		String to = message.getProperty("to", String.class);
-		Message originalMessage = findOriginalMessage(messageStore, messageId, to);
+		String from = message.getProperty("from", String.class);
+		Message originalMessage = findOriginalMessage(messageStore, messageId, to, from);
 				
 		if (originalMessage != null) {
 					
@@ -120,27 +123,46 @@ public class DeliveryReceiptHandlerAction implements Action, Configurable,
 	 * @param messageStore the {@link MessageStore} instance used to look for the submitted
 	 * message.
 	 * @param messageId the id that was returned by the SMSC when the message was submitted
-	 * @param to the smsc destination of the message
+	 * @param to the smsc destination of the delivery receipt message
+	 * @param from the smsc source of the delivery receipt message
 	 */
-	private Message findOriginalMessage(MessageStore messageStore, String messageId, String to) {
+	private Message findOriginalMessage(MessageStore messageStore, String messageId, String to, String from) {
 			
-		log.debug("looking for message with SMSC message id: " + messageId + " and to: " + to);
+		log.trace("looking for message with SMSC message id: " + messageId);
 			
-		// create the criteria
+		// create the criteria and list the messages that matches the message id
 		MessageCriteria criteria = new MessageCriteria();
 		criteria.addProperty("smsc_messageid", messageId);
-		criteria.addProperty("smsc_to", to);
+		criteria.setOrderBy("creation_time");
+		criteria.setOrderType(OrderType.DOWNWARDS);
 
 		Collection<Message> messages = messageStore.list(criteria);
-		if (messages != null && !messages.isEmpty()) {
-					
-			Message originalMessage = messages.iterator().next();
-			log.debug("message with SMSC message id: " + messageId + " found");
-					
+		
+		if (messages.size() > 1) {
+			log.debug(messages.size() + " messages matched the id: " + messageId);
+		}
+		
+		Message originalMessage = null; // this is where we will save the matched messages
+		
+		// iterate through the matched messages to find one that matches exactly
+		Iterator<Message> iterMessages = messages.iterator();
+		while (iterMessages.hasNext() && originalMessage == null) {		
+			Message message = iterMessages.next();
+			
+			String mTo = message.getProperty("to", String.class);
+			if (mTo.equals(to) || mTo.equals(from)) {
+				originalMessage = message;
+			}
+		}
+		
+		if (originalMessage != null) {
+			log.trace("message with SMSC message id: " + messageId + " found");
 			return originalMessage;
 		}
-
+		
+		// no message matched
 		return null;
+
 	}	
 		
 	/**

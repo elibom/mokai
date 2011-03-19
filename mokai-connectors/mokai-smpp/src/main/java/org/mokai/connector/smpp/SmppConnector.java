@@ -384,7 +384,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			
 			messageId = decimalMessageId + "";
 		} catch (Exception e) {
-			log.debug("cannot convert message id " + messageId + " to decimal: " + e.getMessage());
+			// we are leaving the messageId intact
 		}
 		
 		return messageId;

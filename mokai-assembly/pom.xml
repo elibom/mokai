@@ -31,7 +31,6 @@
 					<repositoryLayout>flat</repositoryLayout>
 					<includeConfigurationDirectoryInClasspath>true</includeConfigurationDirectoryInClasspath>
 					
-					
 					<defaultJvmSettings>
             			<initialMemorySize>256M</initialMemorySize>
             			<maxMemorySize>512M</maxMemorySize>
@@ -56,6 +55,14 @@
 										<property>
 											<name>wrapper.logfile</name>
 											<value>wrapper.log</value>
+										</property>
+										<property>
+											<name>wrapper.logfile.format</name>
+											<value>M</value>
+										</property>
+										<property>
+											<name>wrapper.logfile.maxsize</name>
+											<value>15m</value>
 										</property>
 										<property>
 											<name>wrapper.java.additional.1</name>

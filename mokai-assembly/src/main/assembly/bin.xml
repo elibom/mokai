@@ -22,6 +22,14 @@
 		</fileSet>
 		
 		<fileSet>
+			<directory>logs</directory>
+			<outputDirectory>logs</outputDirectory>
+			<excludes>
+				<exclude>*</exclude>
+			</excludes>
+		</fileSet>
+		
+		<fileSet>
 			<directory>../mokai-connectors/mokai-smpp/target</directory>
 			<outputDirectory>plugins</outputDirectory>
 			<includes>

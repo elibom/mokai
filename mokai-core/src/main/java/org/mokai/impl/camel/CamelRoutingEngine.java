@@ -395,7 +395,10 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 	}
 
 	public final void retryFailedMessages() {
-		log.debug("running ... ");
+
+		log.trace("retrying failed messages ... ");
+		
+		long startTime = new Date().getTime();
 		
 		MessageStore messageStore = resourceRegistry.getResource(MessageStore.class); 
 		
@@ -418,7 +421,9 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 			producer.sendBody("activemq:outboundRouter", ExchangePattern.InOnly, message);
 		}
 		
-		log.debug("finished");
+		long endTime = new Date().getTime();
+		
+		log.debug("retry failed messages took " + (endTime - startTime) + " milis.");
 	}
 	
 	private void logCollectionSize(int size) {

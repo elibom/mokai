@@ -544,8 +544,6 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		@Override
 		public void onAcceptDeliverSm(DeliverSm deliverSm) throws ProcessRequestException {
 			
-			log.info("received deliverSm: " + deliverSm);
-			
 			if (deliverSm.isSmscDeliveryReceipt()) {
 				
 				// this is a delivery receipt, handle it
@@ -565,7 +563,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		 * @see SmsMessageTranslator#createDeliveryReceipt(DeliverSm)
 		 */
 		private void handleDeliveryReceipt(DeliverSm deliverSm) {
-			log.info("DeliveryReceipt short message: " + new String(deliverSm.getShortMessage()));
+			log.debug("DeliveryReceipt short message: " + new String(deliverSm.getShortMessage()));
 			
 			try {
 			
@@ -589,7 +587,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		 */
 		private void handleShortMessage(DeliverSm deliverSm) {
 			
-			log.info("DeliverySm short message: " + new String(deliverSm.getShortMessage()));
+			log.debug("DeliverySm short message: " + new String(deliverSm.getShortMessage()));
 			
 			// create the message based on the deliverSm
 			Message message = SmsMessageTranslator.createShortMessage(deliverSm);

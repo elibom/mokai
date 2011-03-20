@@ -4,7 +4,7 @@
 
 	<groupId>org.mokai</groupId>
 	<artifactId>mokai-parent</artifactId>
-	<version>0.1.2-SNAPSHOT</version>
+	<version>0.1.2</version>
 	<packaging>pom</packaging>
 
 	<name>Mokai Parent</name>
@@ -99,8 +99,8 @@
 	</properties>
 
 	<scm>
-		<url>scm:git:file://c/java/proyectos/mokai/mokai-parent</url>
-		<connection>scm:git:file://c/java/proyectos/mokai/mokai-parent</connection>
+		<url>scm:git:git://github.com/mokai/mokai.git</url>
+		<connection>scm:git:git://github.com/mokai/mokai.git</connection>
 	</scm>
 	
 	<build>
@@ -145,14 +145,14 @@
  		<repository>  
   			<id>elibom</id>  
   			<name>Elibom Nexus Repository</name>  
-  			<url>dav:http://repository.elibom.net/nexus/content/repositories/releases</url>  
+  			<url>http://repository.elibom.net/nexus/content/repositories/releases</url>  
  		</repository>  
   
  		<!-- Publish the versioned releases here -->  
  		<snapshotRepository>  
   			<id>elibom</id>  
   			<name>Elibom Nexus Repository</name>  
-  			<url>dav:http://repository.elibom.net/nexus/content/repositories/snapshots</url>  
+  			<url>http://repository.elibom.net/nexus/content/repositories/snapshots</url>  
  		</snapshotRepository>  
 	</distributionManagement>
 

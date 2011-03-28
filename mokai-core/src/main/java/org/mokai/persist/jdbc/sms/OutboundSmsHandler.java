@@ -122,6 +122,7 @@ public class OutboundSmsHandler implements MessageHandler {
 				"status = ?, " +
 				"destination = ?, " +
 				"destinationtype = ?, " +
+				"smsc_commandstatus = ?, " +
 				"smsc_messageid = ?, " +
 				"smsc_receiptstatus = ?, " +
 				"smsc_receipttime = ?, " +
@@ -133,23 +134,27 @@ public class OutboundSmsHandler implements MessageHandler {
 		stmt.setByte(1, message.getStatus().value());
 		stmt.setString(2, message.getDestination());
 		stmt.setByte(3, message.getDestinationType().value());
-		stmt.setString(4, message.getProperty("messageId", String.class));
-		stmt.setString(5, message.getProperty("receiptStatus", String.class));
+		
+		Integer commandStatus = message.getProperty("commandStatus", Integer.class);
+		stmt.setInt(4, commandStatus == null ? 0 : commandStatus);
+		
+		stmt.setString(5, message.getProperty("messageId", String.class));
+		stmt.setString(6, message.getProperty("receiptStatus", String.class));
 		
 		Date receiptTime = message.getProperty("receiptTime", Date.class);
 		if (receiptTime != null) {
-			stmt.setTimestamp(6, new Timestamp(receiptTime.getTime()));
-		} else {
-			stmt.setTimestamp(6, null);
-		}
-		
-		if (message.getModificationTime() != null) {
-			stmt.setTimestamp(7, new Timestamp(message.getModificationTime().getTime()));
+			stmt.setTimestamp(7, new Timestamp(receiptTime.getTime()));
 		} else {
 			stmt.setTimestamp(7, null);
 		}
+		
+		if (message.getModificationTime() != null) {
+			stmt.setTimestamp(8, new Timestamp(message.getModificationTime().getTime()));
+		} else {
+			stmt.setTimestamp(8, null);
+		}
 			
-		stmt.setLong(8, message.getId());
+		stmt.setLong(9, message.getId());
 		
 		
 		int affected = stmt.executeUpdate();

@@ -60,13 +60,21 @@
 			<version>${project.version}</version>
 			<scope>provided</scope>
 		</dependency>
-		
-		<!-- <dependency>
-			<groupId>org.mokai</groupId>
-			<artifactId>mokai-jms</artifactId>
-			<version>${project.version}</version>
-			<scope>provided</scope>
-		</dependency> -->
-		
+	
 	</dependencies>
+	
+	<build>
+		<plugins>
+			<plugin>
+        		<groupId>org.apache.maven.plugins</groupId>
+         		<artifactId>maven-jar-plugin</artifactId>
+               	<configuration>
+               		<excludes>
+ 						<exclude>log4j.properties</exclude>
+               		</excludes>
+               	</configuration>
+           	</plugin>
+		</plugins>
+	</build>
+	
 </project>

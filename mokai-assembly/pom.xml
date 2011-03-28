@@ -49,6 +49,10 @@
 									
 									<configuration>
 										<property>
+											<name>configuration.directory.in.classpath.last</name>
+											<value>etc</value>
+										</property>
+										<property>
 											<name>set.default.REPO_DIR</name>
 											<value>lib</value>
 										</property>

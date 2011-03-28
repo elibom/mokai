@@ -26,7 +26,6 @@ import org.jsmpp.session.SMPPSession;
 import org.jsmpp.session.Session;
 import org.jsmpp.session.SessionStateListener;
 import org.jsmpp.util.InvalidDeliveryReceiptException;
-import org.mokai.ExecutionException;
 import org.mokai.ExposableConfiguration;
 import org.mokai.Message;
 import org.mokai.MessageProducer;
@@ -107,7 +106,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	@Override
 	public final void doStart() throws Exception {
 		
-		log.debug("starting SmppConnector ... ");
+		log.debug(getLogHead() + "starting SmppConnector ... ");
 		
 		started = true;
 		
@@ -146,7 +145,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		session.addSessionStateListener(new SessionStateListener() { 
             public void onStateChange(SessionState newState, SessionState oldState, Object source) {
                 if (newState.equals(SessionState.CLOSED)) {
-                    log.warn("loosing connection to: " + getConfiguration().getHost() + " - trying to reconnect...");
+                    log.warn(getLogHead() + "loosing connection - trying to reconnect...");
                     
                     status = MonitorStatusBuilder.failed("connection lost");
                     
@@ -177,7 +176,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
                         bindRequest.npi,
                         ""));
 		session.setTransactionTimer(5000);
-		log.debug("connection bound");
+		log.debug(getLogHead() + "connection bound");
 		
 		return session;
 	}
@@ -225,7 +224,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		try {
 			session.unbindAndClose();
 		} catch (Exception e) {
-			log.error("Exception closing session: " + e.getMessage(), e);
+			log.error(getLogHead() + "Exception closing session: " + e.getMessage(), e);
 		}
 		
 		status = MonitorStatusBuilder.unknown();
@@ -265,7 +264,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	@Override
 	public final void process(Message message) throws Exception {
 		
-		log.debug("processing message: " + message.getProperty("to", String.class) 
+		log.debug(getLogHead() + "processing message: " + message.getProperty("to", String.class) 
 				+ " - " + message.getProperty("text", String.class));
 		
 		if (!status.equals(Status.OK)) {
@@ -309,17 +308,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			message.setProperty("commandStatus", 0);
 			
 		} catch (NegativeResponseException e) {
-			
-			log.warn("NegativeResponseException while submitting a message: " + e.getMessage(), e);
 			message.setProperty("commandStatus", e.getCommandStatus());
-			
-			throw e;
-			
-		} catch (Exception e) {
-			
-			log.error("Exception while submitting a message: " + e.getMessage(), e);
-			throw new ExecutionException(e);
-			
 		}
 	}
 	
@@ -380,7 +369,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	private String handleMessageId(String messageId) {
 		try {
 			int decimalMessageId = Integer.parseInt(messageId, 16);
-			log.debug("original messageId: '" + messageId + "', new messageId: '" + decimalMessageId + "'");
+			log.debug(getLogHead() + "original messageId: '" + messageId + "', new messageId: '" + decimalMessageId + "'");
 			
 			messageId = decimalMessageId + "";
 		} catch (Exception e) {
@@ -433,6 +422,10 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		}
 		
 		return false;
+	}
+	
+	private String getLogHead() {
+		return "[" + configuration.getHost() + ":" + configuration.getPort() + "] ";
 	}
 	
 	/**
@@ -515,8 +508,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		 */
 		private void logException(Exception e, boolean firstTime) {
 			
-			String logError = "failed to connect to '" + configuration.getHost() + ":" 
-					+ configuration.getPort() + "'";
+			String logError = getLogHead() + "failed to connect";
 			
 			// print the exception only the first time
 			if (firstTime) {

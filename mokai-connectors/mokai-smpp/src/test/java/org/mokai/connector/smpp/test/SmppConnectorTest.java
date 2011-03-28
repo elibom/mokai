@@ -24,7 +24,7 @@ public class SmppConnectorTest {
 	
 	private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 	
-	private final long DEFAULT_TIMEOUT = 3000;
+	private final long DEFAULT_TIMEOUT = 61000;
 	
 	private Simulator simulator;
 	

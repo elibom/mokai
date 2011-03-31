@@ -624,7 +624,6 @@ public class CamelProcessorService implements ProcessorService {
 				RedeliveryPolicy redeliveryPolicy = getRedeliveryPolicy();
 				int maxRetries = redeliveryPolicy.getMaxRedeliveries();
 				if (attempt < maxRetries) {
-					log.warn("message failed, retrying " + attempt + " of " + maxRetries);
 					
 					// wait redelivery delay
 					long delay = redeliveryPolicy.getMaxRedeliveryDelay();
@@ -636,7 +635,13 @@ public class CamelProcessorService implements ProcessorService {
 					// MOKAI-20 - return keyword was missing
 					return process(message, attempt);
 				} else {
-					log.error("message failed after " + maxRetries + " retries: " + e.getMessage(), e);
+					
+					// print the stack trace every 50 messages that fail consecutively
+					if (failedMessages % 50 == 0) {
+						log.error("message failed after " + maxRetries + " retries: " + e.getMessage(), e);
+					} else {
+						log.error("message failed after " + maxRetries + " retries: " + e.getMessage());
+					}
 					
 					// set the new status
 					failedMessages++;

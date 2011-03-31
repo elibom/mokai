@@ -405,7 +405,7 @@ public class CamelRoutingEngineTest {
 		
 		// verify
 		Mockito.verify(processor).process(Mockito.any(Message.class));
-		Mockito.verify(messageStore).saveOrUpdate(Mockito.any(Message.class));
+		Mockito.verify(messageStore, Mockito.times(2)).saveOrUpdate(Mockito.any(Message.class));
 		
 		routingEngine.stop();
 	}

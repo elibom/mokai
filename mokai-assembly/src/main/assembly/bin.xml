@@ -22,6 +22,22 @@
 		</fileSet>
 		
 		<fileSet>
+			<directory>../mokai-boot/src/main/resources</directory>
+			<outputDirectory>etc</outputDirectory>
+			<includes>
+				<include>*</include>
+			</includes>
+		</fileSet>
+		
+		<fileSet>
+			<directory>logs</directory>
+			<outputDirectory>logs</outputDirectory>
+			<excludes>
+				<exclude>*</exclude>
+			</excludes>
+		</fileSet>
+		
+		<fileSet>
 			<directory>../mokai-connectors/mokai-smpp/target</directory>
 			<outputDirectory>plugins</outputDirectory>
 			<includes>

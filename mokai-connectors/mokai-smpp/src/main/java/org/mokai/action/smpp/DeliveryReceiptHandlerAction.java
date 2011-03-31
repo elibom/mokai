@@ -2,9 +2,9 @@ package org.mokai.action.smpp;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import org.mokai.Action;
 import org.mokai.Configurable;
@@ -12,6 +12,7 @@ import org.mokai.ExposableConfiguration;
 import org.mokai.Message;
 import org.mokai.annotation.Resource;
 import org.mokai.persist.MessageCriteria;
+import org.mokai.persist.MessageCriteria.OrderType;
 import org.mokai.persist.MessageStore;
 import org.mokai.persist.RejectedException;
 import org.mokai.persist.StoreException;
@@ -75,112 +76,114 @@ public class DeliveryReceiptHandlerAction implements Action, Configurable,
 			return;
 		}
 		
-		// queue and run in the future - we don't want to block other deliver_sm messages
-		executor.schedule(new DeliveryReceiptHandler(message), 0, TimeUnit.SECONDS);		
+		// handle the delivery receipt
+		handleDeliveryReceipt(message, new Date().getTime());
 		
 	}
 	
-	/**
-	 * Helper class that actually does the job of updating the database with the 
-	 * delivery receipt information. If it doesn't find the message record in the 
-	 * database, it will reschedule this job in 900 millis until it timeouts.
-	 * 
-	 * @author German Escobar
-	 */
-	private class DeliveryReceiptHandler implements Runnable {
+	public void handleDeliveryReceipt(Message message, long startTime) {
 		
-		private Message message;
-		
-		/**
-		 * The time, in millis, when the job was first executed
-		 */
-		private long startTime;
-		
-		public DeliveryReceiptHandler(Message message) {
-			this.message = message;
-		}
-
-		@Override
-		public void run() {
-			
-			// if startTime is not set, this is the first time we are running
-			if (startTime == 0) {
-				startTime = new Date().getTime();
+		// try to find the original submitted message
+		String messageId = message.getProperty("messageId", String.class);
+		String to = message.getProperty("to", String.class);
+		String from = message.getProperty("from", String.class);
+		Message originalMessage = findOriginalMessage(messageStore, messageId, to, from);
+				
+		if (originalMessage != null) {
+					
+			// update original message
+			String receiptStatus = message.getProperty("finalStatus", String.class);
+			Date doneDate = message.getProperty("doneDate", Date.class);
+			updateOriginalMessage(messageStore, originalMessage, receiptStatus, doneDate);
+				
+			// update the reference of the delivery receipt
+			message.setProperty("originalReference", originalMessage.getReference());
+					
+		} else { // the message was not found in the database
+				
+			long actualTime = new Date().getTime();
+				
+			// reschedule if it hasn't timeout
+			if ((actualTime - startTime) < configuration.getMessageRecordTimeout()) {
+					
+				log.debug("rescheduling delivery receipt handling to run in 900 millis for message with id: " + messageId);
+					
+				try { Thread.sleep(900); } catch (Exception e) {}
+					
+				handleDeliveryReceipt(message, startTime);
+			} else {
+				log.warn("no submitted message was found with messageId: " + messageId);
 			}
-			
-			// try to find the original submitted message
-			String messageId = message.getProperty("messageId", String.class);
-			Message originalMessage = findOriginalMessage(messageStore, messageId);
-				
-			if (originalMessage != null) {
-					
-				// update original message
-				String receiptStatus = message.getProperty("finalStatus", String.class);
-				Date doneDate = message.getProperty("doneDate", Date.class);
-				updateOriginalMessage(messageStore, originalMessage, receiptStatus, doneDate);
-					
-			} else { // the message was not found in the database
-				
-				long actualTime = new Date().getTime();
-				
-				// reschedule if it hasn't timeout
-				if ((actualTime - startTime) < configuration.getMessageRecordTimeout()) {
-					log.debug("rescheduling delivery receipt handling to run in 900 millis for message with id: " + messageId);
-					executor.schedule(this, 900, TimeUnit.MILLISECONDS);
-				} else {
-					log.warn("no submitted message was found with messageId: " + messageId);
-				}
-			}	
-		}
-		
-		/**
-		 * Helper method to find the submitted message of a delivery receipt.
-		 * 
-		 * @param messageStore the {@link MessageStore} instance used to look for the submitted
-		 * message.
-		 * @param messageId the id that was returned by the SMSC when the message was submitted
-		 */
-		private Message findOriginalMessage(MessageStore messageStore, String messageId) {
-			
-			log.debug("looking for message with SMSC message id: " + messageId);
-			
-			// create the criteria
-			MessageCriteria criteria = new MessageCriteria();
-			criteria.addProperty("smsc_messageid", messageId);
-
-			Collection<Message> messages = messageStore.list(criteria);
-			if (messages != null && !messages.isEmpty()) {
-					
-				Message originalMessage = messages.iterator().next();
-				log.debug("message with SMSC message id: " + messageId + " found");
-					
-				return originalMessage;
-			}
-
-			return null;
 		}	
+	}
 		
-		/**
-		 * Helper method to update the status and done date of a submitted message. 
-		 * 
-		 * @param messageStore
-		 * @param originalMessage
-		 * @param receiptStatus
-		 * @param doneDate
-		 * @throws StoreException
-		 * @throws RejectedException
-		 */
-		private void updateOriginalMessage(MessageStore messageStore, Message originalMessage, 
-				String receiptStatus, Date doneDate) throws StoreException, RejectedException {
+	/**
+	 * Helper method to find the submitted message of a delivery receipt.
+	 * 
+	 * @param messageStore the {@link MessageStore} instance used to look for the submitted
+	 * message.
+	 * @param messageId the id that was returned by the SMSC when the message was submitted
+	 * @param to the smsc destination of the delivery receipt message
+	 * @param from the smsc source of the delivery receipt message
+	 */
+	private Message findOriginalMessage(MessageStore messageStore, String messageId, String to, String from) {
 			
-			originalMessage.setProperty("receiptStatus", receiptStatus);
-			originalMessage.setProperty("receiptTime", doneDate);
-			messageStore.saveOrUpdate(originalMessage);
+		log.trace("looking for message with SMSC message id: " + messageId);
 			
-			log.debug("message with id " + originalMessage.getId() + " updated with receiptStatus: " 
-					+ receiptStatus);
+		// create the criteria and list the messages that matches the message id
+		MessageCriteria criteria = new MessageCriteria();
+		criteria.addProperty("smsc_messageid", messageId);
+		criteria.setOrderBy("creation_time");
+		criteria.setOrderType(OrderType.DOWNWARDS);
+
+		Collection<Message> messages = messageStore.list(criteria);
+		
+		if (messages.size() > 1) {
+			log.debug(messages.size() + " messages matched the id: " + messageId);
 		}
 		
+		Message originalMessage = null; // this is where we will save the matched messages
+		
+		// iterate through the matched messages to find one that matches exactly
+		Iterator<Message> iterMessages = messages.iterator();
+		while (iterMessages.hasNext() && originalMessage == null) {		
+			Message message = iterMessages.next();
+			
+			String mTo = message.getProperty("to", String.class);
+			if (mTo.equals(to) || mTo.equals(from)) {
+				originalMessage = message;
+			}
+		}
+		
+		if (originalMessage != null) {
+			log.trace("message with SMSC message id: " + messageId + " found");
+			return originalMessage;
+		}
+		
+		// no message matched
+		return null;
+
+	}	
+		
+	/**
+	 * Helper method to update the status and done date of a submitted message. 
+	 * 
+	 * @param messageStore
+	 * @param originalMessage
+	 * @param receiptStatus
+	 * @param doneDate
+	 * @throws StoreException
+	 * @throws RejectedException
+	 */
+	private void updateOriginalMessage(MessageStore messageStore, Message originalMessage, 
+			String receiptStatus, Date doneDate) throws StoreException, RejectedException {
+			
+		originalMessage.setProperty("receiptStatus", receiptStatus);
+		originalMessage.setProperty("receiptTime", doneDate);
+		messageStore.saveOrUpdate(originalMessage);
+		
+		log.debug("message with id " + originalMessage.getId() + " updated with receiptStatus: " 
+				+ receiptStatus);
 	}
 
 	@Override

@@ -22,6 +22,7 @@ public class DeliveryReceiptHandlerActionTest {
 		Message m = new Message(Message.SMS_TYPE);
 		m.setReference("1234");
 		m.setId(1);
+		m.setProperty("to", "3002175604");
 		
 		MessageStore messageStore = Mockito.mock(MessageStore.class);
 		Mockito.when(messageStore.list(Mockito.any(MessageCriteria.class)))
@@ -32,6 +33,8 @@ public class DeliveryReceiptHandlerActionTest {
 		deliveryReceipt.setProperty("finalStatus", "DELIVRD");
 		Date doneDate = new Date();
 		deliveryReceipt.setProperty("doneDate", doneDate);
+		deliveryReceipt.setProperty("to", "3002175604");
+		deliveryReceipt.setProperty("from", "3542");
 		
 		DeliveryReceiptHandlerAction action = new DeliveryReceiptHandlerAction();
 		injectResource(messageStore, action);
@@ -57,22 +60,38 @@ public class DeliveryReceiptHandlerActionTest {
 		Message m = new Message(Message.SMS_TYPE);
 		m.setReference("1234");
 		m.setId(1);
+		m.setProperty("to", "3002175604");
 		
 		MessageStore messageStore = Mockito.mock(MessageStore.class);
 		Mockito.when(messageStore.list(Mockito.any(MessageCriteria.class)))
 				.thenReturn(new ArrayList<Message>());
 		
-		Message deliveryReceipt = new Message(Message.DELIVERY_RECEIPT_TYPE);
+		final Message deliveryReceipt = new Message(Message.DELIVERY_RECEIPT_TYPE);
 		deliveryReceipt.setProperty("messageId", "1");
 		deliveryReceipt.setProperty("finalStatus", "DELIVRD");
 		Date doneDate = new Date();
 		deliveryReceipt.setProperty("doneDate", doneDate);
+		deliveryReceipt.setProperty("to", "3542");
+		deliveryReceipt.setProperty("from", "3002175604");
 		
-		DeliveryReceiptHandlerAction action = new DeliveryReceiptHandlerAction();
+		final DeliveryReceiptHandlerAction action = new DeliveryReceiptHandlerAction();
 		action.configure();
 		injectResource(messageStore, action);
 		
-		action.execute(deliveryReceipt);
+		new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				
+				try {
+					action.execute(deliveryReceipt);
+				} catch (Exception e) {
+					Assert.fail(e.getMessage(), e);
+				}
+				
+			}
+			
+		}).start();
 		
 		// wait for 2 seconds so we are sure no message arrived
 		Thread.sleep(2000);

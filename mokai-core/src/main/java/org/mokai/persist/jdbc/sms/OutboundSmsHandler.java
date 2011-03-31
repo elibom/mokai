@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.jetty.util.log.Log;
 import org.mokai.Message;
 import org.mokai.Message.DestinationType;
 import org.mokai.Message.Direction;
@@ -19,8 +20,8 @@ import org.mokai.Message.SourceType;
 import org.mokai.Message.Status;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.MessageCriteria.OrderType;
-import org.mokai.persist.jdbc.MessageHandler;
 import org.mokai.persist.jdbc.JdbcHelper;
+import org.mokai.persist.jdbc.MessageHandler;
 
 /**
  * A {@link MessageHandler} implementation that supports messages with 
@@ -121,8 +122,11 @@ public class OutboundSmsHandler implements MessageHandler {
 				"status = ?, " +
 				"destination = ?, " +
 				"destinationtype = ?, " +
+				"smsc_commandstatus = ?, " +
+				"smsc_messageid = ?, " +
 				"smsc_receiptstatus = ?, " +
-				"smsc_receipttime = ? " +
+				"smsc_receipttime = ?, " +
+				"modification_time = ? " +
 				"WHERE id = ?";
 		
 		PreparedStatement stmt = conn.prepareStatement(strSQL);
@@ -130,16 +134,27 @@ public class OutboundSmsHandler implements MessageHandler {
 		stmt.setByte(1, message.getStatus().value());
 		stmt.setString(2, message.getDestination());
 		stmt.setByte(3, message.getDestinationType().value());
-		stmt.setString(4, message.getProperty("receiptStatus", String.class));
+		
+		Integer commandStatus = message.getProperty("commandStatus", Integer.class);
+		stmt.setInt(4, commandStatus == null ? 0 : commandStatus);
+		
+		stmt.setString(5, message.getProperty("messageId", String.class));
+		stmt.setString(6, message.getProperty("receiptStatus", String.class));
 		
 		Date receiptTime = message.getProperty("receiptTime", Date.class);
 		if (receiptTime != null) {
-			stmt.setTimestamp(5, new Timestamp(receiptTime.getTime()));
+			stmt.setTimestamp(7, new Timestamp(receiptTime.getTime()));
 		} else {
-			stmt.setTimestamp(5, null);
+			stmt.setTimestamp(7, null);
+		}
+		
+		if (message.getModificationTime() != null) {
+			stmt.setTimestamp(8, new Timestamp(message.getModificationTime().getTime()));
+		} else {
+			stmt.setTimestamp(8, null);
 		}
 			
-		stmt.setLong(6, message.getId());
+		stmt.setLong(9, message.getId());
 		
 		
 		int affected = stmt.executeUpdate();
@@ -182,6 +197,7 @@ public class OutboundSmsHandler implements MessageHandler {
 		
 		String strSQL = "SELECT * FROM " + tableName;
 		strSQL += addCommonCriteria(criteria, params);
+		Log.debug(strSQL);
 		
 		PreparedStatement stmt = conn.prepareStatement(strSQL);
 		

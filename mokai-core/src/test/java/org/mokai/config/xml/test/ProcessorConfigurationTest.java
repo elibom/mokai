@@ -84,6 +84,10 @@ public class ProcessorConfigurationTest {
 		verify(routingEngine)
 			.createProcessor(eq("test-2"), anyInt(), eq(new MockConfigurableConnector("test2", 5)));
 		
+		// check that the maxConcurrentMsgs to the ProcessorService
+		Mockito.verify(processorService1).setMaxConcurrentMsgs(10);
+		Mockito.verify(processorService2).setMaxConcurrentMsgs(1);
+		
 		// check that nothing was added to processor service 1
 		Mockito.verify(processorService1, Mockito.never()).addAcceptor(Mockito.any(Acceptor.class));
 		Mockito.verify(processorService1, Mockito.never()).addPreProcessingAction(Mockito.any(Action.class));

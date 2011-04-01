@@ -40,9 +40,17 @@ public class CamelProcessorService implements ProcessorService {
 	
 	private Logger log = LoggerFactory.getLogger(CamelProcessorService.class);
 	
+	/**
+	 * The default number of consumers for this processor. This is applied to the
+	 * maxConcurrentMsgs attribute of this class.
+	 */
+	private final int DEFAULT_MAX_CONCURRENT_MSGS = 1;
+	
 	private String id;
 	
 	private int priority;
+	
+	private int maxConcurrentMsgs;
 	
 	private List<Acceptor> acceptors;
 	
@@ -109,6 +117,7 @@ public class CamelProcessorService implements ProcessorService {
 		String fixedId = StringUtils.lowerCase(id);
 		this.id = StringUtils.deleteWhitespace(fixedId);
 		this.priority = priority;
+		this.maxConcurrentMsgs = DEFAULT_MAX_CONCURRENT_MSGS;
 		this.processor = processor;
 		
 		this.state = State.STOPPED;
@@ -253,6 +262,16 @@ public class CamelProcessorService implements ProcessorService {
 	@Override
 	public final void setPriority(int priority) {
 		this.priority = priority;
+	}
+
+	@Override
+	public int getMaxConcurrentMsgs() {
+		return maxConcurrentMsgs;
+	}
+
+	@Override
+	public void setMaxConcurrentMsgs(int maxConcurrentMsgs) {
+		this.maxConcurrentMsgs = maxConcurrentMsgs;
 	}
 
 	@Override
@@ -487,7 +506,7 @@ public class CamelProcessorService implements ProcessorService {
 	 * @see OutboundRouter
 	 */
 	private String getQueueUri() {
-		return "activemq:processor-" + id;
+		return "activemq:processor-" + id + "?maxConcurrentConsumers=" + maxConcurrentMsgs;
 	}
 	
 	/**

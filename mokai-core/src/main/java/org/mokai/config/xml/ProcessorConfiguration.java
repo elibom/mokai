@@ -112,6 +112,10 @@ public class ProcessorConfiguration implements Configuration {
 		int priority = Integer.parseInt(processorElement.attributeValue("priority"));
 		ProcessorService processorService = routingEngine.createProcessor(id, priority, connector);
 		
+		// set maxConcurrentMsgs of the ProcessorService
+		int maxConcurrentMsgs = getMaxConcurrentMsgs(processorElement);
+		processorService.setMaxConcurrentMsgs(maxConcurrentMsgs);
+		
 		// add acceptors to the processor
 		for (Acceptor acceptor : acceptors) {
 			processorService.addAcceptor(acceptor);
@@ -132,6 +136,17 @@ public class ProcessorConfiguration implements Configuration {
 			processorService.addPostReceivingAction(action);
 		}
 		
+	}
+	
+	private int getMaxConcurrentMsgs(Element processorElement) throws Exception {
+		int maxConcurrentMsgs = 1;
+		
+		String value = processorElement.attributeValue("maxConcurrentMsgs");
+		if (value != null && !"".equals(value)) {
+			maxConcurrentMsgs = Integer.parseInt(value);
+		}
+		
+		return maxConcurrentMsgs;
 	}
 	
 	@SuppressWarnings("unchecked")

@@ -56,6 +56,24 @@ public interface ProcessorService extends Service {
 	void setPriority(int priority);
 	
 	/**
+	 * The maximum number of messages that can be processed concurrently by the 
+	 * processor.
+	 * 
+	 * @return the maximum number of messages that can be processed concurrently.
+	 */
+	int getMaxConcurrentMsgs();
+	
+	/**
+	 * Sets the maximum number of messages that can be processed concurrently by
+	 * the processor. The time in which this parameter is applied depends on each
+	 * implementation.
+	 * 
+	 * @param maxConcurrentMsgs the maximum number of messages that can be processed
+	 * concurrently.
+	 */
+	void setMaxConcurrentMsgs(int maxConcurrentMsgs);
+	
+	/**
 	 * The wrapped processor.
 	 * 
 	 * @return the {@link Processor} that this processor service is managing.

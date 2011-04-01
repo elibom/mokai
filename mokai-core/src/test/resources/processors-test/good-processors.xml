@@ -3,9 +3,10 @@
 <processors xmlns="http://mokai.googlecode.com/processors" 
 		    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		    xsi:schemaLocation=
-		   		"http://mokai.googlecode.com/processors http://mokai.googlecode.com/svn/schema/processors-0.1.xsd">
+		   		"http://mokai.googlecode.com/processors http://mokai.googlecode.com/svn/schema/processors-0.2.xsd">
 		   		
-	<processor id="test-1" priority="1" className="org.mokai.types.mock.MockConfigurableConnector">
+	<processor id="test-1" priority="1" maxConcurrentMsgs="10" 
+			className="org.mokai.types.mock.MockConfigurableConnector">
 		<configuration>
 			<property name="config1">test1</property>
 			<property name="config2">3</property>

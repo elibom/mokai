@@ -262,7 +262,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	 * </ul>
 	 */
 	@Override
-	public final void process(Message message) throws Exception {
+	public synchronized final void process(Message message) throws Exception {
 		
 		log.debug(getLogHead() + "processing message: " + message.getProperty("to", String.class) 
 				+ " - " + message.getProperty("text", String.class));
@@ -278,27 +278,28 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			
 			// submit the short message
 			String messageId = session.submitShortMessage(
-	                submitSm.getServiceType(), 
-	                TypeOfNumber.valueOf(submitSm.getSourceAddrTon()),
-	                NumberingPlanIndicator.valueOf(submitSm.getSourceAddrNpi()),
-	                submitSm.getSourceAddr(),
-	                TypeOfNumber.valueOf(submitSm.getDestAddrTon()),
-	                NumberingPlanIndicator.valueOf(submitSm.getDestAddrNpi()),
-	                submitSm.getDestAddress(),
-	                new ESMClass(),
-	                submitSm.getProtocolId(),
-	                submitSm.getPriorityFlag(),
-	                submitSm.getScheduleDeliveryTime(),
-	                submitSm.getValidityPeriod(),
-	                new RegisteredDelivery(submitSm.getRegisteredDelivery()),
-	                submitSm.getReplaceIfPresent(),
-	                new GeneralDataCoding(
-	                        false,
-	                        false,
-	                        MessageClass.CLASS1,
-	                        Alphabet.ALPHA_DEFAULT),
-	                (byte) 0,
-	                submitSm.getShortMessage());
+					submitSm.getServiceType(), 
+					TypeOfNumber.valueOf(submitSm.getSourceAddrTon()),
+					NumberingPlanIndicator.valueOf(submitSm.getSourceAddrNpi()),
+					submitSm.getSourceAddr(),
+					TypeOfNumber.valueOf(submitSm.getDestAddrTon()),
+					NumberingPlanIndicator.valueOf(submitSm.getDestAddrNpi()),
+					submitSm.getDestAddress(),
+					new ESMClass(),
+					submitSm.getProtocolId(),
+					submitSm.getPriorityFlag(),
+					submitSm.getScheduleDeliveryTime(),
+					submitSm.getValidityPeriod(),
+					new RegisteredDelivery(submitSm.getRegisteredDelivery()),
+					submitSm.getReplaceIfPresent(),
+					new GeneralDataCoding(
+		                        false,
+		                        false,
+		                        MessageClass.CLASS1,
+		                        Alphabet.ALPHA_DEFAULT),
+		            (byte) 0,
+		            submitSm.getShortMessage());
+			
 			
 			// handle the messageId - it can be in hexadecimal format
 			messageId = handleMessageId(messageId);

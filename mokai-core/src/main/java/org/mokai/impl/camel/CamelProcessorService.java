@@ -26,6 +26,7 @@ import org.mokai.Monitorable.Status;
 import org.mokai.ObjectAlreadyExistsException;
 import org.mokai.ObjectNotFoundException;
 import org.mokai.Processor;
+import org.mokai.ProcessorContext;
 import org.mokai.ProcessorService;
 import org.mokai.Serviceable;
 import org.slf4j.Logger;
@@ -136,6 +137,7 @@ public class CamelProcessorService implements ProcessorService {
 		// add the message producer to the processor
 		ResourceInjector.inject(processor, resourceRegistry);
 		injectMessageProducer(processor);
+		injectProcessorContext(processor);
 		
 	}
 	
@@ -217,7 +219,7 @@ public class CamelProcessorService implements ProcessorService {
 	}
 	
 	/**
-	 * Helper method to inject a {@link MessageProducer} into a processor.
+	 * Helper method that injects a {@link MessageProducer} into a processor.
 	 * 
 	 * @param processor
 	 */
@@ -247,6 +249,26 @@ public class CamelProcessorService implements ProcessorService {
 		};
 		
 		ResourceInjector.inject(processor, messageProducer);
+	}
+	
+	/**
+	 * Helper method that injects a {@link ProcessorContext} into a processor.
+	 * 
+	 * @param processor
+	 */
+	private void injectProcessorContext(Processor processor) {
+		
+		// create an implementation of the ProcessorContext interface
+		ProcessorContext context = new ProcessorContext() {
+
+			@Override
+			public String getId() {
+				return id;
+			}
+			
+		};
+		
+		ResourceInjector.inject(processor, context);
 	}
 	
 	@Override

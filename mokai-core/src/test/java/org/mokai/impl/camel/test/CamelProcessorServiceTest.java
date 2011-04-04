@@ -19,6 +19,7 @@ import org.mokai.MessageProducer;
 import org.mokai.Monitorable;
 import org.mokai.Monitorable.Status;
 import org.mokai.Processor;
+import org.mokai.ProcessorContext;
 import org.mokai.Service;
 import org.mokai.Service.State;
 import org.mokai.Serviceable;
@@ -826,6 +827,10 @@ public class CamelProcessorServiceTest extends CamelBaseTest {
 		new CamelProcessorService("test", 0, processor, resourceRegistry);
 		
 		Assert.assertNotNull(processor.getMessageStore());
+		
+		ProcessorContext context = processor.getContext();
+		Assert.assertNotNull(context);
+		Assert.assertEquals("test", context.getId());
 	}
 	
 	@Test

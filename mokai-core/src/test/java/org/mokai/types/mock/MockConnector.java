@@ -2,6 +2,7 @@ package org.mokai.types.mock;
 
 import org.mokai.Message;
 import org.mokai.Processor;
+import org.mokai.ProcessorContext;
 import org.mokai.Receiver;
 import org.mokai.annotation.Resource;
 import org.mokai.persist.MessageStore;
@@ -13,6 +14,9 @@ public class MockConnector implements Receiver, Processor {
 	 */
 	@Resource
 	private MessageStore messageStore;
+	
+	@Resource
+	private ProcessorContext context;
 
 	@Override
 	public void process(Message message) {
@@ -31,6 +35,10 @@ public class MockConnector implements Receiver, Processor {
 	 */
 	public MessageStore getMessageStore() {
 		return messageStore;
+	}
+	
+	public ProcessorContext getContext() {
+		return context;
 	}
 
 }

@@ -22,6 +22,13 @@
 		</dependency>
 		
 		<dependency>
+			<groupId>org.smpp</groupId>
+			<artifactId>smpp</artifactId>
+			<version>1.1.0</version>
+			<scope>compile</scope>
+		</dependency>
+		
+		<dependency>
 			<groupId>org.jsmpp</groupId>
 			<artifactId>jsmpp</artifactId>
 			<version>2.1.0</version>
@@ -44,13 +51,6 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-simple</artifactId>
 			<version>${slf4j.version}</version>
-			<scope>test</scope>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.smpp</groupId>
-			<artifactId>smpp</artifactId>
-			<version>1.1.0</version>
 			<scope>test</scope>
 		</dependency>
 		

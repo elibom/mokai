@@ -1,5 +1,7 @@
 package org.mokai.impl.camel;
 
+import java.util.Date;
+
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.mokai.Message;
@@ -31,7 +33,19 @@ public class PersistenceProcessor implements Processor {
 
 		try {
 			MessageStore messageStore = resourceRegistry.getResource(MessageStore.class);
+			
+			boolean insert = message.getId() == Message.NOT_PERSISTED;
+			
+			long startTime = new Date().getTime();
 			messageStore.saveOrUpdate(message);
+			long endTime = new Date().getTime();
+			
+			if (insert) {
+				log.trace("insert message with id " + message.getId() + " took " + (endTime - startTime) + " milis");
+			} else {
+				log.trace("update message with id " + message.getId() + " took " + (endTime - startTime) + " milis");
+			}
+			
 		} catch (RejectedException e) {
 			log.warn("the message can't be persisted: " + e.getMessage());
 		} catch (StoreException e) {

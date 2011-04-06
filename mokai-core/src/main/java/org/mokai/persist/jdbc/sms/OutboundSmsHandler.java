@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -22,6 +23,8 @@ import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.MessageCriteria.OrderType;
 import org.mokai.persist.jdbc.JdbcHelper;
 import org.mokai.persist.jdbc.MessageHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A {@link MessageHandler} implementation that supports messages with 
@@ -30,6 +33,8 @@ import org.mokai.persist.jdbc.MessageHandler;
  * @author German Escobar
  */
 public class OutboundSmsHandler implements MessageHandler {
+	
+	private Logger log = LoggerFactory.getLogger(OutboundSmsHandler.class);
 	
 	public static final String DEFAULT_TABLENAME = "OUTBOUND_SMS";
 	
@@ -70,12 +75,13 @@ public class OutboundSmsHandler implements MessageHandler {
 			"smsc_to, " +
 			"smsc_from, " +
 			"smsc_text, " +
+			"smsc_sequencenumber, " +
 			"smsc_messageid, " +
 			"smsc_commandstatus, " +
 			"smsc_receiptstatus, " +
 			"smsc_receipttime, " +
 			"creation_time) " +
-			"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 		// create the prepared statement
 		PreparedStatement stmt = conn.prepareStatement(strSQL, Statement.RETURN_GENERATED_KEYS);
@@ -102,17 +108,30 @@ public class OutboundSmsHandler implements MessageHandler {
 		stmt.setString(8, message.getProperty("to", String.class));
 		stmt.setString(9, message.getProperty("from", String.class));
 		stmt.setString(10, message.getProperty("text", String.class));
-		stmt.setString(11, message.getProperty("messageId", String.class));
+		
+		Integer sequenceNumber = message.getProperty("sequenceNumber", Integer.class);
+		log.trace("sequenceNumber: " + sequenceNumber);
+		if (sequenceNumber != null) {
+			stmt.setInt(11, sequenceNumber);
+		} else {
+			stmt.setNull(11, Types.INTEGER);
+		}
+		
+		stmt.setString(12, message.getProperty("messageId", String.class));
 		
 		Integer commandStatus = message.getProperty("commandStatus", Integer.class);
-		stmt.setInt(12, commandStatus == null ? 0 : commandStatus);
+		if (commandStatus != null) {
+			stmt.setInt(13, commandStatus);
+		} else {
+			stmt.setNull(13, Types.INTEGER);
+		}
 		
-		stmt.setString(13, message.getProperty("receiptStatus", String.class));
+		stmt.setString(14, message.getProperty("receiptStatus", String.class));
 		
 		Date receiptTime = message.getProperty("receiptTime", Date.class);
-		stmt.setTimestamp(14, receiptTime != null ? new Timestamp(receiptTime.getTime()) : null);
+		stmt.setTimestamp(15, receiptTime != null ? new Timestamp(receiptTime.getTime()) : null);
 		
-		stmt.setTimestamp(15, new Timestamp(message.getCreationTime().getTime()));
+		stmt.setTimestamp(16, new Timestamp(message.getCreationTime().getTime()));
 	}
 	
 	@Override
@@ -122,6 +141,7 @@ public class OutboundSmsHandler implements MessageHandler {
 				"status = ?, " +
 				"destination = ?, " +
 				"destinationtype = ?, " +
+				"smsc_sequencenumber = ?, " +
 				"smsc_commandstatus = ?, " +
 				"smsc_messageid = ?, " +
 				"smsc_receiptstatus = ?, " +
@@ -135,26 +155,37 @@ public class OutboundSmsHandler implements MessageHandler {
 		stmt.setString(2, message.getDestination());
 		stmt.setByte(3, message.getDestinationType().value());
 		
-		Integer commandStatus = message.getProperty("commandStatus", Integer.class);
-		stmt.setInt(4, commandStatus == null ? 0 : commandStatus);
+		Integer sequenceNumber = message.getProperty("sequenceNumber", Integer.class);
+		if (sequenceNumber != null) {
+			stmt.setInt(4, sequenceNumber);
+		} else {
+			stmt.setNull(4, Types.INTEGER);
+		}
 		
-		stmt.setString(5, message.getProperty("messageId", String.class));
-		stmt.setString(6, message.getProperty("receiptStatus", String.class));
+		Integer commandStatus = message.getProperty("commandStatus", Integer.class);
+		if (commandStatus != null) {
+			stmt.setInt(5, commandStatus);
+		} else {
+			stmt.setNull(5, Types.INTEGER);
+		}
+		
+		stmt.setString(6, message.getProperty("messageId", String.class));
+		stmt.setString(7, message.getProperty("receiptStatus", String.class));
 		
 		Date receiptTime = message.getProperty("receiptTime", Date.class);
 		if (receiptTime != null) {
-			stmt.setTimestamp(7, new Timestamp(receiptTime.getTime()));
-		} else {
-			stmt.setTimestamp(7, null);
-		}
-		
-		if (message.getModificationTime() != null) {
-			stmt.setTimestamp(8, new Timestamp(message.getModificationTime().getTime()));
+			stmt.setTimestamp(8, new Timestamp(receiptTime.getTime()));
 		} else {
 			stmt.setTimestamp(8, null);
 		}
+		
+		if (message.getModificationTime() != null) {
+			stmt.setTimestamp(9, new Timestamp(message.getModificationTime().getTime()));
+		} else {
+			stmt.setTimestamp(9, null);
+		}
 			
-		stmt.setLong(9, message.getId());
+		stmt.setLong(10, message.getId());
 		
 		
 		int affected = stmt.executeUpdate();
@@ -320,6 +351,7 @@ public class OutboundSmsHandler implements MessageHandler {
 			message.setProperty("to", rs.getString("smsc_to"));
 			message.setProperty("from", rs.getString("smsc_from"));
 			message.setProperty("text", rs.getString("smsc_text"));
+			message.setProperty("sequenceNumber", rs.getInt("smsc_sequencenumber"));
 			message.setProperty("messageId", rs.getString("smsc_messageid"));
 			message.setProperty("commandStatus", rs.getInt("smsc_commandstatus"));
 			message.setProperty("receiptStatus", rs.getString("smsc_receiptstatus"));

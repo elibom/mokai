@@ -23,6 +23,7 @@ public enum TableScripts {
 			"smsc_to VARCHAR(30), " +
 			"smsc_from VARCHAR(30), " +
 			"smsc_text VARCHAR(1000), " +
+			"smsc_sequencenumber INTEGER, " +
 			"smsc_messageid VARCHAR(50), " +
 			"smsc_commandstatus INTEGER, " +
 			"smsc_receiptstatus VARCHAR(20), " +
@@ -46,6 +47,7 @@ public enum TableScripts {
 			"smsc_to VARCHAR(30), " +
 			"smsc_from VARCHAR(30), " +
 			"smsc_text VARCHAR(1000), " +
+			"smsc_sequencenumber INT, " +
 			"smsc_messageid VARCHAR(50), " +
 			"smsc_commandstatus TINYINT, " +
 			"smsc_receiptstatus VARCHAR(20), " +

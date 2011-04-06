@@ -4,7 +4,7 @@ import org.mokai.ui.annotation.Label;
 import org.mokai.ui.annotation.Required;
 
 /**
- * Holds the information used to configure a {@link SmppConnector} instance.
+ * Holds the information used to configure a {@link SyncSmppConnector} instance.
  * 
  * @author German Escobar
  */
@@ -86,6 +86,9 @@ public class SmppConfiguration {
 	
 	@Label("Destination TON")
 	private String destTON;
+	
+	@Label("Request DLR")
+	private boolean requestDeliveryReceipts = true;
 	
 	@Label("Initial Reconnect Delay")
 	private long initialReconnectDelay = DEFAULT_INITIAL_RECONNECT_DELAY;
@@ -195,6 +198,14 @@ public class SmppConfiguration {
 
 	public final void setDestTON(String destTON) {
 		this.destTON = destTON;
+	}
+
+	public boolean isRequestDeliveryReceipts() {
+		return requestDeliveryReceipts;
+	}
+
+	public void setRequestDeliveryReceipts(boolean requestDeliveryReceipts) {
+		this.requestDeliveryReceipts = requestDeliveryReceipts;
 	}
 
 	public final long getInitialReconnectDelay() {

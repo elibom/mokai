@@ -128,6 +128,25 @@ public class CamelRoutingEngineTest {
 		routingEngine.stop();
 	}
 	
+	@Test
+	public void testRetrieveProcessors() throws Exception {
+		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
+		
+		Processor processor = Mockito.mock(Processor.class);
+		
+		ProcessorService ps1 = routingEngine.createProcessor("test1", 2000, processor);
+		ProcessorService ps2 = routingEngine.createProcessor("test2", 1000, processor);
+		ProcessorService ps3 = routingEngine.createProcessor("test3", 1500, processor);
+		
+		List<ProcessorService> processorServices = routingEngine.getProcessors();
+		
+		Assert.assertNotNull(processorServices);
+		Assert.assertEquals(3, processorServices.size());
+		Assert.assertEquals(ps2, processorServices.get(0));
+		Assert.assertEquals(ps3, processorServices.get(1));
+		Assert.assertEquals(ps1, processorServices.get(2));
+	}
+	
 	@Test(expectedExceptions=UnsupportedOperationException.class)
 	public void shouldFailToModifyReturnedProcessors() throws Exception {
 		CamelRoutingEngine routingEngine = new CamelRoutingEngine();

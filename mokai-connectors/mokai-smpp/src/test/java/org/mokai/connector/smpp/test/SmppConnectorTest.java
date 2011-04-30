@@ -1,10 +1,23 @@
 package org.mokai.connector.smpp.test;
 
+import ie.omk.smpp.Address;
+import ie.omk.smpp.message.Bind;
+import ie.omk.smpp.message.DeliverSM;
+import ie.omk.smpp.message.SMPPPacket;
+import ie.omk.smpp.message.SubmitSM;
+import ie.omk.smpp.util.AlphabetEncoding;
+import ie.omk.smpp.util.DefaultAlphabetEncoding;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+
+import net.gescobar.smppserver.PacketProcessor;
+import net.gescobar.smppserver.SmppServer;
+import net.gescobar.smppserver.SmppSession;
 
 import org.mockito.Mockito;
 import org.mokai.ExecutionException;
@@ -17,36 +30,68 @@ import org.mokai.connector.smpp.SmppConfiguration;
 import org.mokai.connector.smpp.SmppConnector;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.MessageStore;
+import org.mokai.persist.RejectedException;
+import org.mokai.persist.StoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smpp.smscsim.Simulator;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 public class SmppConnectorTest {
+
+private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 	
-	private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
+	private final long DEFAULT_TIMEOUT = 7000;
 	
-	private final long DEFAULT_TIMEOUT = 61000;
+	private final int SERVER_PORT = 4444;
 	
-	private Simulator simulator;
+	private SmppServer server;
 	
 	@BeforeMethod
 	public void startSimulator() throws Exception {
-		simulator = new Simulator();
-		simulator.start(8321);
-		simulator.addUser("test", "test");
+		server = new SmppServer(SERVER_PORT);
+		
+		// set a default packet processor
+		server.setPacketProcessor(new PacketProcessor() {
+
+			@Override
+			public Response processPacket(SMPPPacket packet) {
+				return Response.OK;
+			}
+			
+		});
+		
+		server.start();
 	}
 	
 	@AfterMethod
 	public void stopSimulator() throws Exception {
 		try {
-			simulator.stop();
+			stopServer(server, 3000);
 		} catch (Exception e) {
 			e.printStackTrace();			
 		}
+	}
+	
+	private void stopServer(SmppServer server, long timeout) {
+		
+		server.stop();
+		
+		boolean stopped = false;
+		long startTime = new Date().getTime();
+		
+		while (!stopped && (new Date().getTime() - startTime) < timeout) {
+			if (server.getStatus().equals(SmppServer.Status.STOPPED)) {
+				stopped = true;
+			} else {
+				try { Thread.sleep(200); } catch (InterruptedException e) {}
+			}
+		
+		}
+		
+		Assert.assertEquals(server.getStatus(), SmppServer.Status.STOPPED);
 	}
 	
 	@Test
@@ -55,11 +100,9 @@ public class SmppConnectorTest {
 		
 		SmppConfiguration configuration = new SmppConfiguration();
 		configuration.setHost("localhost");
-		configuration.setPort(8321);
+		configuration.setPort(SERVER_PORT);
 		configuration.setSystemId("test");
 		configuration.setPassword("test");
-		configuration.setInitialReconnectDelay(500);
-		configuration.setReconnectDelay(500);
 		
 		SmppConnector connector = new SmppConnector(configuration);
 		injectResource(new MockProcessorContext(), connector);
@@ -76,22 +119,103 @@ public class SmppConnectorTest {
 		
 		Assert.assertEquals(connector.getStatus(), Status.OK);
 		
+		connector.doStop();
+		
+	}
+	
+	@Test
+	public void testBindParameters() throws Exception {
+		log.info("starting testBindParameters ... ");
+		
+		// set a packet processor that will validate parameters
+		server.setPacketProcessor(new PacketProcessor() {
+			
+			boolean firstPacket = true;
+
+			@Override
+			public Response processPacket(SMPPPacket packet) {
+				
+				if (firstPacket) {
+					Assert.assertEquals(packet.getCommandId(), SMPPPacket.BIND_TRANSCEIVER);
+					
+					Bind bind = (Bind) packet;
+					Assert.assertEquals(bind.getSystemId(), "test");
+					Assert.assertEquals(bind.getPassword(), "test");
+					Assert.assertEquals(bind.getSystemType(), "test");
+					Assert.assertEquals(bind.getAddressNpi(), 1);
+					Assert.assertEquals(bind.getAddressTon(), 2);
+					
+					firstPacket = false;
+				}
+				
+				return Response.OK;
+			}
+			
+		});
+		
+		SmppConfiguration configuration = new SmppConfiguration();
+		configuration.setHost("localhost");
+		configuration.setPort(SERVER_PORT);
+		configuration.setSystemId("test");
+		configuration.setPassword("test");
+		configuration.setSystemType("test");
+		configuration.setBindNPI("1");
+		configuration.setBindTON("2");
+		
+		SmppConnector connector = new SmppConnector(configuration);
+		injectResource(new MockProcessorContext(), connector);
+		connector.doStart();
+		waitUntilStatus(connector, DEFAULT_TIMEOUT, Status.OK);
+		
+		connector.doStop();
+		
 	}
 
 	@Test
 	public void testProcessMessage() throws Exception {
 		log.info("starting testProcessMessage ... ");
 		
+		server.setPacketProcessor(new PacketProcessor() {
+
+			@Override
+			public Response processPacket(SMPPPacket packet) {
+				
+				if (packet.getCommandId() == SMPPPacket.SUBMIT_SM) {
+					
+					SubmitSM submitSM = (SubmitSM) packet;
+					
+					AlphabetEncoding enc = new DefaultAlphabetEncoding();
+					
+					Assert.assertEquals(submitSM.getDestination().getAddress(), "3002175604");
+					Assert.assertEquals(submitSM.getSource().getAddress(), "3542");
+					Assert.assertEquals(submitSM.getMessage(), enc.encodeString("This is the test"));
+					
+					Response response = Response.OK;
+					response.setMessageId(12000);
+					
+					return response;
+					
+				}
+				
+				return Response.OK;
+			}
+			
+		});
+		
 		MessageStore messageStore = Mockito.mock(MessageStore.class);
+		
+		Message m = new Message();
+		m.setProperty("to", "3002175604");
+		m.setProperty("from", "3542");
+		
 		Mockito.when(messageStore.list(Mockito.any(MessageCriteria.class)))
-				.thenReturn(Collections.singletonList(new Message()));
+				.thenReturn(Collections.singletonList(m));
 		
 		SmppConfiguration configuration = new SmppConfiguration();
 		configuration.setHost("localhost");
-		configuration.setPort(8321);
+		configuration.setPort(SERVER_PORT);
 		configuration.setSystemId("test");
 		configuration.setPassword("test");
-		configuration.setRequestDeliveryReceipts(false);
 		
 		SmppConnector connector = new SmppConnector(configuration);
 		injectResource(new MockProcessorContext(), connector);
@@ -106,50 +230,9 @@ public class SmppConnectorTest {
 		
 		connector.process(message);
 		
-		Mockito.verify(messageStore, Mockito.timeout(3000)).list(Mockito.any(MessageCriteria.class));
-		Mockito.verify(messageStore).saveOrUpdate(Mockito.any(Message.class));
+		Assert.assertNotNull(message.getReference());
 		
-		connector.doStop();
-	}
-	
-	@Test
-	public void testProcessMessageNullText() throws Exception {
-		log.info("starting testProcessMessageNullText ... ");
-		
-		SmppConfiguration configuration = new SmppConfiguration();
-		configuration.setHost("localhost");
-		configuration.setPort(8321);
-		configuration.setSystemId("test");
-		configuration.setPassword("test");
-		
-		SmppConnector connector = new SmppConnector(configuration);
-		injectResource(new MockProcessorContext(), connector);
-		connector.doStart();
-		waitUntilStatus(connector, DEFAULT_TIMEOUT, Status.OK);
-		
-		Message message = new Message();
-		message.setProperty("to1", "3002175604");
-		message.setProperty("from1", "3542");
-		message.setProperty("message", "This is the test");
-		
-		connector.process(message);
-		
-		connector.doStop();
-	}
-	
-	@Test
-	public void testBindNPITON() throws Exception {
-		SmppConfiguration configuration = new SmppConfiguration();
-		configuration.setHost("localhost");
-		configuration.setPort(8321);
-		configuration.setSystemId("test");
-		configuration.setPassword("test");
-		configuration.setSourceTON("3");
-		configuration.setSourceNPI("10");
-		
-		SmppConnector connector = new SmppConnector(configuration);
-		injectResource(new MockProcessorContext(), connector);
-		connector.doStart();
+		Mockito.verify(messageStore, Mockito.timeout(1000)).saveOrUpdate(Mockito.any(Message.class));
 		
 		connector.doStop();
 	}
@@ -162,7 +245,7 @@ public class SmppConnectorTest {
 		
 		SmppConfiguration configuration = new SmppConfiguration();
 		configuration.setHost("localhost");
-		configuration.setPort(8321);
+		configuration.setPort(SERVER_PORT);
 		configuration.setSystemId("test");
 		configuration.setPassword("test");
 		
@@ -177,7 +260,18 @@ public class SmppConnectorTest {
 		String from = "3002175604";
 		String text = "this is a test";
 		
-		simulator.simulateMOMessage("test", to, from, text);
+		// retrieve the session
+		Assert.assertEquals(server.getSessions().size(), 1);
+		SmppSession session = server.getSessions().iterator().next();
+		Assert.assertNotNull(session);
+		
+		// create and send the request
+		DeliverSM deliverSM = new DeliverSM();
+		deliverSM.setDestination(new Address(0, 0, to));
+		deliverSM.setSource(new Address(0, 0, from));
+		deliverSM.setMessageText(text);
+		
+		session.sendRequest(deliverSM);
 		
 		long timeout = 2000;
 		if (!receiveMessage(messageProducer, timeout)) {
@@ -197,49 +291,79 @@ public class SmppConnectorTest {
 	public void testReceiveDeliveryReceipt() throws Exception {
 		log.info("starting testReceiveDeliveryReceipt ... ");
 		
+		server.setPacketProcessor(new PacketProcessor() {
+
+			@Override
+			public Response processPacket(SMPPPacket packet) {
+				
+				if (packet.getCommandId() == SMPPPacket.SUBMIT_SM) {
+					
+					Response response = Response.OK;
+					response.setMessageId(12000);
+					
+					return response;
+					
+				}
+				
+				return Response.OK;
+			}
+			
+		});
+		
 		MockMessageProducer messageProducer = new MockMessageProducer();
-		
-		Message originalMessage = new Message();
-		originalMessage.setProperty("to", "3002175604");
-		
-		MessageStore messageStore = Mockito.mock(MessageStore.class);
-		Mockito.when(messageStore.list(Mockito.any(MessageCriteria.class)))
-				.thenReturn(Collections.singletonList(originalMessage));
 		
 		SmppConfiguration configuration = new SmppConfiguration();
 		configuration.setHost("localhost");
-		configuration.setPort(8321);
+		configuration.setPort(SERVER_PORT);
 		configuration.setSystemId("test");
 		configuration.setPassword("test");
 		
+		MessageStore messageStore = new MockMessageStore();
+		
 		SmppConnector connector = new SmppConnector(configuration);
 		injectResource(new MockProcessorContext(), connector);
-		injectResource(messageProducer, connector);
 		injectResource(messageStore, connector);
+		injectResource(messageProducer, connector);
 		connector.doStart();
-		
 		waitUntilStatus(connector, DEFAULT_TIMEOUT, Status.OK);
 		
 		String from = "3542";
 		String to = "3002175604";
 		
-		simulator.simlateDeliveryReceipt("test", from, to, "1234", "DELIVRD", 0);
+		// send a message
+		Message message = new Message();
+		message.setProperty("to", to);
+		message.setProperty("from", from);
+		message.setProperty("text", "This is the test");
+		connector.process(message);
+		messageStore.saveOrUpdate(message);
+		
+		// retrieve the session
+		Assert.assertEquals(server.getSessions().size(), 1);
+		SmppSession session = server.getSessions().iterator().next();
+		Assert.assertNotNull(session);
+		
+		DeliverSM deliverSM = new DeliverSM();
+		deliverSM.setEsmClass(SMPPPacket.SMC_RECEIPT);
+		deliverSM.setDestination(new Address(0, 0, from));
+		deliverSM.setSource(new Address(0, 0, to));
+		deliverSM.setMessageText("id:12000 sub:1 dlvrd:1 submit date:1101010000 done date:1101010000 stat:DELIVRD err:0 text:This is a ... ");
+		
+		session.sendRequest(deliverSM);
 		
 		long timeout = 2000;
 		if (!receiveMessage(messageProducer, timeout)) {
 			Assert.fail("the message was not received");
 		}
 		
-		// check that the original message has been updated
-		Mockito.verify(messageStore).saveOrUpdate(originalMessage);
+		Message receivedMessage = (Message) messageProducer.getMessage(0);
+		Assert.assertEquals(receivedMessage.getType(), Message.DELIVERY_RECEIPT_TYPE);
+		Assert.assertEquals(from, receivedMessage.getProperty("to", String.class));
+		Assert.assertEquals(to, receivedMessage.getProperty("from", String.class));
+		Assert.assertEquals(receivedMessage.getProperty("messageId", String.class), 12000 + "");
+		Assert.assertEquals("DELIVRD", receivedMessage.getProperty("finalStatus", String.class));
 		
-		// check the message that we have received
-		Message message = (Message) messageProducer.getMessage(0);
-		Assert.assertEquals(message.getType(), Message.DELIVERY_RECEIPT_TYPE);
-		Assert.assertEquals(to, message.getProperty("to", String.class));
-		Assert.assertEquals(from, message.getProperty("from", String.class));
-		Assert.assertEquals("1234", message.getProperty("messageId", String.class));
-		Assert.assertEquals("DELIVRD", message.getProperty("finalStatus", String.class));
+		connector.doStop();
 		
 	}
 	
@@ -251,7 +375,7 @@ public class SmppConnectorTest {
 		
 		SmppConfiguration configuration = new SmppConfiguration();
 		configuration.setHost("localhost");
-		configuration.setPort(8321);
+		configuration.setPort(SERVER_PORT);
 		configuration.setSystemId("test");
 		configuration.setPassword("test");
 		configuration.setInitialReconnectDelay(500);
@@ -261,10 +385,12 @@ public class SmppConnectorTest {
 		injectResource(new MockProcessorContext(), connector);
 		connector.doStart();
 		
-		waitUntilStatus(connector, DEFAULT_TIMEOUT, Status.FAILED);
+		waitUntilStatus(connector, 3000, Status.FAILED);
 		
 		startSimulator();
 		waitUntilStatus(connector, DEFAULT_TIMEOUT, Status.OK);
+		
+		connector.doStop();
 	}
 	
 	private void waitUntilStatus(SmppConnector connector, long timeout, Status status) {
@@ -349,4 +475,27 @@ public class SmppConnectorTest {
 		}
 		
 	}
+	
+	private class MockMessageStore implements MessageStore {
+		
+		private Collection<Message> messages = new ArrayList<Message>();
+
+		@Override
+		public void saveOrUpdate(Message message) throws StoreException, RejectedException {
+			messages.add(message);
+		}
+
+		@Override
+		public void updateStatus(MessageCriteria criteria,
+				org.mokai.Message.Status newStatus) throws StoreException {
+			
+		}
+
+		@Override
+		public Collection<Message> list(MessageCriteria criteria) throws StoreException {
+			return messages;
+		}
+		
+	}
+	
 }

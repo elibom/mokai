@@ -1,5 +1,19 @@
 package org.mokai.connector.smpp;
 
+import ie.omk.smpp.Address;
+import ie.omk.smpp.Connection;
+import ie.omk.smpp.event.ConnectionObserver;
+import ie.omk.smpp.event.SMPPEvent;
+import ie.omk.smpp.message.BindResp;
+import ie.omk.smpp.message.DeliverSM;
+import ie.omk.smpp.message.EnquireLink;
+import ie.omk.smpp.message.SMPPPacket;
+import ie.omk.smpp.message.SubmitSM;
+import ie.omk.smpp.message.SubmitSMResp;
+import ie.omk.smpp.net.TcpLink;
+import ie.omk.smpp.util.AlphabetEncoding;
+import ie.omk.smpp.util.DefaultAlphabetEncoding;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -30,34 +44,14 @@ import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.MessageStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smpp.Data;
-import org.smpp.ServerPDUEvent;
-import org.smpp.ServerPDUEventListener;
-import org.smpp.Session;
-import org.smpp.TCPIPConnection;
-import org.smpp.pdu.Address;
-import org.smpp.pdu.AddressRange;
-import org.smpp.pdu.BindReceiver;
-import org.smpp.pdu.BindRequest;
-import org.smpp.pdu.BindResponse;
-import org.smpp.pdu.BindTransciever;
-import org.smpp.pdu.BindTransmitter;
-import org.smpp.pdu.DeliverSM;
-import org.smpp.pdu.EnquireLink;
-import org.smpp.pdu.PDU;
-import org.smpp.pdu.Request;
-import org.smpp.pdu.Response;
-import org.smpp.pdu.SubmitSM;
-import org.smpp.pdu.SubmitSMResp;
-import org.smpp.util.Queue;
 
 /**
  * A connector that sends and receives messages to an SMSC using the SMPP protocol.
- * This implementation is based on the Logica API (http://opensmpp.logica.com/).
+ * This implementation is based on the SMPP API (http://smppapi.sourceforge.net/).
  * 
  * @author German Escobar
  */
-@Name("SMPP")
+@Name("Logica")
 @Description("Sends and receives messages using SMPP protocol")
 public class SmppConnector implements Processor, Serviceable, Monitorable, 
 		ExposableConfiguration<SmppConfiguration> {
@@ -106,14 +100,9 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	private Status status = MonitorStatusBuilder.unknown();
 	
 	/**
-	 * The Logica Session used to connect to the SMSC.
+	 * The smppapi Connection used to connect to the SMSC.
 	 */
-	private Session session;
-	
-	/**
-	 * Used to received events asyncrhonously.
-	 */
-	private SMPPPDUEventListener pduListener;
+	private Connection connection;
 	
 	/**
 	 * Tells if the processor is started so we keep trying to connect
@@ -130,7 +119,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	 * Stores the submit responses until they are processed by the SubmitSmResponseThread 
 	 * (defined in this same class).
 	 */
-	private List<SubmitSmResponse> submitSmResponses = Collections.synchronizedList(new ArrayList<SubmitSmResponse>());
+	private List<SubmitSmResp> submitSmResponses = Collections.synchronizedList(new ArrayList<SubmitSmResp>());
 	
 	/**
 	 * Stores the delivery receipts until they are processed by the DeliveryReceiptThread 
@@ -142,7 +131,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	 * Constructor. Creates an instance with the default configuration
 	 * information.
 	 * 
-	 * @see SmppConfiguration
+	 * @see LogicaConfiguration
 	 */
 	public SmppConnector() {
 		this(new SmppConfiguration());
@@ -186,16 +175,11 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		// sends enquire links periodically to check connection
 		new EnquireLinkThread().start();
 		
-		// receives the events from the SMSC
-		new ReceiverThread().start();
-		
 		// process the submit_sm response
 		new SubmitSmResponseThread().start();
 		
 		// process the delivery receipts
-		if (configuration.isRequestDeliveryReceipts()) {
-			new DeliveryReceiptThread().start();
-		}
+		new DeliveryReceiptThread().start();
 		
 	}
 
@@ -214,7 +198,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		}
 		
 		try { 
-			session.unbind();
+			connection.unbind();
 			bound = false;
 		
 		} catch (Exception e) {
@@ -248,42 +232,50 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		
 		Address sourceAr = new Address();
 		if (notEmpty(configuration.getSourceNPI())) {
-			sourceAr.setNpi(Byte.valueOf(configuration.getSourceNPI()));
+			sourceAr.setNPI(Byte.valueOf(configuration.getSourceNPI()));
 		}
 		if (notEmpty(configuration.getSourceTON())) {
-			sourceAr.setTon(Byte.valueOf(configuration.getSourceTON()));
+			sourceAr.setTON(Byte.valueOf(configuration.getSourceTON()));
 		}
 		sourceAr.setAddress(message.getProperty("from", String.class));
-		request.setSourceAddr(sourceAr);
+		request.setSource(sourceAr);
 		
 		Address destAr = new Address();
 		if (notEmpty(configuration.getDestNPI())) {
-			destAr.setNpi(Byte.valueOf(configuration.getDestNPI()));
+			destAr.setNPI(Byte.valueOf(configuration.getDestNPI()));
 		}
 		if (notEmpty(configuration.getDestTON())) {
-			destAr.setTon(Byte.valueOf(configuration.getDestTON()));
+			destAr.setTON(Byte.valueOf(configuration.getDestTON()));
 		}
 		destAr.setAddress(message.getProperty("to", String.class));
-		request.setDestAddr(destAr);
+		request.setDestination(destAr);
 		
 		String text = message.getProperty("text", String.class);
 		if (text != null) {
-			request.setShortMessage(text, "ISO-8859-1");
+			AlphabetEncoding enc = new DefaultAlphabetEncoding();
+			byte[] encodedBytes = enc.encodeString(text);
+			
+			String strBytes = "";
+			for (int i=0; i < encodedBytes.length; i++) {
+				strBytes += " : " + encodedBytes[i];
+			}
+			log.debug("encoded bytes of the message: " + strBytes);
+			
+			request.setMessage(encodedBytes);
+			request.setDataCoding(enc.getDataCoding());
 		} else {
-			request.setShortMessage(" ", "ISO-8859-1");
+			request.setMessageText("");
 		}
-		request.setDataCoding((byte) 0x03);
 
 		if (configuration.isRequestDeliveryReceipts()) {
-			request.setAlertOnMsgDelivery(true);
-			request.setRegisteredDelivery((byte) 0x01);
+			request.setRegistered((byte) 0x01);
 		}
 		
 		// submit the request and add it to the map
-		request.setSequenceNumber(getSequenceNumber());
-		session.submit(request);
+		request.setSequenceNum(getSequenceNumber());
+		connection.sendRequest(request);
 
-		message.setProperty("sequenceNumber", request.getSequenceNumber());
+		message.setProperty("sequenceNumber", request.getSequenceNum());
 
 	}
 	
@@ -442,7 +434,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
                     log.info("trying to connect to " + getConfiguration().getHost() + " - attempt #" + (++attempt) + "...");
                     
                     // try to bind
-                    session = bind();
+                    connection = bind();
                     
                     // if bound, change the status and show log that we are connected
                     bound = true;
@@ -456,7 +448,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
                     status = MonitorStatusBuilder.failed("could not connect", e);
                     
                     // close session just in case
-                    try { session.close(); } catch (Exception f) {}
+                    try { connection.closeLink(); } catch (Exception f) {}
                     
                     // wait the configured delay between reconnects
                     try {
@@ -470,58 +462,45 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		}
 		
 		/**
-		 * Helper method that creates an Session and tries to bind.
+		 * Helper method that creates an Connection and tries to bind.
 		 * 
 		 * @return
 		 * @throws Exception
 		 */
-		private Session bind() throws Exception {
+		private Connection bind() throws Exception {
 			
-			TCPIPConnection connection = new TCPIPConnection(configuration.getHost(), configuration.getPort());
-			Session session = new Session(connection);
+			TcpLink link = new TcpLink(configuration.getHost(), configuration.getPort());
+			connection = new Connection(link, true);
 			
-			BindRequest request = null;
+			MessageListener messageListener = new MessageListener();
+			connection.addObserver(messageListener);
+			
+			int type = Connection.TRANSCEIVER;
 			if (configuration.getBindType().equals(BindType.RECEIVER)) {
-				request = new BindReceiver();
+				type = Connection.RECEIVER;
 			} else if (configuration.getBindType().equals(BindType.TRANSMITTER)) {
-				request = new BindTransmitter();
-			} else {
-				request = new BindTransciever();
+				type = Connection.TRANSMITTER;
 			}
 			
-			request.setSystemId(configuration.getSystemId());
-			request.setPassword(configuration.getPassword());
-			if (configuration.getSystemType() != null) {
-				request.setSystemType(configuration.getSystemType());
+			int bindNPI = 0;
+			if (configuration.getBindNPI() != null && !"".equals(configuration.getBindNPI())) {
+				bindNPI = Integer.parseInt(configuration.getBindNPI());
 			}
 			
-			AddressRange ar = new AddressRange();
-			if (notEmpty(configuration.getBindNPI())) {
-				ar.setNpi(Byte.valueOf(configuration.getBindNPI()));
-			}
-			if (notEmpty(configuration.getBindTON())) {
-				ar.setTon(Byte.valueOf(configuration.getBindTON()));
-			}
-			request.setAddressRange(ar);
-			
-			log.info(getLogHead() + "bind request: " + request.debugString());
-			
-			BindResponse response = null;
-			pduListener = new SMPPPDUEventListener(session);
-			response = session.bind(request, pduListener);
-			
-			if (response != null) {
-				log.info(getLogHead() + "bind response: " + response.debugString());
-				
-				if (response.getCommandStatus() != Data.ESME_ROK) {
-					throw new Exception("bind response command status was: " + response.getCommandStatus());
-				}
-				
-			} else {
-				throw new Exception("bind response was null");
+			int bindTON = 0;
+			if (configuration.getBindTON() != null && !"".equals(configuration.getBindTON())) {
+				bindTON = Integer.parseInt(configuration.getBindTON());
 			}
 			
-			return session;
+			connection.bind(type, configuration.getSystemId(), configuration.getPassword(), configuration.getSystemType(), bindTON, bindNPI, null);
+			
+			BindResp bindResp = messageListener.getBindResponse(5000);
+			
+			if (bindResp == null || bindResp.getCommandStatus() != 0) {
+				throw new Exception("Bind Response failed: " + bindResp);
+			}
+			
+			return connection;
 		}
 		
 		/**
@@ -591,291 +570,18 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			try {
 
 				EnquireLink request = new EnquireLink();
-				session.enquireLink(new EnquireLink());
+				connection.sendRequest(request);
 				
-				log.trace(getLogHead() + "Enquire Link: " + request.debugString());
+				log.info(getLogHead() + "Enquire Link: " + request.toString());
 				
 				return true;
 
 			} catch (Exception e) {
-				log.trace(getLogHead() + "Exception while Enquire Link: " + e.getMessage(), e);
+				log.info(getLogHead() + "Exception while Enquire Link: " + e.getMessage(), e);
 			}
 			
 			return false;
 		}
-	}
-	
-	/**
-	 * This class receives the PDU's received by the SMSC. It is registered in the Logica Session objet on
-	 * bind. It queues them so the ReceiverThread (defined in this file) can process them by calling the 
-	 * getEvent() method. 
-	 * 
-	 * @author German Escobar
-	 */
-	class SMPPPDUEventListener implements ServerPDUEventListener {
-		
-		Session session;
-		Queue events = new Queue();
-
-		public SMPPPDUEventListener(Session session) 
-		{
-			this.session = session;
-		}
-
-		public void handleEvent(ServerPDUEvent event) 
-		{
-			PDU pdu = event.getPDU();
-			
-			if (pdu != null) 
-			{	
-				if (pdu.isRequest()) 
-				{
-					//Respond to that request to the SMSC
-					Response response = ((Request) pdu).getResponse();
-					
-					try 
-					{
-						session.respond(response);
-					} catch (Exception e) {
-						
-						log.warn(getLogHead() + "Exception sending a response: " + e.getMessage());
-					}
-				}
-
-				log.trace(getLogHead() + "Async request received, enqueuing " + pdu.debugString());
-				
-				synchronized (events) {
-					events.enqueue(event);
-					events.notify();
-				}
-			}				
-		}
-
-		/**
-		 * This method returns the next PDU event. If no event has arrived, it waits until timeout.
-		 * 
-		 * @param timeout the amount of time to wait for a PDU.
-		 * @return a ServerPDUEvent if an event has been received or null otherwise.
-		 */
-		public ServerPDUEvent getEvent(long timeout) {
-			
-			ServerPDUEvent pduEvent = null;
-			
-			synchronized (events) {
-				
-				if (events.isEmpty()) {
-					
-					try {
-						events.wait(timeout);
-					} catch (InterruptedException e) {}
-					
-					return null;
-				}
-				if (!events.isEmpty()) 
-				{
-					log.trace(getLogHead() + "there are " + events.size() + " events in the queue");
-					pduEvent = (ServerPDUEvent) events.dequeue();
-				}
-			}
-			return pduEvent;
-		}
-				
-	}
-	
-	/**
-	 * This thread will retrieve the enqueued PDU's from the Session and process them. 
-	 * 
-	 * @author German Escobar
-	 */
-	class ReceiverThread extends Thread {
-
-		public void run() {
-
-			while (started) {
-				try {
-					if (bound) {
-						receive();
-					}
-				} catch (Exception e) {
-					
-					log.warn(getLogHead() + "Exception receiving: " + e.getMessage(), e);
-				}
-			}
-		}
-		
-		/**
-		 * Helper method that actually receives the event and process it.
-		 */
-		private void receive() {
-			
-			ServerPDUEvent pduEvent = pduListener.getEvent(20000);
-
-			// if we receive an event, process it
-			if (pduEvent != null && pduEvent.getPDU() != null) {
-				
-				PDU pdu = pduEvent.getPDU();
-						
-				if (pdu.isRequest()) {
-					
-					if (pdu.getCommandId() == Data.DELIVER_SM) {
-						
-						DeliverSM deliverSm = (DeliverSM) pdu;
-						byte esmClass = deliverSm.getEsmClass();
-						
-						// check if it is a short message or a delivery receipt and handle appropriately
-						if ((esmClass & 0x04) > 0) {
-							
-							try {
-								handleDeliveryReceipt(deliverSm);
-							} catch (ParseException e) {
-								log.warn(getLogHead() + "ParseException processing delivery receipt: " + e.getMessage());
-							}
-							
-						} else {
-							handleDeliverSm(deliverSm);
-						}
-					}
-					
-				} else if (pdu.isResponse()) {
-					
-					if (pdu.getCommandId() == Data.SUBMIT_SM_RESP) {
-						handleSubmitSmResponse((SubmitSMResp) pdu);
-					} else {
-						log.trace(getLogHead() + "received server response: " + pdu.debugString());
-					}
-					
-				}
-			}
-		}
-		
-		/**
-		 * Helper method that handles a submit_sm response. It will wrap it into a SubmitSmResponse class 
-		 * (defined in this same file) and add it to the submitSmResponses list. It will then be retrieved by the 
-		 * SubmitSmResponseThread (defined in this file) and processed accordingly.
-		 * 
-		 * @param response the SubmitSMResp that was received.
-		 */
-		private void handleSubmitSmResponse(SubmitSMResp response) {
-			
-			log.debug(getLogHead() + "submit_sm response: " + response.debugString());
-			
-			SubmitSmResponse submitSmResponse = new SubmitSmResponse();
-			submitSmResponse.submitSMResp = response;
-			
-			submitSmResponses.add(submitSmResponse);
-			
-			// the SubmitSmResponseThread might be waiting on the list, notify that a new response arrived
-			synchronized (submitSmResponses) {
-				submitSmResponses.notifyAll();
-			}
-		}
-		
-		/**
-		 * Helper method that handle deliver_sm PDU's. It will create a Message object to inject it into the 
-		 * gateway using the MessageProducer.
-		 * 
-		 * @param deliverSm the deliver_sm PDU that was received.
-		 */
-		private void handleDeliverSm(DeliverSM deliverSm) {
-			log.info(getLogHead() + "received DeliverSM: " + deliverSm.debugString());
-			
-			String from = deliverSm.getSourceAddr().getAddress();
-			String to = deliverSm.getDestAddr().getAddress();
-			String text = new String(deliverSm.getShortMessage());
-			
-			Message message = new Message(Message.SMS_TYPE);
-			message.setProperty("to", to);
-			message.setProperty("from", from);
-			message.setProperty("text", text);
-			
-			messageProducer.produce(message);
-		}
-		
-		/**
-		 * Helper method that handle delivery receipts PDU's. It will create a Message object out of the delivery
-		 * receipt, wrap it in the DeliveryReceipt class (defined in this file) and add it to the deliveryReceipts
-		 * list. It will be retrieved later by the DeliveryReceiptThread (defined in this file) and processed
-		 * accordingly
-		 * 
-		 * @param deliverSm the deliver_sm PDU that was received, it is a delivery receipt.
-		 * @throws ParseException if the format of the short message (delivery receipt) is wrong.
-		 */
-		private void handleDeliveryReceipt(DeliverSM deliverSm) throws ParseException {
-			
-			log.info(getLogHead() + "received Delivery Receipt: " + deliverSm.debugString());
-			
-			String shortMessage = new String(deliverSm.getShortMessage());
-			String id = getDeliveryReceiptValue("id", shortMessage);
-			int submitted = Integer.parseInt(getDeliveryReceiptValue("sub", shortMessage));
-			int delivered = Integer.parseInt(getDeliveryReceiptValue("dlvrd", shortMessage));
-			
-			SimpleDateFormat sdf = new SimpleDateFormat("yyMMddhhmm");
-			Date submitDate = sdf.parse(getDeliveryReceiptValue("submit date", shortMessage));
-			Date doneDate = sdf.parse(getDeliveryReceiptValue("done date", shortMessage));
-			
-			String finalStatus = getDeliveryReceiptValue("stat", shortMessage);
-			//String error = getDeliveryReceiptValue("err", shortMessage);
-			
-			// create the message
-			Message message = new Message(Message.DELIVERY_RECEIPT_TYPE);
-			
-			String to = deliverSm.getDestAddr().getAddress();
-			String from = deliverSm.getSourceAddr().getAddress();
-			
-			message.setProperty("to", to);
-			message.setProperty("from", from);
-			
-			// set the id
-			message.setProperty("messageId", id);
-			
-			// set the number of submitted and submit date
-			message.setProperty("submitted", submitted);
-			message.setProperty("submitDate", submitDate);
-			
-			// set the number of delivered
-			message.setProperty("delivered", delivered);
-			
-			// set done date
-			message.setProperty("doneDate", doneDate);
-			
-			// set final status
-			message.setProperty("finalStatus", finalStatus);
-			
-			DeliveryReceipt deliveryReceipt = new DeliveryReceipt();
-			deliveryReceipt.message = message;
-			deliveryReceipt.deliverSm = deliverSm;
-			
-			// add to the deliveryReceipts list and notify the DeliveryReceiptThread that might be waiting
-			deliveryReceipts.add(deliveryReceipt);
-			synchronized (deliveryReceipts) {
-				deliveryReceipts.notifyAll();
-			}
-		}
-		
-		/**
-	     * Helper method used to get the delivery receipt attributes values.
-	     * 
-	     * @param attrName is the attribute name.
-	     * @param source the original source id:IIIIIIIIII sub:SSS dlvrd:DDD submit
-	     *        date:YYMMDDhhmm done date:YYMMDDhhmm stat:DDDDDDD err:E
-	     *        Text:....................
-	     * @return the value of specified attribute.
-	     * @throws IndexOutOfBoundsException
-	     */
-	    private String getDeliveryReceiptValue(String attrName, String source) throws IndexOutOfBoundsException {
-	        
-	    	String tmpAttr = attrName + ":";
-	        int startIndex = source.indexOf(tmpAttr);
-	        if (startIndex < 0)
-	            return null;
-	        startIndex = startIndex + tmpAttr.length();
-	        int endIndex = source.indexOf(" ", startIndex);
-	        if (endIndex > 0)
-	            return source.substring(startIndex, endIndex);
-	        
-	        return source.substring(startIndex);
-	    }
-
 	}
 	
 	/**
@@ -909,9 +615,9 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		 */
 		private void process() {
 			
-			List<SubmitSmResponse> submitSmResponseCopy = new ArrayList<SubmitSmResponse>(submitSmResponses);
+			List<SubmitSmResp> submitSmResponseCopy = new ArrayList<SubmitSmResp>(submitSmResponses);
 			
-			for (SubmitSmResponse response : submitSmResponseCopy) { 
+			for (SubmitSmResp response : submitSmResponseCopy) { 
 			
 				// check if we have to precess this response
 				if (response.lastProcessedTime == null || (new Date().getTime() - response.lastProcessedTime.getTime()) > 500) {
@@ -927,24 +633,24 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		 * 
 		 * @param response the submit_sm response to be processed
 		 */
-		private void process(SubmitSmResponse response) {
+		private void process(SubmitSmResp response) {
 			submitSmResponses.remove(response);
 			
 			// if no messageStore is set, we can't process this response
 			if (messageStore == null) {
-				log.warn("MessageStore is null: ignoring submit_sm response: " + response.submitSMResp.debugString());
+				log.warn("MessageStore is null: ignoring submit_sm response: " + response.submitSMResp.toString());
 				return;
 			}
 				
 			// try to find a message that matches the criteria
 			MessageCriteria criteria = new MessageCriteria()
 				.addProperty("destination", context.getId())
-				.addProperty("smsc_sequencenumber", response.submitSMResp.getSequenceNumber());
+				.addProperty("smsc_sequencenumber", response.submitSMResp.getSequenceNum());
 				
 			long startTime = new Date().getTime();
 			Collection<Message> messages = messageStore.list(criteria);
 			long endTime = new Date().getTime();
-			log.trace(getLogHead() + "retrieve message with smsc_sequencenumber " + response.submitSMResp.getSequenceNumber() 
+			log.trace(getLogHead() + "retrieve message with smsc_sequencenumber " + response.submitSMResp.getSequenceNum() 
 					+ " took " + (endTime - startTime) + " milis");
 				
 			Message message = null;
@@ -1047,7 +753,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		private void process(DeliveryReceipt dr) {
 			
 			if (messageStore == null) {
-				log.warn(getLogHead() + "MessageStore is null: ignoring delivery receipt: " + dr.deliverSm.debugString());
+				log.warn("MessageStore is null: ignoring delivery receipt: " + dr.deliverSm.toString());
 				return;
 			}
 		
@@ -1133,13 +839,205 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		
 	}
     
+    private class MessageListener implements ConnectionObserver {
+    	
+    	private BindResp bindResponse;
+
+		@Override
+		public void packetReceived(Connection source, SMPPPacket packet) {
+			if (packet.isRequest()) {
+				if (packet.getCommandId() == SMPPPacket.DELIVER_SM) {
+					int esmClass = packet.getEsmClass();
+					
+					// check if it is a short message or a delivery receipt and handle appropriately
+					if (esmClass == SMPPPacket.SMC_RECEIPT) {
+						
+						try {
+							handleDeliveryReceipt((DeliverSM) packet);
+						} catch (ParseException e) {
+							log.warn(getLogHead() + "ParseException processing delivery receipt: " + e.getMessage());
+						}
+						
+					} else {
+						handleDeliverSm((DeliverSM) packet);
+					}
+				}
+			} else {
+				if (packet.getCommandId() == SMPPPacket.BIND_RECEIVER_RESP || packet.getCommandId() == SMPPPacket.BIND_TRANSMITTER_RESP
+						|| packet.getCommandId() == SMPPPacket.BIND_TRANSCEIVER_RESP) {
+			
+					bindResponse = (BindResp) packet;
+					
+				} else if (packet.getCommandId() == SMPPPacket.SUBMIT_SM_RESP) {
+					
+					handleSubmitSmResponse((SubmitSMResp) packet);
+					
+				}
+			}
+		}
+
+		@Override
+		public void update(Connection source, SMPPEvent event) {
+			log.info(getLogHead() + "an SMPPEvent was received: " + event.toString());
+			
+			if (event.getType() == SMPPEvent.RECEIVER_EXIT) {
+				bound = false;
+				status = MonitorStatusBuilder.failed("enquire link failed");
+				
+				new Thread(
+					new ConnectionThread(Integer.MAX_VALUE, configuration.getInitialReconnectDelay())
+				).start();
+			}
+		}
+		
+		public BindResp getBindResponse(long timeout) {
+			
+			long startTime = new Date().getTime();
+			
+			while ((new Date().getTime() - startTime) < timeout && bindResponse == null) {
+				try { Thread.sleep(500); } catch (Exception e) {}
+			}
+			
+			return bindResponse;
+		}
+		
+		/**
+		 * Helper method that handles a submit_sm response. It will wrap it into a SubmitSmResponse class 
+		 * (defined in this same file) and add it to the submitSmResponses list. It will then be retrieved by the 
+		 * SubmitSmResponseThread (defined in this file) and processed accordingly.
+		 * 
+		 * @param response the SubmitSMResp that was received.
+		 */
+		private void handleSubmitSmResponse(SubmitSMResp response) {
+			
+			log.debug(getLogHead() + "submit_sm response: " + response.toString());
+			
+			SubmitSmResp submitSmResponse = new SubmitSmResp();
+			submitSmResponse.submitSMResp = response;
+			
+			submitSmResponses.add(submitSmResponse);
+			
+			// the SubmitSmResponseThread might be waiting on the list, notify that a new response arrived
+			synchronized (submitSmResponses) {
+				submitSmResponses.notifyAll();
+			}
+		}
+		
+		/**
+		 * Helper method that handle deliver_sm PDU's. It will create a Message object to inject it into the 
+		 * gateway using the MessageProducer.
+		 * 
+		 * @param deliverSm the deliver_sm PDU that was received.
+		 */
+		private void handleDeliverSm(DeliverSM deliverSm) {
+			log.info(getLogHead() + "received DeliverSM: " + deliverSm.toString());
+			
+			String from = deliverSm.getSource().getAddress();
+			String to = deliverSm.getDestination().getAddress();
+			String text = new String(deliverSm.getMessageText());
+			
+			Message message = new Message(Message.SMS_TYPE);
+			message.setProperty("to", to);
+			message.setProperty("from", from);
+			message.setProperty("text", text);
+			
+			messageProducer.produce(message);
+		}
+		
+		/**
+		 * Helper method that handle delivery receipts PDU's. It will create a Message object out of the delivery
+		 * receipt, wrap it in the DeliveryReceipt class (defined in this file) and add it to the deliveryReceipts
+		 * list. It will be retrieved later by the DeliveryReceiptThread (defined in this file) and processed
+		 * accordingly
+		 * 
+		 * @param deliverSm the deliver_sm PDU that was received, it is a delivery receipt.
+		 * @throws ParseException if the format of the short message (delivery receipt) is wrong.
+		 */
+		private void handleDeliveryReceipt(DeliverSM deliverSm) throws ParseException {
+			
+			log.info(getLogHead() + "received Delivery Receipt: " + deliverSm.toString());
+			
+			String shortMessage = new String(deliverSm.getMessageText());
+			String id = getDeliveryReceiptValue("id", shortMessage);
+			int submitted = Integer.parseInt(getDeliveryReceiptValue("sub", shortMessage));
+			int delivered = Integer.parseInt(getDeliveryReceiptValue("dlvrd", shortMessage));
+			
+			SimpleDateFormat sdf = new SimpleDateFormat("yyMMddhhmm");
+			Date submitDate = sdf.parse(getDeliveryReceiptValue("submit date", shortMessage));
+			Date doneDate = sdf.parse(getDeliveryReceiptValue("done date", shortMessage));
+			
+			String finalStatus = getDeliveryReceiptValue("stat", shortMessage);
+			//String error = getDeliveryReceiptValue("err", shortMessage);
+			
+			// create the message
+			Message message = new Message(Message.DELIVERY_RECEIPT_TYPE);
+			
+			String to = deliverSm.getDestination().getAddress();
+			String from = deliverSm.getSource().getAddress();
+			
+			message.setProperty("to", to);
+			message.setProperty("from", from);
+			
+			// set the id
+			message.setProperty("messageId", id);
+			
+			// set the number of submitted and submit date
+			message.setProperty("submitted", submitted);
+			message.setProperty("submitDate", submitDate);
+			
+			// set the number of delivered
+			message.setProperty("delivered", delivered);
+			
+			// set done date
+			message.setProperty("doneDate", doneDate);
+			
+			// set final status
+			message.setProperty("finalStatus", finalStatus);
+			
+			DeliveryReceipt deliveryReceipt = new DeliveryReceipt();
+			deliveryReceipt.message = message;
+			deliveryReceipt.deliverSm = deliverSm;
+			
+			// add to the deliveryReceipts list and notify the DeliveryReceiptThread that might be waiting
+			deliveryReceipts.add(deliveryReceipt);
+			synchronized (deliveryReceipts) {
+				deliveryReceipts.notifyAll();
+			}
+		}
+		
+		/**
+	     * Helper method used to get the delivery receipt attributes values.
+	     * 
+	     * @param attrName is the attribute name.
+	     * @param source the original source id:IIIIIIIIII sub:SSS dlvrd:DDD submit
+	     *        date:YYMMDDhhmm done date:YYMMDDhhmm stat:DDDDDDD err:E
+	     *        Text:....................
+	     * @return the value of specified attribute.
+	     * @throws IndexOutOfBoundsException
+	     */
+	    private String getDeliveryReceiptValue(String attrName, String source) throws IndexOutOfBoundsException {
+	        
+	    	String tmpAttr = attrName + ":";
+	        int startIndex = source.indexOf(tmpAttr);
+	        if (startIndex < 0)
+	            return null;
+	        startIndex = startIndex + tmpAttr.length();
+	        int endIndex = source.indexOf(" ", startIndex);
+	        if (endIndex > 0)
+	            return source.substring(startIndex, endIndex);
+	        
+	        return source.substring(startIndex);
+	    }
+    	
+    }
+    
     /**
      * Helper class that wraps the submit_sm response with the last time it was tried to be processed and number
      * of retries.
      * 
      * @author German Escobar
      */
-    class SubmitSmResponse {
+    class SubmitSmResp {
 		public SubmitSMResp submitSMResp;
 		public Date lastProcessedTime;
 		public int retries = 0;

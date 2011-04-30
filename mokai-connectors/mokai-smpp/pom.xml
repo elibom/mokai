@@ -22,12 +22,10 @@
 		</dependency>
 		
 		<dependency>
-			<groupId>org.smpp</groupId>
-			<artifactId>smpp</artifactId>
-			<version>1.2.0</version>
-			<scope>compile</scope>
+			<groupId>com.adenki</groupId>
+			<artifactId>smppapi</artifactId>
+			<version>0.3.9</version>
 		</dependency>
-		
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
@@ -39,14 +37,18 @@
 			<version>${testng.version}</version>
 			<scope>test</scope>
 		</dependency>
-		
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-simple</artifactId>
 			<version>${slf4j.version}</version>
 			<scope>test</scope>
 		</dependency>
-		
+		<dependency>
+			<groupId>net.gescobar</groupId>
+			<artifactId>smpp-server</artifactId>
+			<version>0.1.0</version>
+			<scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-all</artifactId>

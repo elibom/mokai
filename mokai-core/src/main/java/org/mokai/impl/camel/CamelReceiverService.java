@@ -118,7 +118,7 @@ public class CamelReceiverService implements ReceiverService {
 				Validate.notNull(message);
 				
 				try {
-					producer.sendBody(getEndpointUri(), message);
+					producer.asyncSendBody(getEndpointUri(), message);
 				} catch (CamelExecutionException e) {
 					Throwable ex = e;
 					if (e.getCause() != null) {

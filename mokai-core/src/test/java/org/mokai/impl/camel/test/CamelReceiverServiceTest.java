@@ -15,11 +15,11 @@ import org.mokai.ExecutionException;
 import org.mokai.Message;
 import org.mokai.MessageProducer;
 import org.mokai.Monitorable;
+import org.mokai.Monitorable.Status;
 import org.mokai.Receiver;
 import org.mokai.Service;
-import org.mokai.Serviceable;
-import org.mokai.Monitorable.Status;
 import org.mokai.Service.State;
+import org.mokai.Serviceable;
 import org.mokai.annotation.Resource;
 import org.mokai.impl.camel.CamelReceiverService;
 import org.mokai.impl.camel.ResourceRegistry;
@@ -193,21 +193,6 @@ public class CamelReceiverServiceTest extends CamelBaseTest {
 		
 		Mockito.verify((Configurable) configurableAction).configure();
 		Mockito.verify((Configurable) configurableAction).destroy();
-	}
-	
-	@Test(expectedExceptions=ExecutionException.class)
-	public void testActionException() throws Exception {
-		SimpleReceiver receiver = new SimpleReceiver();
-		CamelReceiverService receiverService = new CamelReceiverService("test", receiver, resourceRegistry);
-		
-		Message message = new Message();
-		
-		Action action = Mockito.mock(Action.class);
-		Mockito.doThrow(new NullPointerException()).when(action).execute(message);
-		
-		receiverService.addPostReceivingAction(action);
-		
-		receiver.receiveMessage(message);
 	}
 	
 	@Test

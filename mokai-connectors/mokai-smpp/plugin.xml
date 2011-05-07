@@ -6,7 +6,7 @@
 		<library id="core" path="classes/" type="code">
 			<export prefix="*" />
 		</library>
-		<library id="logica-api" path="lib/smpp-1.2.0.jar" type="code" />
+		<library id="smppapi" path="lib/smppapi-0.3.9.jar" type="code" />
 	</runtime>
 	
 </plugin>

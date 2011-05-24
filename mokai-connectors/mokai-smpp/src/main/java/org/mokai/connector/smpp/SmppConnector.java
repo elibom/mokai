@@ -11,14 +11,17 @@ import ie.omk.smpp.message.SMPPPacket;
 import ie.omk.smpp.message.SubmitSM;
 import ie.omk.smpp.message.SubmitSMResp;
 import ie.omk.smpp.net.TcpLink;
+import ie.omk.smpp.util.ASCIIEncoding;
 import ie.omk.smpp.util.AlphabetEncoding;
 import ie.omk.smpp.util.DefaultAlphabetEncoding;
+import ie.omk.smpp.util.Latin1Encoding;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -252,7 +255,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		
 		String text = message.getProperty("text", String.class);
 		if (text != null) {
-			AlphabetEncoding enc = new DefaultAlphabetEncoding();
+			AlphabetEncoding enc = getDataCoding();
 			byte[] encodedBytes = enc.encodeString(text);
 			
 			String strBytes = "";
@@ -277,6 +280,20 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 
 		message.setProperty("sequenceNumber", request.getSequenceNum());
 
+	}
+	
+	private AlphabetEncoding getDataCoding() throws IllegalStateException, UnsupportedEncodingException {
+		int dataCoding = configuration.getDataCoding();
+		
+		if (dataCoding == 0) {
+			return new DefaultAlphabetEncoding();
+		} else if (dataCoding == 1) {
+			return new ASCIIEncoding();
+		} else if (dataCoding == 3) {
+			return new Latin1Encoding();
+		}
+		
+		throw new IllegalStateException("Data Coding " + configuration.getDataCoding() + " not recognized");
 	}
 	
 	/**
@@ -471,6 +488,9 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			
 			TcpLink link = new TcpLink(configuration.getHost(), configuration.getPort());
 			connection = new Connection(link, true);
+			
+			connection.autoAckLink(true);
+			connection.autoAckMessages(true);
 			
 			MessageListener messageListener = new MessageListener();
 			connection.addObserver(messageListener);
@@ -955,7 +975,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		 */
 		private void handleDeliveryReceipt(DeliverSM deliverSm) throws ParseException {
 			
-			log.info(getLogHead() + "received Delivery Receipt: " + deliverSm.toString());
+			log.info(getLogHead() + "received Delivery Receipt: " + deliverSm.toString() + " - " + deliverSm.getMessageText());
 			
 			String shortMessage = new String(deliverSm.getMessageText());
 			String id = getDeliveryReceiptValue("id", shortMessage);

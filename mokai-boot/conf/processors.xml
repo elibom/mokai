@@ -13,14 +13,7 @@
   		<property name="password">test</property>
   	</configuration>
     <acceptors>
-      <acceptor className="org.mokai.acceptor.RegExpAcceptor">
-        <property name="field">to</property>
-        <property name="regexp">(57)?(300)(\d){7}</property>
-      </acceptor>
+      <acceptor className="org.mokai.acceptor.AcceptAllAcceptor" />
     </acceptors>
-    
-    <post-receiving-actions>
-	  <action className="org.mokai.action.smpp.DeliveryReceiptHandlerAction" />
-	</post-receiving-actions>
   </processor>
 </processors>

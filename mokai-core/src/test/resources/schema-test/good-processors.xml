@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<processors xmlns="http://mokai.googlecode.com/processors" 
+		    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		    xsi:schemaLocation=
+		   		"http://mokai.googlecode.com/processors http://mokai.googlecode.com/svn/schema/processors-0.2.xsd">
+		   		
+	<processor id="test-1" priority="1" maxConcurrentMsgs="10" 
+			className="org.mokai.types.mock.MockConfigurableConnector">
+		<configuration>
+			<property name="config1">test1á</property>
+			<listProperty name="test1é">
+				<item>testñ</item>
+				<item value="test" />
+			</listProperty>
+			<mapProperty name="test2">
+				<item key="test">gerá</item>
+				<item key="testé" value="ermán" />
+			</mapProperty>
+		</configuration>
+	</processor>
+
+	<processor id="test-2" priority="2" className="org.mokai.types.mock.MockConfigurableConnector">
+		<configuration>
+			<property name="config1">test2</property>
+			<property name="config2">5</property>
+		</configuration>
+		
+		<acceptors>
+			<acceptor className="org.mokai.types.mock.MockAcceptor" />
+			<acceptor className="org.mokai.types.mock.MockAcceptorWithEnum">
+				<property name="config1">test1á</property>
+				<listProperty name="test1é">
+					<item>testñ</item>
+					<item value="test" />
+				</listProperty>
+				<mapProperty name="test2">
+					<item key="test">gerá</item>
+					<item key="testé" value="ermán" />
+				</mapProperty>
+			</acceptor>
+		</acceptors>
+		
+		<pre-processing-actions>
+			<action className="org.mokai.types.mock.MockConfigurableAction">
+				<property name="config1">t1</property>
+				<property name="config2">1</property>
+			</action>
+		</pre-processing-actions>
+		<post-processing-actions>
+			<action className="org.mokai.types.mock.MockConfigurableAction">
+				<property name="config1">test1á</property>
+				<listProperty name="test1é">
+					<item>testñ</item>
+					<item value="test" />
+				</listProperty>
+				<mapProperty name="test2">
+					<item key="test">gerá</item>
+					<item key="testé" value="ermán" />
+				</mapProperty>
+			</action>
+		</post-processing-actions>
+		
+		<post-receiving-actions>
+			<action className="org.mokai.types.mock.MockConfigurableAction">
+				<property name="config1">test1á</property>
+				<listProperty name="test1é">
+					<item>testñ</item>
+					<item value="test" />
+				</listProperty>
+				<mapProperty name="test2">
+					<item key="test">gerá</item>
+					<item key="testé" value="ermán" />
+				</mapProperty>
+			</action>
+		</post-receiving-actions>
+	</processor>
+</processors>

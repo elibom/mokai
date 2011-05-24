@@ -15,6 +15,7 @@ public class SmppConfiguration {
 	private static final int DEFAULT_ENQUIRELINK_TIMER = 9000;
 	private static final long DEFAULT_INITIAL_RECONNECT_DELAY = 5000;
 	private static final long DEFAULT_RECONNECT_DELAY = 5000;
+	private static final int DEFAULT_DATA_CODING = 0;
 	
 	/**
 	 * Tells whether the connection will be in transmitter, receiver or 
@@ -95,6 +96,9 @@ public class SmppConfiguration {
 	
 	@Label("Reconnect Delay")
     private long reconnectDelay = DEFAULT_RECONNECT_DELAY;
+	
+	@Label("Data Coding")
+	private int dataCoding = DEFAULT_DATA_CODING;
 	
 	public final String getHost() {
 		return host;
@@ -222,6 +226,14 @@ public class SmppConfiguration {
 
 	public final void setReconnectDelay(long reconnectDelay) {
 		this.reconnectDelay = reconnectDelay;
+	}
+
+	public int getDataCoding() {
+		return dataCoding;
+	}
+
+	public void setDataCoding(int dataCoding) {
+		this.dataCoding = dataCoding;
 	}
 	
 }

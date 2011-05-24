@@ -72,7 +72,7 @@ public class ReceiverConfigurationTest {
 				
 		Mockito.verify(receiverService2).addPostReceivingAction(Mockito.any(Action.class));
 		
-		Action testAction = new MockConfigurableAction("test", 2);
+		Action testAction = new MockConfigurableAction("test‡", 2);
 		Mockito.verify(receiverService2).addPostReceivingAction(testAction);
 	}
 	

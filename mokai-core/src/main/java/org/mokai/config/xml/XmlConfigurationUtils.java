@@ -153,7 +153,7 @@ public class XmlConfigurationUtils {
 	 * @throws IllegalArgumentException
 	 * @throws NoSuchMethodException
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	public static void setConfigurationField(Element element, Object configuration, 
 			RoutingEngine routingEngine) throws IllegalAccessException, SecurityException, 
 			NoSuchFieldException, IllegalArgumentException, NoSuchMethodException {
@@ -182,7 +182,7 @@ public class XmlConfigurationUtils {
 			while (iterator.hasNext()) {
 				Element entry = (Element) iterator.next();
 				String entryKey = entry.attributeValue("key");
-				String entryValue = entry.attributeValue("value");
+				String entryValue = retrieveValue(entry);
 				
 				map.put(entryKey, entryValue);
 			}
@@ -266,7 +266,7 @@ public class XmlConfigurationUtils {
 		field.set(object, value);
 	}
 	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	public static void setConfigurationFields(Element parentElement, Object configuration, 
 			RoutingEngine routingEngine) throws SecurityException, IllegalArgumentException, 
 			IllegalAccessException, NoSuchFieldException, NoSuchMethodException {
@@ -294,7 +294,7 @@ public class XmlConfigurationUtils {
 	 * @throws SecurityException 
 	 * @throws Exception
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static List<Action> buildActions(RoutingEngine routingEngine, 
 			PluginMechanism pluginMechanism, Element actionsElement) throws ClassNotFoundException, InstantiationException, IllegalAccessException, SecurityException, IllegalArgumentException, NoSuchFieldException, NoSuchMethodException {
 		

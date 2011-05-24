@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<receivers xmlns="http://mokai.googlecode.com/receivers" 
+		   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		   xsi:schemaLocation=
+		   	"http://mokai.googlecode.com/receivers http://mokai.googlecode.com/svn/schema/receivers-0.2.xsd">
+
+  <receiver id="test-1" className="org.mokai.types.mock.MockConnector" >
+  	<post-receiving-actions>
+  		<action className="org.mokai.types.mock.MockAction">
+  		  <property name="test">test1á</property>
+  		  <listProperty name="test2áñ">
+  		  	<item>testí</item>
+  		  	<item value="test2ñ" />
+  		  </listProperty>
+  		  <mapProperty name="teñst3">
+  		  	<item key="testé">tóest</item>
+  		  	<item key="test2" value="test2" />
+  		  </mapProperty>
+  		</action>
+  	</post-receiving-actions>
+  </receiver>
+  
+  <receiver id="test-2" className="org.mokai.types.mock.MockConfigurableConnector">
+  	<configuration>
+  	  <property name="test">test1</property>
+  	  <listProperty name="test2">
+  		<item>test</item>
+  		<item value="test2" />
+  	  </listProperty>
+  	  <mapProperty name="test3">
+  		<item key="test">test</item>
+  		<item key="test2" value="test2" />
+  	  </mapProperty>
+  	</configuration>
+  	<post-receiving-actions>
+  	  <action className="org.mokai.types.mock.MockConfigurableAction">
+  		<property name="config1">test</property>
+  		<property name="config2">2</property>
+  	  </action>
+  	</post-receiving-actions>
+  </receiver>
+  	   	
+</receivers>

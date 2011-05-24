@@ -6,8 +6,9 @@ import ie.omk.smpp.message.DeliverSM;
 import ie.omk.smpp.message.SMPPPacket;
 import ie.omk.smpp.message.SubmitSM;
 import ie.omk.smpp.util.AlphabetEncoding;
-import ie.omk.smpp.util.DefaultAlphabetEncoding;
+import ie.omk.smpp.util.Latin1Encoding;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -184,11 +185,18 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 					
 					SubmitSM submitSM = (SubmitSM) packet;
 					
-					AlphabetEncoding enc = new DefaultAlphabetEncoding();
+					AlphabetEncoding enc = null;
+					try {
+						enc = new Latin1Encoding();
+					} catch (UnsupportedEncodingException e) {
+						Assert.fail(e.getMessage(), e);
+					}
 					
 					Assert.assertEquals(submitSM.getDestination().getAddress(), "3002175604");
 					Assert.assertEquals(submitSM.getSource().getAddress(), "3542");
-					Assert.assertEquals(submitSM.getMessage(), enc.encodeString("This is the test"));
+					
+					Assert.assertEquals(submitSM.getDataCoding(), 3);
+					Assert.assertEquals(submitSM.getMessage(), enc.encodeString("This is the test with –"));
 					
 					Response response = Response.OK;
 					response.setMessageId(12000);
@@ -216,6 +224,7 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 		configuration.setPort(SERVER_PORT);
 		configuration.setSystemId("test");
 		configuration.setPassword("test");
+		configuration.setDataCoding(3);
 		
 		SmppConnector connector = new SmppConnector(configuration);
 		injectResource(new MockProcessorContext(), connector);
@@ -226,7 +235,7 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 		Message message = new Message();
 		message.setProperty("to", "3002175604");
 		message.setProperty("from", "3542");
-		message.setProperty("text", "This is the test");
+		message.setProperty("text", "This is the test with –");
 		
 		connector.process(message);
 		

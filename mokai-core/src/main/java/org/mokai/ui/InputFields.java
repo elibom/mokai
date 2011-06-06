@@ -82,7 +82,7 @@ public class InputFields {
 		return fields;
 	}
 	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	public static Class<?> getConfigurationClass(Class<? extends ExposableConfiguration> clazz) throws Exception {
 		Method method = clazz.getMethod("getConfiguration");
 		

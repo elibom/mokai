@@ -54,7 +54,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author German Escobar
  */
-@Name("Logica")
+@Name("SMPP Connector")
 @Description("Sends and receives messages using SMPP protocol")
 public class SmppConnector implements Processor, Serviceable, Monitorable, 
 		ExposableConfiguration<SmppConfiguration> {
@@ -900,7 +900,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		public void update(Connection source, SMPPEvent event) {
 			log.info(getLogHead() + "an SMPPEvent was received: " + event.toString());
 			
-			if (event.getType() == SMPPEvent.RECEIVER_EXIT) {
+			if (event.getType() == SMPPEvent.RECEIVER_EXIT && started) {
 				bound = false;
 				status = MonitorStatusBuilder.failed("enquire link failed");
 				

@@ -5,7 +5,7 @@
 		    xsi:schemaLocation=
 		   		"http://mokai.googlecode.com/processors http://mokai.googlecode.com/svn/schema/processors-0.1.xsd">
 		   		
-  <processor id="comcel" priority="1000" className="org.mokai.connector.smpp.SmppConnector">
+  <processor id="mokai-test" priority="700" className="org.mokai.connector.smpp.SmppConnector">
   	<configuration>
   		<property name="host">localhost</property>
   		<property name="port">8321</property>
@@ -13,6 +13,15 @@
   		<property name="password">test</property>
   	</configuration>
     <acceptors>
+      <acceptor className="org.mokai.acceptor.AcceptAllAcceptor" />
+    </acceptors>
+  </processor>
+  
+  <processor id="comcel" priority="1000" className="org.mokai.connector.http.HttpConnector">
+  	<configuration>
+  		<property name="url">http://www.google.com/</property>
+  	</configuration>
+  	<acceptors>
       <acceptor className="org.mokai.acceptor.AcceptAllAcceptor" />
     </acceptors>
   </processor>

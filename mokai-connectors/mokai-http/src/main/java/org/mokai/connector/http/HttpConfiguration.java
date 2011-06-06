@@ -3,20 +3,31 @@ package org.mokai.connector.http;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.mokai.ui.annotation.Label;
+import org.mokai.ui.annotation.Required;
+
 public class HttpConfiguration {
 
+	@Required
+	@Label("Url")
 	private String url;
 	
+	@Label("Throw Exception on Failure")
 	private boolean throwExceptionOnFailure = true;
 	
+	@Label("Auth - Method")
 	private String authMethod;
 	
+	@Label("Auth - Username")
 	private String authUsername;
 	
+	@Label("Auth - Password")
 	private String authPassword;
 	
+	@Label("Additional Query")
 	private String additionalQuery;
 	
+	@Label("Mapper")
 	private Map<String,String> mapper = new HashMap<String,String>();
 
 	public final String getUrl() {

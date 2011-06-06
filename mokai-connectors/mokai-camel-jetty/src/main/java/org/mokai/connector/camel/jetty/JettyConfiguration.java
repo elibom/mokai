@@ -3,16 +3,21 @@ package org.mokai.connector.camel.jetty;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.mokai.ui.annotation.Label;
+
 /**
  * 
  * @author German Escobar
  */
 public class JettyConfiguration {
 
+	@Label("Port")
 	private String port = "9080";
 	
+	@Label("Context")
 	private String context = "test";
 	
+	@Label("Mapper")
 	private Map<String,String> mapper = new HashMap<String,String>();
 	
 	public final String getPort() {

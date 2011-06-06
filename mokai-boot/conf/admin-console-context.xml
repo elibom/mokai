@@ -4,7 +4,7 @@
 	xmlns:camel="http://camel.apache.org/schema/spring"
 	xmlns:context="http://www.springframework.org/schema/context"
 	xsi:schemaLocation="
-			http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
 			http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd
 			http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 	
@@ -35,9 +35,15 @@
 									<property name="servlets">
 										<list>
 											<bean class="org.eclipse.jetty.servlet.ServletHolder">
+												<property name="name" value="MonitoringServlet" />
+												<property name="servlet">
+													<bean class="org.mokai.web.admin.servlet.MonitoringServlet" />
+												</property>
+											</bean>
+											<bean class="org.eclipse.jetty.servlet.ServletHolder">
 												<property name="name" value="ApplicationServlet" />
 												<property name="servlet">
-													<bean class="org.mokai.web.admin.vaadin.SpringApplicationServlet" />
+													<bean class="org.mokai.web.admin.servlet.SpringApplicationServlet" />
 												</property>
 												<property name="initParameters">
 													<map>
@@ -51,6 +57,14 @@
 									</property>
 									<property name="servletMappings">
 										<list>
+											<bean class="org.eclipse.jetty.servlet.ServletMapping">
+												<property name="pathSpecs">
+													<list>
+														<value>/monitoring</value>
+													</list>
+												</property>
+												<property name="servletName" value="MonitoringServlet" />
+											</bean>
 											<bean class="org.eclipse.jetty.servlet.ServletMapping">
 												<property name="pathSpecs">
 													<list>

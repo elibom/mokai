@@ -1,81 +1,71 @@
 package org.mokai.web.admin.vaadin;
 
-import java.util.List;
-
-import org.mokai.ProcessorService;
 import org.mokai.RoutingEngine;
+import org.mokai.web.admin.vaadin.login.LoginViewImpl;
+import org.mokai.web.admin.vaadin.login.UserLoggedInEvent;
+import org.mokai.web.admin.vaadin.main.MainViewImpl;
+import org.mokai.web.admin.vaadin.main.UserLoggedOutEvent;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.vaadin.henrik.refresher.Refresher;
 
+import com.github.peholmst.mvp4vaadin.ViewEvent;
+import com.github.peholmst.mvp4vaadin.ViewListener;
 import com.vaadin.Application;
-import com.vaadin.ui.Label;
 import com.vaadin.ui.Window;
 
-public class WebAdminApplication extends Application {
+public class WebAdminApplication extends Application implements ViewListener {
 
 	private static final long serialVersionUID = 1L;
+	
+	private LoginViewImpl loginView;
+	
+	private MainViewImpl mainView;
 	
 	@Autowired
 	private RoutingEngine routingEngine;
 
 	@Override
 	public final void init() {
-		Window mainWindow = new Window();
-		
-		mainWindow.addComponent(new Label("<h2>Processors</h2>", Label.CONTENT_XHTML));
-		
-		final ProcessorsTable processorsTable = new ProcessorsTable(routingEngine);
-		processorsTable.setPageLength(0);
-		processorsTable.setHeight(null);
-		processorsTable.loadData();
-		
-		mainWindow.addComponent(processorsTable);
-		
-		mainWindow.addComponent(new Label("<h2>Receivers</h2>", Label.CONTENT_XHTML));
-		
-		final ReceiversTable receiversTable = new ReceiversTable(routingEngine);
-		receiversTable.setPageLength(0);
-		receiversTable.setHeight(null);
-		receiversTable.loadData();
-		
-		mainWindow.addComponent(receiversTable);
-		
-		final Label checkLabel = new Label(getProcessorsString());
-		checkLabel.setStyleName("transparent");
-		mainWindow.addComponent(checkLabel);
-		
-		Refresher refresher = new Refresher();
-		refresher.setRefreshInterval(5000);
-		refresher.addListener(new Refresher.RefreshListener() {
-			
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void refresh(Refresher source) {
-				processorsTable.loadData();
-				receiversTable.loadData();
-				
-				checkLabel.setValue(getProcessorsString());
-			}
-			
-		});
-		
-		mainWindow.addComponent(refresher);
-		
 		setTheme("mokai");
-		
-		setMainWindow(mainWindow);
+		initContext();
+		createAndShowLoginWindow();
 	}
 	
-	private String getProcessorsString() {
-		String ret = "";
+	private void initContext() {
+		WebAdminContext context = WebAdminContext.getInstance();
+		context.setRoutingEngine(routingEngine);
+	}
+	
+	private void createAndShowLoginWindow() {
+		loginView = new LoginViewImpl();
+		loginView.addListener(this);
 		
-		List<ProcessorService> processors = routingEngine.getProcessors();
-		for (final ProcessorService processor : processors) {
-			ret += processor.getId() + "_" + processor.getStatus();
+		Window loginWindow = new Window(loginView.getDisplayName(), loginView.getViewComponent());
+		setMainWindow(loginWindow);
+	}
+	
+	private void createAndShowMainWindow() {
+		
+		loginView.removeListener(this);
+		
+		mainView = new MainViewImpl();
+		mainView.addListener(this);
+		
+		Window mainWindow = new Window(mainView.getDisplayName(), mainView.getViewComponent());
+		removeWindow(getMainWindow());
+		setMainWindow(mainWindow);
+	}
+
+	@Override
+	public void handleViewEvent(ViewEvent event) {
+		
+		if (event instanceof UserLoggedInEvent) {
+			String username = ((UserLoggedInEvent) event).getUsername();
+			setUser(username);
+			createAndShowMainWindow();
+		} else if (event instanceof UserLoggedOutEvent) {
+			close();
 		}
 		
-		return ret;
 	}
 	
 

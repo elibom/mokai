@@ -1,7 +1,7 @@
 <module>
 	
 	<inherits name="com.vaadin.terminal.gwt.DefaultWidgetSet" /> 
-    <inherits name="org.vaadin.henrik.refresher.RefresherApplicationWidgetset" />
+    <inherits name="com.github.wolfie.refresher.RefresherApplicationWidgetset" />
     
     <stylesheet src="style.css"/>
     

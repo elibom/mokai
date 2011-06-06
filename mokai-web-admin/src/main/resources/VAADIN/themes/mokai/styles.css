@@ -1,0 +1,46 @@
+@import url(../reindeer/styles.css);
+
+.v-table-cell-content {
+    vertical-align: middle;
+}
+
+.v-table-cell-content-red {
+	background-color: red;
+}
+
+.v-table-cell-content-green {
+	background-color: green;
+}
+
+.v-table-cell-content-gray {
+	background-color: gray;
+}
+
+.v-verticallayout-header .v-verticallayout-margin, .v-horizontallayout-header .v-horizontallayout-margin {
+	padding-left:   10px;
+	padding-right:  10px;
+	padding-top:    5px;
+	padding-bottom: 5px;
+}
+
+.v-horizontallayout-green {
+	background-color: #CEE3AA;	
+}
+
+.v-horizontallayout-red, .v-verticallayout-red {
+	background-color: #F23336;	
+}
+
+.v-label-right {
+	text-align: right;	
+}
+
+.v-label-red {
+	color: #F23336;
+}
+
+.border {
+	border-style: solid;
+	border-width: 1px;
+	border-color: #C2C2C2;
+}

@@ -198,6 +198,18 @@
 			<id>elibom-nexus</id>
 			<url>http://repository.elibom.net/nexus/content/groups/public</url>
 		</pluginRepository>
+		
+		<pluginRepository>
+			<id>codehaus-snapshots</id>
+			<name>Codehaus Snapshots</name>
+			<url>https://nexus.codehaus.org/content/groups/snapshots-group/</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</pluginRepository>
 	</pluginRepositories>
 
 </project>

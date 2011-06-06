@@ -1,4 +1,4 @@
-package org.mokai.web.admin.vaadin;
+package org.mokai.web.admin.servlet;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;

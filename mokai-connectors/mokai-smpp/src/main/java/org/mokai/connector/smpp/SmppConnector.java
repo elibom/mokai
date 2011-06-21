@@ -835,21 +835,23 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			Collection<Message> messages = messageStore.list(criteria);
 			long endTime = new Date().getTime();
 			
-			log.trace(getLogHead() + "retrieve message with smsc_messageid " + messageId + " took " 
+			log.trace(getLogHead() + "retrieve message with smsc_messageid: " + messageId + ", to: " + to + ", from: " + from + " took " 
 					+ (endTime - startTime) + " milis");
-				
-			if (messages.size() > 1) {
+			
+			if (messages.size() == 1) {
+				originalMessage = messages.iterator().next();
+			} else if (messages.size() > 1) {
 				log.debug(messages.size() + " messages matched the id: " + messageId);
-			}
-
-			// iterate through the matched messages to find one that matches exactly
-			Iterator<Message> iterMessages = messages.iterator();
-			while (iterMessages.hasNext() && originalMessage == null) {		
-				Message message = iterMessages.next();
-					
-				String mTo = message.getProperty("to", String.class);
-				if (mTo.equals(to) || mTo.equals(from)) {
-					originalMessage = message;
+				
+				// iterate through the matched messages to find one that matches exactly
+				Iterator<Message> iterMessages = messages.iterator();
+				while (iterMessages.hasNext() && originalMessage == null) {		
+					Message message = iterMessages.next();
+						
+					String mTo = message.getProperty("to", String.class);
+					if (mTo.equals(to) || mTo.equals(from)) {
+						originalMessage = message;
+					}
 				}
 			}
 			
@@ -979,6 +981,10 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			
 			String shortMessage = new String(deliverSm.getMessageText());
 			String id = getDeliveryReceiptValue("id", shortMessage);
+			if (id != null) { // sanity check
+				id = fixMessageId(id);
+			}
+			
 			int submitted = Integer.parseInt(getDeliveryReceiptValue("sub", shortMessage));
 			int delivered = Integer.parseInt(getDeliveryReceiptValue("dlvrd", shortMessage));
 			
@@ -1047,6 +1053,16 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	            return source.substring(startIndex, endIndex);
 	        
 	        return source.substring(startIndex);
+	    }
+	    
+	    private String fixMessageId(final String messageId) {
+	    	String ret = messageId;
+	    	
+	    	while (ret.startsWith("0")) {
+	    		ret = ret.substring(1);
+	    	}
+	    	
+	    	return ret;
 	    }
     	
     }

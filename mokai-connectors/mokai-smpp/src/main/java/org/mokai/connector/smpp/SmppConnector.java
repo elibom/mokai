@@ -486,15 +486,44 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		 */
 		private Connection bind() throws Exception {
 			
-			TcpLink link = new TcpLink(configuration.getHost(), configuration.getPort());
-			connection = new Connection(link, true);
+			TcpLink link = null;
 			
+			try { 
+				link = new TcpLink(configuration.getHost(), configuration.getPort());
+				connection = new Connection(link, true);
+				autoAckMessages(connection);
+				
+				MessageListener messageListener = new MessageListener();
+				connection.addObserver(messageListener);
+
+				connection.bind(getConnectionType(configuration), configuration.getSystemId(), configuration.getPassword(), configuration.getSystemType(), 
+						getBindTON(), getBindNPI(), null);
+				
+				BindResp bindResp = messageListener.getBindResponse(5000);
+				if (bindResp == null || bindResp.getCommandStatus() != 0) {
+					throw new Exception("Bind Response failed: " + bindResp);
+				}
+				
+				return connection;
+				
+			} catch (Exception e) {
+				
+				// close the link if an exception was thrown
+				if (link != null) {
+					try { link.close(); } catch (Exception f) {}
+				}
+				
+				throw e;
+				
+			}
+		}
+		
+		private void autoAckMessages(Connection connection) {
 			connection.autoAckLink(true);
 			connection.autoAckMessages(true);
-			
-			MessageListener messageListener = new MessageListener();
-			connection.addObserver(messageListener);
-			
+		}
+		
+		private int getConnectionType(SmppConfiguration configuration) {
 			int type = Connection.TRANSCEIVER;
 			if (configuration.getBindType().equals(BindType.RECEIVER)) {
 				type = Connection.RECEIVER;
@@ -502,25 +531,25 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 				type = Connection.TRANSMITTER;
 			}
 			
-			int bindNPI = 0;
+			return type;
+		}
+		
+		private int getBindNPI() {
+			int	bindNPI = 0;
 			if (configuration.getBindNPI() != null && !"".equals(configuration.getBindNPI())) {
 				bindNPI = Integer.parseInt(configuration.getBindNPI());
 			}
 			
+			return bindNPI;
+		}
+		
+		private int getBindTON() {
 			int bindTON = 0;
 			if (configuration.getBindTON() != null && !"".equals(configuration.getBindTON())) {
 				bindTON = Integer.parseInt(configuration.getBindTON());
 			}
 			
-			connection.bind(type, configuration.getSystemId(), configuration.getPassword(), configuration.getSystemType(), bindTON, bindNPI, null);
-			
-			BindResp bindResp = messageListener.getBindResponse(5000);
-			
-			if (bindResp == null || bindResp.getCommandStatus() != 0) {
-				throw new Exception("Bind Response failed: " + bindResp);
-			}
-			
-			return connection;
+			return bindTON;
 		}
 		
 		/**

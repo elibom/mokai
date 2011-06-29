@@ -90,14 +90,14 @@ public class Message implements Serializable {
 	}
 	
 	/**
-	 * Tells whether the message is outbound (from applications to external services) or 
-	 * inbound (from external services to applications)
+	 * Tells whether the message is outbound (from applications to connections) or 
+	 * inbound (from connections to applications)
 	 * 
 	 * @author German Escobar
 	 */
 	public enum Direction {
 		
-		INBOUND(1), OUTBOUND(2), UNKNOWN(-1);
+		TO_APPLICATIONS(1), TO_CONNECTIONS(2), UNKNOWN(-1);
 		
 		private byte id;
 		

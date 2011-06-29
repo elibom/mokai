@@ -14,8 +14,8 @@
 	<bean id="routingEngineLifecyle" class="org.mokai.boot.RoutingEngineLifecycle" init-method="start" 
 			destroy-method="stop">
 		<property name="routingEngine"><ref bean="routingEngine" /></property>
-		<property name="receiverConfiguration"><ref bean="receiverConfiguration" /></property>
-		<property name="processorConfiguration"><ref bean="processorConfiguration" /></property>
+		<property name="applicationsConfiguration"><ref bean="applicationsConfiguration" /></property>
+		<property name="connectionsConfiguration"><ref bean="connectionsConfiguration" /></property>
 	</bean>
 
 	<!-- Routing Engine -->
@@ -27,12 +27,12 @@
 	<bean id="pluginMechanism" class="org.mokai.plugin.jpf.JpfPluginMechanism" init-method="configure" 
 			destroy-method="destroy" />
 	
-	<bean id="receiverConfiguration" class="org.mokai.config.xml.ReceiverConfiguration">
+	<bean id="applicationsConfiguration" class="org.mokai.config.xml.ApplicationsConfiguration">
 		<property name="routingEngine"><ref bean="routingEngine" /></property>
 		<property name="pluginMechanism"><ref bean="pluginMechanism" /></property>
 	</bean>
 	
-	<bean id="processorConfiguration" class="org.mokai.config.xml.ProcessorConfiguration">
+	<bean id="connectionsConfiguration" class="org.mokai.config.xml.ConnectionsConfiguration">
 		<property name="routingEngine"><ref bean="routingEngine" /></property>
 		<property name="pluginMechanism"><ref bean="pluginMechanism" /></property>
 	</bean> 
@@ -51,8 +51,12 @@
 		<property name="tableScripts">
 			<map>
 				<entry 
-					key="#{ T(org.mokai.persist.jdbc.sms.TableScripts).MYSQL_OUTBOUND.tableName }" 
-					value="#{ T(org.mokai.persist.jdbc.sms.TableScripts).MYSQL_OUTBOUND.tableScript }">
+					key="#{ T(org.mokai.persist.jdbc.sms.TableScripts).MYSQL_CONNECTIONS.tableName }" 
+					value="#{ T(org.mokai.persist.jdbc.sms.TableScripts).MYSQL_CONNECTIONS.tableScript }">
+				</entry>
+				<entry 
+					key="#{ T(org.mokai.persist.jdbc.sms.TableScripts).MYSQL_APPLICATIONS.tableName }" 
+					value="#{ T(org.mokai.persist.jdbc.sms.TableScripts).MYSQL_APPLICATIONS.tableScript }">
 				</entry>
 			</map>
 		</property>
@@ -71,8 +75,12 @@
 		<property name="tableScripts">
 			<map>
 				<entry 
-					key="#{ T(org.mokai.persist.jdbc.sms.TableScripts).DERBY_OUTBOUND.tableName }" 
-					value="#{ T(org.mokai.persist.jdbc.sms.TableScripts).DERBY_OUTBOUND.tableScript }">
+					key="#{ T(org.mokai.persist.jdbc.sms.TableScripts).DERBY_CONNECTIONS.tableName }" 
+					value="#{ T(org.mokai.persist.jdbc.sms.TableScripts).DERBY_CONNECTIONS.tableScript }">
+				</entry>
+				<entry 
+					key="#{ T(org.mokai.persist.jdbc.sms.TableScripts).DERBY_APPLICATIONS.tableName }" 
+					value="#{ T(org.mokai.persist.jdbc.sms.TableScripts).DERBY_APPLICATIONS.tableScript }">
 				</entry>
 			</map>
 		</property>
@@ -81,11 +89,14 @@
 	
 	<bean id="messageStore" class="org.mokai.persist.jdbc.JdbcMessageStore" depends-on="dbInitializer">
 		<property name="dataSource"><ref bean="dataSource" /></property>
-		<property name="messageHandler"><ref bean="outboundSmsHandler" /></property>
+		<property name="messageHandler"><ref bean="smsHandler" /></property>
 	</bean>
 	<!-- <bean id="messageStore" class="org.mokai.persist.impl.DefaultMessageStore" /> -->
 	
-	<bean id="outboundSmsHandler" class="org.mokai.persist.jdbc.sms.OutboundSmsHandler" />
+	<bean id="smsHandler" class="org.mokai.persist.jdbc.OutboundInboundHandler">
+		<property name="outboundHandler"><bean class="org.mokai.persist.jdbc.sms.ConnectionsSmsHandler" /></property>
+		<property name="inboundHandler"><bean class="org.mokai.persist.jdbc.sms.ApplicationsSmsHandler" /></property>
+	</bean>
 	
 	<bean id="faileMessagesMonitor" class="org.mokai.impl.camel.FailedMessagesMonitor" init-method="start" destroy-method="stop">
 		<property name="routingEngine"><ref bean="routingEngine" /></property>

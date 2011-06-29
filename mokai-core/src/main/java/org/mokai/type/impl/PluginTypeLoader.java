@@ -5,14 +5,12 @@ import java.util.Set;
 
 import org.mokai.Acceptor;
 import org.mokai.Action;
-import org.mokai.Processor;
-import org.mokai.Receiver;
+import org.mokai.Connector;
 import org.mokai.plugin.PluginMechanism;
 import org.mokai.plugin.jpf.JpfPluginMechanism;
 import org.mokai.type.AcceptorType;
 import org.mokai.type.ActionType;
-import org.mokai.type.ProcessorType;
-import org.mokai.type.ReceiverType;
+import org.mokai.type.ConnectorType;
 import org.mokai.type.TypeLoader;
 
 /**
@@ -60,31 +58,17 @@ public class PluginTypeLoader implements TypeLoader {
 	}
 
 	@Override
-	public final Set<ProcessorType> loadProcessorTypes() {
+	public final Set<ConnectorType> loadConnectorTypes() {
 		
-		Set<ProcessorType> processorTypes = new HashSet<ProcessorType>();
+		Set<ConnectorType> processorTypes = new HashSet<ConnectorType>();
 		
-		Set<Class<? extends Processor>> processorClasses = pluginMechanism.loadTypes(Processor.class);
-		for (Class<? extends Processor> processorClass : processorClasses) {
-			ProcessorType processorType = TypeBuilder.buildProcessorType(processorClass);
-			processorTypes.add(processorType);
+		Set<Class<? extends Connector>> connectorClasses = pluginMechanism.loadTypes(Connector.class);
+		for (Class<? extends Connector> connectorClass : connectorClasses) {
+			ConnectorType connectorType = TypeBuilder.buildConnectorType(connectorClass);
+			processorTypes.add(connectorType);
 		}
 		
 		return processorTypes;
-	}
-
-	@Override
-	public final Set<ReceiverType> loadReceiverTypes() {
-		
-		Set<ReceiverType> receiverTypes = new HashSet<ReceiverType>();
-		
-		Set<Class<? extends Receiver>> receiverClasses = pluginMechanism.loadTypes(Receiver.class);
-		for (Class<? extends Receiver> receiverClass : receiverClasses) {
-			ReceiverType receiverType = TypeBuilder.buildReceiverType(receiverClass);
-			receiverTypes.add(receiverType);
-		}
-		
-		return receiverTypes;
 	}
 
 	public final PluginMechanism getPluginMechanism() {

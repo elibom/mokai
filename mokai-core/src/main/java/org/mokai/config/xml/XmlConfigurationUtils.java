@@ -25,8 +25,8 @@ import org.mokai.RoutingEngine;
 import org.mokai.plugin.PluginMechanism;
 
 /**
- * Utility class to handle common tasks used by the {@link ProcessorConfiguration}
- * and {@link ReceiverConfiguration}.
+ * Utility class to handle common tasks used by the {@link ConnectionsConfiguration}
+ * and {@link ApplicationsConfiguration}.
  * 
  * @author German Escobar
  */

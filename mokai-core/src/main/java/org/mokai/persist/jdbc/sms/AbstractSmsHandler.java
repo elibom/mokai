@@ -26,39 +26,11 @@ import org.mokai.persist.jdbc.MessageHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * A {@link MessageHandler} implementation that supports messages with 
- * type {@link Message#SMS_TYPE} and {@link Direction#OUTBOUND}.
- * 
- * @author German Escobar
- */
-public class OutboundSmsHandler implements MessageHandler {
+public abstract class AbstractSmsHandler implements MessageHandler {
 	
-	private Logger log = LoggerFactory.getLogger(OutboundSmsHandler.class);
+	private Logger log = LoggerFactory.getLogger(AbstractSmsHandler.class);
 	
-	public static final String DEFAULT_TABLENAME = "OUTBOUND_SMS";
-	
-	private String tableName = DEFAULT_TABLENAME;
-	
-	@Override
-	public final boolean supportsType(String type) {
-		
-		if (type != null && type.equals(Message.SMS_TYPE)) {
-			return true;
-		}
-		
-		return false;
-	}
-
-	@Override
-	public final boolean supportsDirection(Direction direction) {
-		
-		if (direction != null && direction.equals(Direction.OUTBOUND)) {
-			return true;
-		}
-		
-		return false;
-	}
+	private String tableName = getDefaultTableName();
 
 	@Override
 	public final long insertMessage(Connection conn, Message message) throws SQLException {
@@ -95,7 +67,7 @@ public class OutboundSmsHandler implements MessageHandler {
 		// retrieve and return the generated id
 		return JdbcHelper.retrieveGeneratedId(stmt);
 	}
-	
+
 	private void populateInsertStatement(PreparedStatement stmt, Message message) throws SQLException {
 		
 		stmt.setString(1, message.getAccountId());
@@ -337,7 +309,7 @@ public class OutboundSmsHandler implements MessageHandler {
 		while (rs.next()) {
 			Message message = new Message(Message.SMS_TYPE);
 			
-			message.setDirection(Message.Direction.OUTBOUND);
+			message.setDirection(getMessageDirection());
 			
 			message.setId(rs.getLong("id"));
 			message.setAccountId(rs.getString("account"));
@@ -373,5 +345,8 @@ public class OutboundSmsHandler implements MessageHandler {
 	public final void setTableName(String tableName) {
 		this.tableName = tableName;
 	}
+
+	protected abstract String getDefaultTableName();
 	
+	protected abstract Direction getMessageDirection();
 }

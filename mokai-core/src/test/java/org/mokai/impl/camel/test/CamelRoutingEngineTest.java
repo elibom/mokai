@@ -1,5 +1,13 @@
 package org.mokai.impl.camel.test;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -10,302 +18,323 @@ import java.util.concurrent.TimeUnit;
 import junit.framework.Assert;
 
 import org.apache.camel.ProducerTemplate;
-import org.mockito.Mockito;
 import org.mokai.Acceptor;
 import org.mokai.Configurable;
+import org.mokai.Connector;
+import org.mokai.ConnectorService;
 import org.mokai.Message;
+import org.mokai.Message.Direction;
 import org.mokai.Message.Status;
 import org.mokai.ObjectAlreadyExistsException;
 import org.mokai.ObjectNotFoundException;
 import org.mokai.Processor;
-import org.mokai.ProcessorService;
-import org.mokai.Receiver;
-import org.mokai.ReceiverService;
 import org.mokai.Service;
 import org.mokai.impl.camel.CamelRoutingEngine;
+import org.mokai.impl.camel.UriConstants;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.MessageStore;
 import org.mokai.persist.StoreException;
+import org.mokai.types.mock.MockConnector;
 import org.mokai.types.mock.MockServiceableConnector;
 import org.testng.annotations.Test;
 
 public class CamelRoutingEngineTest {
 	
 	@Test
-	public void testCreateRemoveProcessors() throws Exception {
+	public void testCreateRemoveConnection() throws Exception {
 		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
 		routingEngine.start();
 		
-		Processor processor = Mockito.mock(Processor.class);
+		Connector connector = mock(Connector.class);
 		
-		// create a processor service
-		ProcessorService ps1 = 
-			routingEngine.createProcessor("test1", 2000, processor);
-		ps1.start();
+		// create a connector service
+		ConnectorService cs1 = routingEngine.addConnection("test1", connector).withPriority(2000);
+		cs1.start();
 		
-		// check that the processor service was created successfully
-		Assert.assertNotNull(ps1);
-		Assert.assertEquals(Service.State.STARTED, ps1.getState());
+		// check that the connector service was created successfully
+		Assert.assertNotNull(cs1);
+		Assert.assertEquals(Service.State.STARTED, cs1.getState());
 		
-		// check that there is only one processor
-		List<ProcessorService> processorServices = routingEngine.getProcessors();
-		Assert.assertEquals(1, processorServices.size());
+		// check that there is only one connector
+		List<ConnectorService> connectorServices = routingEngine.getConnections();
+		Assert.assertEquals(1, connectorServices.size());
 		
-		// create a second and third processor
-		ProcessorService ps2 = 
-			routingEngine.createProcessor("test2", 0, processor);
-		ps2.start();
+		// create a second and third connector
+		ConnectorService cs2 = routingEngine.addConnection("test2", connector).withPriority(0);
+		cs2.start();
 		
-		ProcessorService ps3 =
-			routingEngine.createProcessor("test3", 1000, processor);
-		ps3.start();
+		ConnectorService cs3 = routingEngine.addConnection("test3", connector).withPriority(1000);
+		cs3.start();
 		
-		processorServices = routingEngine.getProcessors();
-		Assert.assertEquals(3, processorServices.size());
+		connectorServices = routingEngine.getConnections();
+		Assert.assertEquals(3, connectorServices.size());
 		
-		// check that the processors are in order
-		ProcessorService psTest = processorServices.get(0);
-		Assert.assertEquals(ps2, psTest); // the one with 0 priority
+		// check that the connector are in order
+		ConnectorService psTest = connectorServices.get(0);
+		Assert.assertEquals(cs2, psTest); // the one with 0 priority
 		
-		psTest = processorServices.get(1);
-		Assert.assertEquals(ps3, psTest); // the one with 1000 priority
+		psTest = connectorServices.get(1);
+		Assert.assertEquals(cs3, psTest); // the one with 1000 priority
 		
-		psTest = processorServices.get(2); 
-		Assert.assertEquals(ps1, psTest); // the one with 2000 priority
+		psTest = connectorServices.get(2); 
+		Assert.assertEquals(cs1, psTest); // the one with 2000 priority
 		
-		// remove the processor test3
-		routingEngine.removeProcessor("test3");
+		// remove the connector test3
+		routingEngine.removeConnection("test3");
 		
-		// check that there are only 2 processor services
-		processorServices = routingEngine.getProcessors();
-		Assert.assertEquals(2, processorServices.size());
+		// check that there are only 2 connector services
+		connectorServices = routingEngine.getConnections();
+		Assert.assertEquals(2, connectorServices.size());
 		
-		psTest = processorServices.get(0);
-		Assert.assertEquals(ps2, psTest); // the one with 0 priority
+		psTest = connectorServices.get(0);
+		Assert.assertEquals(cs2, psTest); // the one with 0 priority
 		
-		psTest = processorServices.get(1); 
-		Assert.assertEquals(ps1, psTest); // the one with 2000 priority
+		psTest = connectorServices.get(1); 
+		Assert.assertEquals(cs1, psTest); // the one with 2000 priority
 		
 		routingEngine.stop();
 	}
 	
 	@Test
-	public void testCreateConfigurableProcessor() throws Exception {
+	public void testCreateConfigurableConnection() throws Exception {
 		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
 		routingEngine.start();
 		
-		Processor processor = Mockito.mock(Processor.class, 
-				Mockito.withSettings().extraInterfaces(Configurable.class));
+		Connector connector = mock(Connector.class, withSettings().extraInterfaces(Configurable.class));
 		
-		// create a processor service
-		routingEngine.createProcessor("test1", 2000, processor);
+		// add a connection
+		routingEngine.addConnection("test1", connector);
 		
-		Mockito.verify((Configurable) processor).configure();
+		verify((Configurable) connector).configure();
 		
 		routingEngine.stop();
 	}
 	
 	@Test
-	public void testRetrieveProcessor() throws Exception {
+	public void testRetrieveConnection() throws Exception {
 		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
 		routingEngine.start();
 		
-		Processor processor = Mockito.mock(Processor.class);
+		Connector connector = mock(Connector.class);
 		
-		// create and start a processor service
-		ProcessorService processorService = 
-			routingEngine.createProcessor("test", 2000, processor);
-		processorService.start();
+		// create and start a connector service
+		ConnectorService connectorService = routingEngine.addConnection("test", connector)
+			.withPriority(2000);
+		connectorService.start();
 		
-		// retrieve an existing processor
-		ProcessorService psTest = routingEngine.getProcessor("test");
-		Assert.assertEquals(processorService, psTest);
+		// retrieve an existing connector
+		ConnectorService csTest = routingEngine.getConnection("test");
+		Assert.assertEquals(connectorService, csTest);
 		
-		// try to retrieve an unexisting processor
-		psTest = routingEngine.getProcessor("nonexisting");
-		Assert.assertNull(psTest);
+		// try to retrieve an unexisting connector
+		csTest = routingEngine.getConnection("nonexisting");
+		Assert.assertNull(csTest);
 		
 		routingEngine.stop();
 	}
 	
 	@Test
-	public void testRetrieveProcessors() throws Exception {
+	public void testRetrieveConnections() throws Exception {
 		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
 		
-		Processor processor = Mockito.mock(Processor.class);
+		Connector connector = mock(Connector.class);
 		
-		ProcessorService ps1 = routingEngine.createProcessor("test1", 2000, processor);
-		ProcessorService ps2 = routingEngine.createProcessor("test2", 1000, processor);
-		ProcessorService ps3 = routingEngine.createProcessor("test3", 1500, processor);
+		ConnectorService cs1 = routingEngine.addConnection("test1", connector).withPriority(2000);
+		ConnectorService cs2 = routingEngine.addConnection("test2", connector).withPriority(1000);
+		ConnectorService cs3 = routingEngine.addConnection("test3", connector).withPriority(1500);
 		
-		List<ProcessorService> processorServices = routingEngine.getProcessors();
+		List<ConnectorService> connectorServices = routingEngine.getConnections();
 		
-		Assert.assertNotNull(processorServices);
-		Assert.assertEquals(3, processorServices.size());
-		Assert.assertEquals(ps2, processorServices.get(0));
-		Assert.assertEquals(ps3, processorServices.get(1));
-		Assert.assertEquals(ps1, processorServices.get(2));
+		Assert.assertNotNull(connectorServices);
+		Assert.assertEquals(3, connectorServices.size());
+		Assert.assertEquals(cs2, connectorServices.get(0));
+		Assert.assertEquals(cs3, connectorServices.get(1));
+		Assert.assertEquals(cs1, connectorServices.get(2));
 	}
 	
-	@Test(expectedExceptions=UnsupportedOperationException.class)
-	public void shouldFailToModifyReturnedProcessors() throws Exception {
+	@Test
+	public void shouldFailToModifyReturnedConnections() throws Exception {
 		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
 		
-		Processor processor = Mockito.mock(Processor.class);
-		ProcessorService ps1 = 
-			routingEngine.createProcessor("test1", 2000, processor);
+		Connector connector = mock(Connector.class);
+		ConnectorService cs1 = routingEngine.addConnection("test1", connector);
 		
-		List<ProcessorService> processorService = routingEngine.getProcessors(); 
-		processorService.add(ps1); // should fail
+		List<ConnectorService> connectorServices = routingEngine.getConnections();
+		Assert.assertEquals(connectorServices.size(), 1);
+		
+		connectorServices.add(cs1);
+		Assert.assertEquals(connectorServices.size(), 2);
+		
+		Assert.assertEquals(routingEngine.getConnections().size(), 1);
 	}
 	
 	@Test(expectedExceptions=ObjectNotFoundException.class)
-	public void shouldFailToRemoveNonExistingProcessor() throws Exception {
+	public void shouldFailToRemoveNonExistingConnection() throws Exception {
 		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
 		
-		routingEngine.removeProcessor("test");
+		routingEngine.removeConnection("test");
 	}
 	
 	@Test(expectedExceptions=ObjectAlreadyExistsException.class)
-	public void shouldFailToAddExistingProcessor() throws Exception {
+	public void shouldFailToAddExistingConnection() throws Exception {
 		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
 		
-		Processor processor = Mockito.mock(Processor.class);
+		Connector connector = mock(Connector.class);
 		
-		// create a processor service
-		routingEngine.createProcessor("test", 2000, processor);
+		// create a connector service
+		routingEngine.addConnection("test", connector);
 		
-		// try to create another processor with the same id
-		routingEngine.createProcessor("test", 1, processor);
+		// try to create another connector service with the same id
+		routingEngine.addConnection("test", connector);
 	}
 	
 	@Test
-	public void testCreateRemoveReceivers() throws Exception {
+	public void testCreateRemoveApplication() throws Exception {
 		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
 		routingEngine.start();
 		
-		Receiver receiver = Mockito.mock(Receiver.class);
+		Connector connector = mock(Connector.class);
 		
-		ReceiverService rs1 = 
-			routingEngine.createReceiver("test1", receiver);
-		rs1.start();
+		ConnectorService cs1 = routingEngine.addApplication("test1", connector);
+		cs1.start();
 		
-		// check that the receiver service was created successfully
-		Assert.assertNotNull(rs1);
-		Assert.assertEquals(Service.State.STARTED, rs1.getState());
+		// check that the application was created successfully
+		Assert.assertNotNull(cs1);
+		Assert.assertEquals(Service.State.STARTED, cs1.getState());
 		
-		// check that there is only one receiver
-		Collection<ReceiverService> receivers = routingEngine.getReceivers();
-		Assert.assertEquals(1, receivers.size());
+		// check that there is only one application
+		Collection<ConnectorService> applications = routingEngine.getApplications();
+		Assert.assertEquals(1, applications.size());
 		
 		// create a second and third receiver
-		ReceiverService rs2 = 
-			routingEngine.createReceiver("test2", receiver);
-		rs2.start();
-		ReceiverService rs3 = 
-			routingEngine.createReceiver("test3", receiver);
-		rs3.start();
+		ConnectorService cs2 = routingEngine.addApplication("test2", connector);
+		cs2.start();
+		ConnectorService cs3 = routingEngine.addApplication("test3", connector);
+		cs3.start();
 		
-		receivers = routingEngine.getReceivers();
-		Assert.assertEquals(3, receivers.size());
+		applications = routingEngine.getApplications();
+		Assert.assertEquals(3, applications.size());
 		
-		// check that all receivers are contained
-		Assert.assertTrue(receivers.contains(rs1));
-		Assert.assertTrue(receivers.contains(rs2));
-		Assert.assertTrue(receivers.contains(rs3));
+		// check that all applications are contained
+		Assert.assertTrue(applications.contains(cs1));
+		Assert.assertTrue(applications.contains(cs2));
+		Assert.assertTrue(applications.contains(cs3));
 		
-		// remove one of the processors
-		routingEngine.removeReceiver("test3");
+		// remove one of the applications
+		routingEngine.removeApplication("test3");
 		
-		receivers = routingEngine.getReceivers();
-		Assert.assertEquals(2, receivers.size());
+		applications = routingEngine.getApplications();
+		Assert.assertEquals(2, applications.size());
 		
-		Assert.assertTrue(receivers.contains(rs1));
-		Assert.assertTrue(receivers.contains(rs2));
-		Assert.assertFalse(receivers.contains(rs3));
+		Assert.assertTrue(applications.contains(cs1));
+		Assert.assertTrue(applications.contains(cs2));
+		Assert.assertFalse(applications.contains(cs3));
 		
 		routingEngine.stop();
 	}
 	
 	@Test
-	public void testCreateConfigurableReceiver() throws Exception {
+	public void testCreateConfigurableApplication() throws Exception {
 		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
 		routingEngine.start();
 		
-		Receiver receiver = Mockito.mock(Receiver.class, 
-				Mockito.withSettings().extraInterfaces(Configurable.class));
+		Connector connector = mock(Connector.class, withSettings().extraInterfaces(Configurable.class));
 		
-		routingEngine.createReceiver("test1", receiver);
+		routingEngine.addApplication("test1", connector);
 		
-		Mockito.verify((Configurable) receiver).configure();
+		verify((Configurable) connector).configure();
 		
 		routingEngine.stop();
 
 	}
 	
-	public void testRetrieveReciever() throws Exception {
+	public void testRetrieveApplication() throws Exception {
 		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
 		routingEngine.start();
 		
-		Receiver receiver = Mockito.mock(Receiver.class);
+		Connector connector = mock(Connector.class);
 		
-		// create and start a receiver service
-		ReceiverService receiverService = routingEngine.createReceiver("test", receiver);
-		receiverService.start();
+		// create and start an application
+		ConnectorService connectorService = routingEngine.addApplication("test", connector);
+		connectorService.start();
 		
-		// try to retrieve an existing receiver
-		ReceiverService rsTest = routingEngine.getReceiver("test");
-		Assert.assertEquals(receiverService, rsTest);
+		// try to retrieve an existing application
+		ConnectorService csTest = routingEngine.getApplication("test");
+		Assert.assertEquals(connectorService, csTest);
 		
-		// try to retrieve an unexisting receiver
-		rsTest = routingEngine.getReceiver("notexistent");
-		Assert.assertNull(rsTest);
+		// try to retrieve an unexisting application
+		csTest = routingEngine.getApplication("notexistent");
+		Assert.assertNull(csTest);
 		
 		routingEngine.stop();
 	}
 	
-	@Test(expectedExceptions=UnsupportedOperationException.class)
-	public void shouldFailToModifyReturnedReceivers() throws Exception {
+	@Test
+	public void testRetrieveApplications() throws Exception {
 		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
 		
-		Receiver receiver = Mockito.mock(Receiver.class);
-		ReceiverService rs1 = 
-			routingEngine.createReceiver("test", receiver);
+		Connector connector = mock(Connector.class);
 		
+		ConnectorService cs1 = routingEngine.addApplication("test1", connector).withPriority(2000);
+		ConnectorService cs2 = routingEngine.addApplication("test2", connector).withPriority(1000);
+		ConnectorService cs3 = routingEngine.addApplication("test3", connector).withPriority(1500);
 		
-		Collection<ReceiverService> receiverServices = routingEngine.getReceivers(); 
-		receiverServices.add(rs1); // should fail
+		List<ConnectorService> connectorServices = routingEngine.getApplications();
+		
+		Assert.assertNotNull(connectorServices);
+		Assert.assertEquals(3, connectorServices.size());
+		Assert.assertEquals(cs2, connectorServices.get(0));
+		Assert.assertEquals(cs3, connectorServices.get(1));
+		Assert.assertEquals(cs1, connectorServices.get(2));
+	}
+	
+	@Test
+	public void shouldFailToModifyReturnedApplications() throws Exception {
+		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
+		
+		Connector connector = mock(Connector.class);
+		ConnectorService cs1 = routingEngine.addApplication("test", connector);
+		
+		Collection<ConnectorService> connectorServices = routingEngine.getApplications(); 
+		Assert.assertEquals(connectorServices.size(), 1);
+		
+		// add another application to the returned collection
+		connectorServices.add(cs1);
+		Assert.assertEquals(connectorServices.size(), 2);
+		
+		Assert.assertEquals(routingEngine.getApplications().size(), 1);		
+		
 	}
 	
 	@Test(expectedExceptions=ObjectNotFoundException.class)
-	public void shouldFailToRemoveNonExistingReceiver() throws Exception {
+	public void shouldFailToRemoveNonExistingApplication() throws Exception {
 		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
 		
-		routingEngine.removeReceiver("test");
+		routingEngine.removeApplication("test");
 	}
 	
 	@Test(expectedExceptions=ObjectAlreadyExistsException.class)
-	public void shouldFailToAddExistingReceiver() throws Exception {
+	public void shouldFailToAddExistingApplication() throws Exception {
 		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
 		
-		Receiver receiver = Mockito.mock(Receiver.class);
+		Connector connector = mock(Connector.class);
 		
-		// create a receiver service
-		routingEngine.createReceiver("test", receiver);
+		// create an application
+		routingEngine.addApplication("test", connector);
 		
-		// try to create another receiver with the same id
-		routingEngine.createReceiver("test", receiver);
+		// try to create another application with the same id
+		routingEngine.addApplication("test", connector);
 	}
 	
 	@Test
 	public void testStartRoutingEngineWithSlowConnectors() throws Exception {
 		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
 		
-		Processor processor = new MockServiceableConnector().withStartWaitTime(5000);
-		Receiver receiver = new MockServiceableConnector().withStartWaitTime(5000);
+		Processor connection = new MockServiceableConnector().withStartWaitTime(5000);
+		Connector application = new MockServiceableConnector().withStartWaitTime(5000);
 		
-		routingEngine.createProcessor("test", 1000, processor);
-		routingEngine.createReceiver("test", receiver);
+		routingEngine.addConnection("test", connection);
+		routingEngine.addApplication("test", application);
 		
 		long startTime = new Date().getTime();
 		routingEngine.start();
@@ -318,7 +347,7 @@ public class CamelRoutingEngineTest {
 	}
 	
 	@Test
-	public void testSimpleMessageFlow() throws Exception {
+	public void testToConnectionsMessageFlow() throws Exception {
 		final CyclicBarrier barrier = new CyclicBarrier(2);
 		
 		// a custom message store
@@ -328,16 +357,19 @@ public class CamelRoutingEngineTest {
 		routingEngine.setMessageStore(messageStore);
 		routingEngine.start();
 		
-		// create the processor
+		// create the connection
 		MockProcessor processor = new MockProcessor();
-		ProcessorService processorService = 
-			routingEngine.createProcessor("1", 1000, processor);
-		processorService.addAcceptor(new MockAcceptor());
-		processorService.start();
+		ConnectorService connection = routingEngine.addConnection("1", processor);
+		connection.addAcceptor(new MockAcceptor());
+		connection.start();
+		
+		// create the application
+		MockConnector receiver = new MockConnector();
+		ConnectorService application = routingEngine.addApplication("1", receiver);
+		application.start();
 		
 		// send the message
-		ProducerTemplate producer = routingEngine.getCamelContext().createProducerTemplate();
-		producer.sendBody("activemq:outboundRouter", new Message());
+		receiver.produceMessage(new Message());
 		
 		// wait
 		barrier.await(20, TimeUnit.SECONDS);
@@ -348,7 +380,40 @@ public class CamelRoutingEngineTest {
 	}
 	
 	@Test
-	public void testUnroutableMessage() throws Exception {
+	public void testToApplicationsMessageFlow() throws Exception {
+		final CyclicBarrier barrier = new CyclicBarrier(2);
+		
+		// a custom message store
+		MessageStore messageStore = new MockMessageStore(barrier, Status.PROCESSED);
+		
+		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
+		routingEngine.setMessageStore(messageStore);
+		routingEngine.start();
+		
+		// create the application
+		MockProcessor processor = new MockProcessor();
+		ConnectorService application = routingEngine.addApplication("1", processor);
+		application.addAcceptor(new MockAcceptor());
+		application.start();
+		
+		// create the connection
+		MockConnector receiver = new MockConnector();
+		ConnectorService connection = routingEngine.addConnection("1", receiver);
+		connection.start();
+		
+		// send the message
+		receiver.produceMessage(new Message());
+		
+		// wait
+		barrier.await(20, TimeUnit.SECONDS);
+		
+		Assert.assertEquals(1, processor.getCount());
+		
+		routingEngine.stop();
+	}
+	
+	@Test
+	public void testUnroutableConnections() throws Exception {
 		final CyclicBarrier barrier = new CyclicBarrier(2);
 		
 		// a custom message store
@@ -360,8 +425,7 @@ public class CamelRoutingEngineTest {
 		
 		// create the processor
 		MockProcessor processor = new MockProcessor();
-		ProcessorService processorService = 
-			routingEngine.createProcessor("1", 1000, processor);
+		ConnectorService processorService = routingEngine.addConnection("1", processor);
 		processorService.addAcceptor(new Acceptor() {
 
 			@Override
@@ -374,7 +438,43 @@ public class CamelRoutingEngineTest {
 		
 		// send the message
 		ProducerTemplate producer = routingEngine.getCamelContext().createProducerTemplate();
-		producer.sendBody("activemq:outboundRouter", new Message());
+		producer.sendBody(UriConstants.CONNECTIONS_ROUTER, new Message());
+		
+		// wait
+		barrier.await(3, TimeUnit.SECONDS);
+		
+		Assert.assertEquals(0, processor.getCount());
+		
+		routingEngine.stop();
+	}
+	
+	@Test
+	public void testUnroutableApplications() throws Exception {
+		final CyclicBarrier barrier = new CyclicBarrier(2);
+		
+		// a custom message store
+		MessageStore messageStore = new MockMessageStore(barrier, Status.UNROUTABLE);
+		
+		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
+		routingEngine.setMessageStore(messageStore);
+		routingEngine.start();
+		
+		// create the processor
+		MockProcessor processor = new MockProcessor();
+		ConnectorService processorService = routingEngine.addConnection("1", processor);
+		processorService.addAcceptor(new Acceptor() {
+
+			@Override
+			public boolean accepts(Message message) {
+				return false;
+			}
+			
+		});
+		processorService.start();
+		
+		// send the message
+		ProducerTemplate producer = routingEngine.getCamelContext().createProducerTemplate();
+		producer.sendBody(UriConstants.APPLICATIONS_ROUTER, new Message());
 		
 		// wait
 		barrier.await(3, TimeUnit.SECONDS);
@@ -391,40 +491,53 @@ public class CamelRoutingEngineTest {
 		
 		Message m1 = new Message();
 		m1.setStatus(Status.FAILED);
+		m1.setDirection(Direction.TO_CONNECTIONS);
 		failedMessages.add(m1);
 		
-		MessageStore messageStore = Mockito.mock(MessageStore.class);
-		Mockito.when(messageStore.list(Mockito.any(MessageCriteria.class))).thenReturn(failedMessages);
+		Message m2 = new Message();
+		m2.setStatus(Status.FAILED);
+		m2.setDirection(Direction.TO_APPLICATIONS);
+		failedMessages.add(m2);
+		
+		MessageStore messageStore = mock(MessageStore.class);
+		when(messageStore.list(any(MessageCriteria.class))).thenReturn(failedMessages);
 		
 		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
 		routingEngine.setMessageStore(messageStore);
 		routingEngine.start();
 		
-		// create the processor
-		Processor processor = Mockito.mock(Processor.class);
-		Mockito
-			.when(processor.supports(Mockito.any(Message.class)))
-			.thenReturn(true);
-		ProcessorService processorService = 
-			routingEngine.createProcessor("1", 1000, processor);
-		processorService.addAcceptor(new Acceptor() {
+		// create the processors
+		Processor connectionProcessor = mock(Processor.class);
+		Processor applicationProcessor = mock(Processor.class);
+		
+		when(connectionProcessor.supports(any(Message.class))).thenReturn(true);
+		when(applicationProcessor.supports(any(Message.class))).thenReturn(true);
+		
+		ConnectorService connectionService = routingEngine.addConnection("1", connectionProcessor);
+		ConnectorService applicationService = routingEngine.addApplication("1", applicationProcessor);
+		
+		Acceptor acceptor = new Acceptor() {
 
 			@Override
 			public boolean accepts(Message message) {
 				return true;
 			}
 			
-		});
-		processorService.start();
+		};
+		
+		connectionService.addAcceptor(acceptor);
+		connectionService.start();
+		
+		applicationService.addAcceptor(acceptor);
+		applicationService.start();
 		
 		// retry failed messages
 		routingEngine.retryFailedMessages();
-		
-		Thread.sleep(3000);
-		
+
 		// verify
-		Mockito.verify(processor).process(Mockito.any(Message.class));
-		Mockito.verify(messageStore, Mockito.times(2)).saveOrUpdate(Mockito.any(Message.class));
+		verify(connectionProcessor, timeout(1500)).process(any(Message.class));
+		verify(applicationProcessor, timeout(1500)).process(any(Message.class));
+		verify(messageStore, times(4)).saveOrUpdate(any(Message.class));
 		
 		routingEngine.stop();
 	}

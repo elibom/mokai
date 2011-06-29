@@ -1,13 +1,14 @@
 package org.mokai.types.mock;
 
+import org.mokai.Connector;
+import org.mokai.ConnectorContext;
 import org.mokai.Message;
+import org.mokai.MessageProducer;
 import org.mokai.Processor;
-import org.mokai.ProcessorContext;
-import org.mokai.Receiver;
 import org.mokai.annotation.Resource;
 import org.mokai.persist.MessageStore;
 
-public class MockConnector implements Receiver, Processor {
+public class MockConnector implements Connector, Processor {
 	
 	/**
 	 * This field is here to test inject resources
@@ -16,7 +17,10 @@ public class MockConnector implements Receiver, Processor {
 	private MessageStore messageStore;
 	
 	@Resource
-	private ProcessorContext context;
+	private ConnectorContext context;
+	
+	@Resource
+	private MessageProducer messageProducer;
 
 	@Override
 	public void process(Message message) {
@@ -26,6 +30,10 @@ public class MockConnector implements Receiver, Processor {
 	@Override
 	public boolean supports(Message message) {
 		return false;
+	}
+	
+	public void produceMessage(Message message) {
+		messageProducer.produce(message);
 	}
 
 	/**
@@ -37,7 +45,7 @@ public class MockConnector implements Receiver, Processor {
 		return messageStore;
 	}
 	
-	public ProcessorContext getContext() {
+	public ConnectorContext getContext() {
 		return context;
 	}
 

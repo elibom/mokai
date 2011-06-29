@@ -2,14 +2,12 @@ package org.mokai.type.impl;
 
 import org.mokai.Acceptor;
 import org.mokai.Action;
-import org.mokai.Processor;
-import org.mokai.Receiver;
+import org.mokai.Connector;
 import org.mokai.annotation.Description;
 import org.mokai.annotation.Name;
 import org.mokai.type.AcceptorType;
 import org.mokai.type.ActionType;
-import org.mokai.type.ProcessorType;
-import org.mokai.type.ReceiverType;
+import org.mokai.type.ConnectorType;
 
 /**
  * 
@@ -35,20 +33,12 @@ public class TypeBuilder {
 		return new ActionType(name, description, actionClass);
 	}
 	
-	public static ProcessorType buildProcessorType(Class<? extends Processor> processorClass) {
+	public static ConnectorType buildConnectorType(Class<? extends Connector> connectorClass) {
 
-		String name = getName(processorClass);
-		String description = getDescription(processorClass);
+		String name = getName(connectorClass);
+		String description = getDescription(connectorClass);
 		
-		return new ProcessorType(name, description, processorClass);
-	}
-	
-	public static ReceiverType buildReceiverType(Class<? extends Receiver> receiverClass) {
-		
-		String name = getName(receiverClass);
-		String description = getDescription(receiverClass);
-		
-		return new ReceiverType(name, description, receiverClass);
+		return new ConnectorType(name, description, connectorClass);
 	}
 	
 	private static String getName(Class<?> clazz) {

@@ -5,13 +5,9 @@ package org.mokai;
  * messages. Processors usually send messages out of the framework to 
  * operators, integrators or other applications.</p>
  * 
- * <p>When a processor is added to the the {@link org.mokai.RoutingEngine}, it is wrapped 
- * into a {@link org.mokai.ProcessorService} which contains a queue, acceptors, 
- * pre-processing actions, post-processing actions and post-receiving actions.</p>
- * 
  * @author German Escobar
  */
-public interface Processor {
+public interface Processor extends Connector {
 
 	/**
 	 * Called when a message needs to be processed.

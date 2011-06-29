@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+           elementFormDefault="qualified"
+           targetNamespace="http://mokai.googlecode.com/connectors"
+           xmlns:connectors="http://mokai.googlecode.com/connectors">
+
+	<xs:element name="connectors">
+		<xs:complexType>
+			<xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:element ref="connectors:connector"/>
+            </xs:choice>
+       </xs:complexType>
+	</xs:element> 
+	
+	<xs:element name="connector">
+		<xs:complexType>
+			<xs:all>
+        		<xs:element ref="connectors:configuration" minOccurs="0"/>
+        		<xs:element ref="connectors:acceptors" minOccurs="0" />
+        		<xs:element ref="connectors:pre-processing-actions" minOccurs="0" />
+        		<xs:element ref="connectors:post-processing-actions" minOccurs="0" />
+        		<xs:element ref="connectors:post-receiving-actions" minOccurs="0" />
+        	</xs:all>
+        	
+        	<xs:attribute name="id" type="xs:string" use="required"/>
+        	<xs:attribute name="priority" type="xs:int" />
+			<xs:attribute name="maxConcurrentMsgs" type="xs:int" />
+        	<xs:attribute name="className" type="xs:string" use="required" />
+        	<xs:attribute name="type" type="xs:string" />
+        </xs:complexType>
+	</xs:element>
+	
+	<xs:element name="configuration">
+		<xs:complexType>
+			<xs:choice minOccurs="0" maxOccurs="unbounded">
+				<xs:element ref="connectors:property"/>
+				<xs:element ref="connectors:mapProperty"/>
+				<xs:element ref="connectors:listProperty"/>
+			</xs:choice>
+        </xs:complexType>
+	</xs:element>
+	
+	<xs:element name="acceptors">
+		<xs:complexType>
+			<xs:choice minOccurs="0" maxOccurs="unbounded">
+        		<xs:element ref="connectors:acceptor" />
+        	</xs:choice>
+		</xs:complexType>
+	</xs:element>
+	
+	<xs:element name="acceptor" type="connectors:extensionType" />
+	
+	<xs:element name="pre-processing-actions">
+		<xs:complexType>
+			<xs:choice minOccurs="0" maxOccurs="unbounded">
+        		<xs:element ref="connectors:action" />
+        	</xs:choice>
+		</xs:complexType>
+	</xs:element>
+	
+	<xs:element name="post-processing-actions">
+		<xs:complexType>
+			<xs:choice minOccurs="0" maxOccurs="unbounded">
+        		<xs:element ref="connectors:action" />
+        	</xs:choice>
+		</xs:complexType>
+	</xs:element>
+	
+	<xs:element name="post-receiving-actions">
+		<xs:complexType>
+			<xs:choice minOccurs="0" maxOccurs="unbounded">
+        		<xs:element ref="connectors:action" />
+        	</xs:choice>
+		</xs:complexType>
+	</xs:element>
+	
+	<xs:element name="action" type="connectors:extensionType" />
+	
+	<xs:complexType name="extensionType">
+		<xs:choice minOccurs="0" maxOccurs="unbounded">
+			<xs:element ref="connectors:property"/>
+			<xs:element ref="connectors:mapProperty"/>
+			<xs:element ref="connectors:listProperty"/>
+		</xs:choice>
+		
+		<xs:attribute name="className" type="xs:string" />			
+		<xs:attribute name="type" type="xs:string" />
+	</xs:complexType>
+	
+	<xs:element name="property">
+		<xs:complexType>
+			<xs:simpleContent>
+				<xs:extension base="xs:string">
+					<xs:attribute name="name" type="xs:string" use="required" />
+					<xs:attribute name="value" type="xs:string" />
+				</xs:extension>
+			</xs:simpleContent>
+			
+		</xs:complexType>
+	</xs:element>
+	
+	<xs:element name="mapProperty">
+		<xs:complexType>
+			<xs:choice minOccurs="0" maxOccurs="unbounded">
+				<xs:element name="item">
+					<xs:complexType>
+						<xs:simpleContent>
+							<xs:extension base="xs:string">
+								<xs:attribute name="key" type="xs:string" use="required" />
+								<xs:attribute name="value" type="xs:string" />
+							</xs:extension>
+						</xs:simpleContent>
+					</xs:complexType>
+				</xs:element>
+			</xs:choice>
+			
+			<xs:attribute name="name" type="xs:string" use="required" />
+		</xs:complexType>
+	</xs:element>
+	
+	<xs:element name="listProperty">
+		<xs:complexType>
+			<xs:choice minOccurs="0" maxOccurs="unbounded">
+				<xs:element name="item">
+					<xs:complexType>
+						<xs:simpleContent>
+							<xs:extension base="xs:string">
+								<xs:attribute name="value" type="xs:string" />
+							</xs:extension>
+						</xs:simpleContent>
+					</xs:complexType>
+				</xs:element>
+			</xs:choice>
+			
+			<xs:attribute name="name" type="xs:string" use="required" />
+		</xs:complexType>
+	</xs:element>
+	
+           
+</xs:schema>

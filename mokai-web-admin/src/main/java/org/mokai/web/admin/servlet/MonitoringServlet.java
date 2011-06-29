@@ -8,8 +8,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.mokai.ProcessorService;
-import org.mokai.ReceiverService;
+import org.mokai.ConnectorService;
 import org.mokai.RoutingEngine;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -39,12 +38,12 @@ public class MonitoringServlet extends HttpServlet implements ApplicationContext
 		
 		RoutingEngine routingEngine = (RoutingEngine) applicationContext.getBean("routingEngine");
 		
-		for (ProcessorService processor : routingEngine.getProcessors()) {
-			status += processor.getId() + "_" + processor.getStatus() + "_" + processor.getState() + " ";
+		for (ConnectorService application : routingEngine.getApplications()) {
+			status += application.getId() + "_" + application.getStatus() + "_" + application.getState() + " ";
 		}
 		
-		for (ReceiverService receiver : routingEngine.getReceivers()) {
-			status += receiver.getId() + "_" + receiver.getStatus() + "_" + receiver.getState() + " ";
+		for (ConnectorService connection : routingEngine.getConnections()) {
+			status += connection.getId() + "_" + connection.getStatus() + "_" + connection.getState() + " ";
 		}
 		
 		out.println(status);

@@ -1,25 +1,25 @@
 package org.mokai.type.impl.test;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.util.HashSet;
 import java.util.Set;
 
-import junit.framework.Assert;
-
-import org.mockito.Mockito;
 import org.mokai.Acceptor;
 import org.mokai.Action;
+import org.mokai.Connector;
 import org.mokai.Processor;
-import org.mokai.Receiver;
 import org.mokai.plugin.PluginMechanism;
 import org.mokai.type.AcceptorType;
 import org.mokai.type.ActionType;
-import org.mokai.type.ProcessorType;
-import org.mokai.type.ReceiverType;
+import org.mokai.type.ConnectorType;
 import org.mokai.type.TypeLoader;
 import org.mokai.type.impl.PluginTypeLoader;
 import org.mokai.types.mock.MockAcceptor;
 import org.mokai.types.mock.MockAction;
 import org.mokai.types.mock.MockConnector;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 /**
@@ -33,13 +33,13 @@ public class PluginTypeLoaderTest {
 		TypeLoader typeLoader = new PluginTypeLoader(mockPluginMechanism());
 		
 		Set<AcceptorType> acceptorTypes =  typeLoader.loadAcceptorTypes();
-		Assert.assertEquals(1, acceptorTypes.size());
+		Assert.assertEquals(acceptorTypes.size(), 1);
 		
 		AcceptorType acceptorType = acceptorTypes.iterator().next();
 		Assert.assertNotNull(acceptorType);
-		Assert.assertEquals("MockAcceptor", acceptorType.getName());
-		Assert.assertEquals("Mock Acceptor Description", acceptorType.getDescription());
-		Assert.assertEquals(MockAcceptor.class, acceptorType.getAcceptorClass());
+		Assert.assertEquals(acceptorType.getName(), "MockAcceptor");
+		Assert.assertEquals(acceptorType.getDescription(), "Mock Acceptor Description");
+		Assert.assertEquals(acceptorType.getAcceptorClass(), MockAcceptor.class);
 	}
 	
 	@Test
@@ -51,68 +51,50 @@ public class PluginTypeLoaderTest {
 		
 		ActionType actionType = actionTypes.iterator().next();
 		Assert.assertNotNull(actionType);
-		Assert.assertEquals("", actionType.getName());
-		Assert.assertEquals("", actionType.getDescription());
-		Assert.assertEquals(MockAction.class, actionType.getActionClass());	
+		Assert.assertEquals(actionType.getName(), "");
+		Assert.assertEquals(actionType.getDescription(), "");
+		Assert.assertEquals(actionType.getActionClass(), MockAction.class);	
 	}
 	
 	@Test
-	public void testLoadReceiverTypes() throws Exception {
+	public void testLoadConnectorsTypes() throws Exception {
 		TypeLoader typeLoader = new PluginTypeLoader(mockPluginMechanism());
 		
-		Set<ReceiverType> receiverTypes = typeLoader.loadReceiverTypes();
-		Assert.assertEquals(1, receiverTypes.size());
+		Set<ConnectorType> processorTypes = typeLoader.loadConnectorTypes();
+		Assert.assertEquals(processorTypes.size(), 1);
 		
-		ReceiverType receiverType = receiverTypes.iterator().next();
-		Assert.assertNotNull(receiverType);
-		Assert.assertEquals("", receiverType.getName());
-		Assert.assertEquals("", receiverType.getDescription());
-		Assert.assertEquals(MockConnector.class, receiverType.getReceiverClass());
-	}
-	
-	@Test
-	public void testLoadProcessorTypes() throws Exception {
-		TypeLoader typeLoader = new PluginTypeLoader(mockPluginMechanism());
-		
-		Set<ProcessorType> processorTypes = typeLoader.loadProcessorTypes();
-		Assert.assertEquals(1, processorTypes.size());
-		
-		ProcessorType processorType = processorTypes.iterator().next();
+		ConnectorType processorType = processorTypes.iterator().next();
 		Assert.assertNotNull(processorType);
-		Assert.assertEquals("", processorType.getName());
-		Assert.assertEquals("", processorType.getDescription());
-		Assert.assertEquals(MockConnector.class, processorType.getProcessorClass());
+		Assert.assertEquals(processorType.getName(), "");
+		Assert.assertEquals(processorType.getDescription(), "");
+		Assert.assertEquals(processorType.getConnectorClass(), MockConnector.class);
 	}
 	
 	private PluginMechanism mockPluginMechanism() {
-		PluginMechanism pluginMechanism = Mockito.mock(PluginMechanism.class);
+		PluginMechanism pluginMechanism = mock(PluginMechanism.class);
 		
 		Set<Class<? extends Acceptor>> acceptorClasses = new HashSet<Class<? extends Acceptor>>();
 		acceptorClasses.add(MockAcceptor.class);
 		
-		Mockito
-			.when(pluginMechanism.loadTypes(Acceptor.class))
+		when(pluginMechanism.loadTypes(Acceptor.class))
 			.thenReturn(acceptorClasses);
 		
 		Set<Class<? extends Action>> actionClasses = new HashSet<Class<? extends Action>>();
 		actionClasses.add(MockAction.class);
 		
-		Mockito
-			.when(pluginMechanism.loadTypes(Action.class))
+		when(pluginMechanism.loadTypes(Action.class))
 			.thenReturn(actionClasses);
 		
-		Set<Class<? extends Receiver>> receiverClasses = new HashSet<Class<? extends Receiver>>();
+		Set<Class<? extends Connector>> receiverClasses = new HashSet<Class<? extends Connector>>();
 		receiverClasses.add(MockConnector.class);
 		
-		Mockito
-			.when(pluginMechanism.loadTypes(Receiver.class))
+		when(pluginMechanism.loadTypes(Connector.class))
 			.thenReturn(receiverClasses);
 		
 		Set<Class<? extends Processor>> processorClasses = new HashSet<Class<? extends Processor>>();
 		processorClasses.add(MockConnector.class);
 		
-		Mockito
-			.when(pluginMechanism.loadTypes(Processor.class))
+		when(pluginMechanism.loadTypes(Processor.class))
 			.thenReturn(processorClasses);
 		
 		return pluginMechanism;

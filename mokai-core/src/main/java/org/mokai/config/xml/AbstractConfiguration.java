@@ -13,9 +13,10 @@ import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.mokai.Acceptor;
 import org.mokai.Action;
+import org.mokai.Connector;
+import org.mokai.ConnectorService;
 import org.mokai.ExposableConfiguration;
 import org.mokai.Processor;
-import org.mokai.ProcessorService;
 import org.mokai.RoutingEngine;
 import org.mokai.config.Configuration;
 import org.mokai.config.ConfigurationException;
@@ -24,20 +25,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Loads and saves {@link ProcessorService}s information to and from an 
- * XML file.
+ * Base class of {@link ApplicationsConfiguration} and {@link ConnectionsConfiguration} used to load
+ * connectors from an XML file. 
  * 
  * @author German Escobar
  */
-public class ProcessorConfiguration implements Configuration {
+public abstract class AbstractConfiguration implements Configuration {
+
+	private Logger log = LoggerFactory.getLogger(AbstractConfiguration.class);
+
+	private String path = getDefaultPath();
 	
-	private Logger log = LoggerFactory.getLogger(ProcessorConfiguration.class);
+	protected RoutingEngine routingEngine;
 	
-	private String path = "conf/processors.xml";
-	
-	private RoutingEngine routingEngine;
-	
-	private PluginMechanism pluginMechanism;
+	protected PluginMechanism pluginMechanism;
 
 	@Override
 	public final void load() {
@@ -57,6 +58,12 @@ public class ProcessorConfiguration implements Configuration {
 		}
 	}
 	
+	/**
+	 * Helper method. Retrieves an InputStream from a file path.
+	 * 
+	 * @param path the path from which we are retrieving the InputStream.
+	 * @return the InputStream object or null if the file is not found.
+	 */
 	private InputStream searchFromFile(String path) {
 		try {
 			return new FileInputStream(path);
@@ -66,7 +73,7 @@ public class ProcessorConfiguration implements Configuration {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	public final void load(InputStream inputStream) throws Exception {
+	private void load(InputStream inputStream) throws Exception {
 		// create the document
 		SAXReader reader = new SAXReader();
 		reader.setEntityResolver(new SchemaEntityResolver());
@@ -82,38 +89,39 @@ public class ProcessorConfiguration implements Configuration {
 		Iterator iterator = document.getRootElement().elementIterator();
 		while (iterator.hasNext()) {
 			
-			Element processorElement = (Element) iterator.next();
-			handleProcessorElement(processorElement);
+			Element connectorElement = (Element) iterator.next();
+			handleConnectorElement(connectorElement);
 			
 		}
 	}
 	
-	private void handleProcessorElement(final Element processorElement) throws Exception {
+	private void handleConnectorElement(final Element connectorElement) throws Exception {
 		
 		// build the processor connector
-		final Processor connector = buildProcessorConnector(processorElement);
+		final Connector connector = buildConnector(connectorElement);
 		
 		// build the acceptors
-		final List<Acceptor> acceptors = buildAcceptors(processorElement.element("acceptors"));
+		final List<Acceptor> acceptors = buildAcceptors(connectorElement.element("acceptors"));
 		
 		// build the pre-processing actions
 		final List<Action> preProcessingActions = XmlConfigurationUtils.buildActions(routingEngine, 
-				pluginMechanism, processorElement.element("pre-processing-actions"));
+				pluginMechanism, connectorElement.element("pre-processing-actions"));
 		
 		// build the post-processing actions
 		final List<Action> postProcessingActions = XmlConfigurationUtils.buildActions(routingEngine, 
-				pluginMechanism, processorElement.element("post-processing-actions"));
+				pluginMechanism, connectorElement.element("post-processing-actions"));
 		
 		// build the post-receiving actions
 		final List<Action> postReceivingActions = XmlConfigurationUtils.buildActions(routingEngine, 
-				pluginMechanism, processorElement.element("post-receiving-actions"));
+				pluginMechanism, connectorElement.element("post-receiving-actions"));
 		
-		String id = processorElement.attributeValue("id");
-		int priority = Integer.parseInt(processorElement.attributeValue("priority"));
-		ProcessorService processorService = routingEngine.createProcessor(id, priority, connector);
+		String id = connectorElement.attributeValue("id");
+		int priority = getPriority(connectorElement);
+		ConnectorService processorService = addConnector(id, connector);
+		processorService.setPriority(priority);
 		
 		// set maxConcurrentMsgs of the ProcessorService
-		int maxConcurrentMsgs = getMaxConcurrentMsgs(processorElement);
+		int maxConcurrentMsgs = getMaxConcurrentMsgs(connectorElement);
 		processorService.setMaxConcurrentMsgs(maxConcurrentMsgs);
 		
 		// add acceptors to the processor
@@ -138,10 +146,21 @@ public class ProcessorConfiguration implements Configuration {
 		
 	}
 	
-	private int getMaxConcurrentMsgs(Element processorElement) throws Exception {
+	private int getPriority(Element connectorElement) throws Exception {
+		int priority = 1000;
+		
+		String value = connectorElement.attributeValue("priority");
+		if (value != null && !"".equals(value)) {
+			priority = Integer.parseInt(value);
+		}
+		
+		return priority;
+	}
+	
+	private int getMaxConcurrentMsgs(Element connectorElement) throws Exception {
 		int maxConcurrentMsgs = 1;
 		
-		String value = processorElement.attributeValue("maxConcurrentMsgs");
+		String value = connectorElement.attributeValue("maxConcurrentMsgs");
 		if (value != null && !"".equals(value)) {
 			maxConcurrentMsgs = Integer.parseInt(value);
 		}
@@ -150,24 +169,23 @@ public class ProcessorConfiguration implements Configuration {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private Processor buildProcessorConnector(Element element) throws Exception {
+	private Connector buildConnector(Element element) throws Exception {
 		String className = element.attributeValue("className");
 		
-		Class<? extends Processor> processorClass = null;
+		Class<? extends Connector> connectorClass = null;
 		
 		if (pluginMechanism != null) {
-			processorClass = (Class<? extends Processor>) pluginMechanism.loadClass(className);
+			connectorClass = (Class<? extends Processor>) pluginMechanism.loadClass(className);
 		} 
 		
-		if (processorClass == null) {
-			processorClass = (Class<? extends Processor>) Class.forName(className);
+		if (connectorClass == null) {
+			connectorClass = (Class<? extends Processor>) Class.forName(className);
 		}
 		
-		Processor processorConnector = processorClass.newInstance();
+		Connector connector = connectorClass.newInstance();
 		
-		if (ExposableConfiguration.class.isInstance(processorConnector)) {
-			ExposableConfiguration<?> configurableConnector = 
-				(ExposableConfiguration<?>) processorConnector;
+		if (ExposableConfiguration.class.isInstance(connector)) {
+			ExposableConfiguration<?> configurableConnector = (ExposableConfiguration<?>) connector;
 
 			Element configurationElement = element.element("configuration");
 			if (configurationElement != null) {
@@ -176,7 +194,7 @@ public class ProcessorConfiguration implements Configuration {
 			}
 		}
 		
-		return processorConnector;
+		return connector;
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -230,33 +248,31 @@ public class ProcessorConfiguration implements Configuration {
 	}
 	
 	public final Document createProcessorsDocument() throws Exception {
-		// retrieve processors
-		List<ProcessorService> processors = routingEngine.getProcessors();
+		// retrieve connectors
+		List<ConnectorService> connectors = getConnectors();
 		
 		Document document = DocumentHelper.createDocument();
-        Element rootElement = document.addElement("processors");
+        Element rootElement = document.addElement("connectors");
         
-        for (ProcessorService processor : processors) {
+        for (ConnectorService connectorService : connectors) {
         	
-        	Element processorElement = rootElement.addElement("processor")
-        		.addAttribute("id", processor.getId())
-        		.addAttribute("priority", processor.getPriority() + "");
-        	
-        	Element connectorElement = processorElement.addElement("connector")
-        		.addAttribute("className", processor.getProcessor().getClass().getCanonicalName());
+        	Element connectorElement = rootElement.addElement("connector")
+        		.addAttribute("id", connectorService.getId())
+        		.addAttribute("priority", connectorService.getPriority() + "")
+        		.addAttribute("className", connectorService.getConnector().getClass().getCanonicalName());
         	
         	// if exposes configuration, save it
-        	if (ExposableConfiguration.class.isInstance(processor.getProcessor())) {
-        		ExposableConfiguration<?> configurableProcessor = 
-        			(ExposableConfiguration<?>) processor.getProcessor();
+        	if (ExposableConfiguration.class.isInstance(connectorService.getConnector())) {
+        		ExposableConfiguration<?> configurableProcessor = (ExposableConfiguration<?>) connectorService.getConnector();
         		
-        		XmlConfigurationUtils.addConfigurationFields(connectorElement, configurableProcessor.getConfiguration());
+        		Element configurationElement = connectorElement.addElement("configuration");
+        		XmlConfigurationUtils.addConfigurationFields(configurationElement, configurableProcessor.getConfiguration());
         	}
         	
         	// add acceptors
-        	List<Acceptor> acceptors = processor.getAcceptors();
+        	List<Acceptor> acceptors = connectorService.getAcceptors();
         	if (acceptors != null && !acceptors.isEmpty()) {
-	        	Element acceptorsElement = processorElement.addElement("acceptors");
+	        	Element acceptorsElement = connectorElement.addElement("acceptors");
 	        	for (Acceptor acceptor : acceptors) {
 	        		Element acceptorElement = acceptorsElement.addElement("acceptor")
 	        			.addAttribute("className", acceptor.getClass().getCanonicalName());
@@ -271,13 +287,13 @@ public class ProcessorConfiguration implements Configuration {
         	}
         	
         	// add pre-processing-actions
-        	addActions(processor.getPreProcessingActions(), processorElement, "pre-processing-actions");
+        	addActions(connectorService.getPreProcessingActions(), connectorElement, "pre-processing-actions");
         	
         	// add post-processing-actions
-        	addActions(processor.getPostProcessingActions(), processorElement, "post-processing-actions");
+        	addActions(connectorService.getPostProcessingActions(), connectorElement, "post-processing-actions");
         	
         	// add post-receiving-actions
-        	addActions(processor.getPostReceivingActions(), processorElement, "post-receiving-actions");
+        	addActions(connectorService.getPostReceivingActions(), connectorElement, "post-receiving-actions");
 
         }
         
@@ -314,4 +330,25 @@ public class ProcessorConfiguration implements Configuration {
 		this.pluginMechanism = pluginMechanism;
 	}
 	
+	/**
+	 * @return the default path of the XML configuration file (just in case one is not specified).
+	 */
+	protected abstract String getDefaultPath();
+	
+	/**
+	 * Helper method. Called to add a connector, usually to a {@link RoutingEngine}.
+	 * 
+	 * @param id
+	 * @param connector
+	 * @return a {@link ConnectorService} object.
+	 */
+	protected abstract ConnectorService addConnector(String id, Connector connector);
+	
+	/**
+	 * Helper method. Called to retrieve a list of connectors, usually of a {@link RoutingEngine}
+	 * 
+	 * @return a list of {@link ConnectorService} objects.
+	 */
+	protected abstract List<ConnectorService> getConnectors();
+
 }

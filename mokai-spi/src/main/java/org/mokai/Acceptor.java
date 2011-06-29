@@ -1,8 +1,7 @@
 package org.mokai;
 
 /**
- * Acceptors are used inside {@link org.mokai.ProcessorService}s to match messages that
- * are going to be processed.
+ * Acceptors are used inside {@link org.mokai.ConnectorService}s to match messages that are going to be processed.
  * 
  * @author German Escobar
  */

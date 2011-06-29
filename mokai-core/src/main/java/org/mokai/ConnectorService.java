@@ -5,59 +5,58 @@ import java.util.List;
 import org.mokai.Monitorable.Status;
 
 /**
- * <p>A wrapper of a {@link Processor} that holds a collection of acceptors, 
- * pre-processing actions, post-processing actions and post-receiving 
- * actions. Processors are created using the 
- * {@link RoutingEngine#createProcessor(String, int, Processor)} method</p>
+ * <p>A wrapper of a {@link Connector} that holds a collection of acceptors, pre-processing actions, 
+ * post-processing actions and post-receiving actions.</p>
  * 
- * <p>The {@link RoutingEngine} uses the collection of {@link Acceptor}s and the 
- * {@link Processor#supports(Message)} method to determine if this processor service
- * will handle the message. If it does, the message should be queued before it is 
- * processed (this is not mandatory but a good practice).</p> 
- * 
- * <p>The pre-processing actions, post-processing actions and post-receiving actions
- * are implementations of the {@link Action} interface. The pre-processing actions
- * are called before the message is processed. The post-processing actions are called
- * after a message is processed and the post-receiving actions are called after a 
- * message has been received by the {@link Processor}.</p> 
+ * <p>Inside a {@link RoutingEngine}, it represents an application or a connection
+ * capable of receiving or processing messages.</p>
  * 
  * @see RoutingEngine
- * @see Processor
+ * @see Connector
  * @see Acceptor
  * @see Action
  * 
  * @author German Escobar
  */
-public interface ProcessorService extends Service {
+public interface ConnectorService extends Service {
 
 	/**
-	 * A processor service is identified by a unique id that is set by the caller in
-	 * the {@link RoutingEngine#createProcessor(String, int, Processor)} method.
-	 * 
-	 * @return the unique id of the processor service.
+	 * @return the assigned id.
 	 */
 	String getId();
 
 	/**
-	 * The priority is used to determine the order in which the processor services 
-	 * should be query in order to accept or reject a message.
+	 * The priority is used by the {@link RoutingEngine} to determine the order in which the 
+	 * connector services should be query in order to accept or reject a message. The priority
+	 * only applies to connectors that implement the {@link Processor} interface.
 	 * 
-	 * @return the priority of this processor service.
+	 * @return the priority of this connector service.
 	 */
 	int getPriority();
 	
 	/**
-	 * Sets the priority of the processor service. This value is used to determine 
-	 * the order in which the processor services should be query in order to accept 
-	 * or reject a message.
+	 * Sets the priority. This value is used to determine the order in which the connector 
+	 * services should be query in order to accept or reject a message. The priority 
+	 * only applies to connectors that implement the {@link Processor} interface.
 	 * 
 	 * @param priority can be a positive or negative number.
 	 */
 	void setPriority(int priority);
 	
 	/**
+	 * Helper method to set a priority using a fluent API.
+	 * 
+	 * @param priority a positive or negative number.
+	 * @return this connector service.
+	 * 
+	 * @see #setPriority(int)
+	 */
+	ConnectorService withPriority(int priority);
+	
+	/**
 	 * The maximum number of messages that can be processed concurrently by the 
-	 * processor.
+	 * connector. This only applies to connectors that implement the {@link Processor}
+	 * interface.
 	 * 
 	 * @return the maximum number of messages that can be processed concurrently.
 	 */
@@ -65,8 +64,8 @@ public interface ProcessorService extends Service {
 	
 	/**
 	 * Sets the maximum number of messages that can be processed concurrently by
-	 * the processor. The time in which this parameter is applied depends on each
-	 * implementation.
+	 * the connector. This only applies to connectors that implement the {@link Processor}
+	 * interface.
 	 * 
 	 * @param maxConcurrentMsgs the maximum number of messages that can be processed
 	 * concurrently.
@@ -74,11 +73,11 @@ public interface ProcessorService extends Service {
 	void setMaxConcurrentMsgs(int maxConcurrentMsgs);
 	
 	/**
-	 * The wrapped processor.
+	 * The wrapped connector.
 	 * 
-	 * @return the {@link Processor} that this processor service is managing.
+	 * @return the {@link Connector} that this connector service is wrapping.
 	 */
-	Processor getProcessor();
+	Connector getConnector();
 	
 	/**
 	 * After a {@link Message} is accepted by the processor service, it queues
@@ -88,12 +87,12 @@ public interface ProcessorService extends Service {
 	int getNumQueuedMessages();
 	
 	/**
-	 * The status tells whether the service is working OK or {@link Message}s 
-	 * are failing. The status is calculated by first checking the status of the 
-	 * {@link Processor} (if it implements {@link Monitorable}) and then checking
-	 * if the last message failed or was successfully processed.
+	 * The status tells whether the service is ok or not. The status is calculated by first 
+	 * checking the status of the {@link Connector} (if it implements {@link Monitorable}). 
+	 * If the connector implements {@Processor} then this method also checks if the last 
+	 * message failed or was successfully processed.
 	 *  
-	 * @return the status of the processor service.
+	 * @return the status of the connector service.
 	 * @see Status
 	 */
 	Status getStatus();
@@ -104,11 +103,11 @@ public interface ProcessorService extends Service {
 	 * {@link Acceptor#equals(Object)} method. 
 	 * 
 	 * @param acceptor the {@link Acceptor} instance to be added. 
-	 * @return the {@link ProcessorService} instance (fluent API).
+	 * @return the {@link ConnectorService} instance (fluent API).
 	 * @throws IllegalArgumentException if the acceptor is null.
 	 * @throws ObjectAlreadyExistsException if the acceptor already exists.
 	 */
-	ProcessorService addAcceptor(Acceptor acceptor) throws IllegalArgumentException, ObjectAlreadyExistsException;
+	ConnectorService addAcceptor(Acceptor acceptor) throws IllegalArgumentException, ObjectAlreadyExistsException;
 	
 	/**
 	 * Removes an {@link Acceptor} from the collection of acceptors if it exists.
@@ -116,11 +115,11 @@ public interface ProcessorService extends Service {
 	 * method.
 	 * 
 	 * @param acceptor the {@link Acceptor} instance to be removed.
-	 * @return the {@link ProcessorService} instance (fluent API).
+	 * @return the {@link ConnectorService} instance (fluent API).
 	 * @throws IllegalArgumentException if the argument is null.
 	 * @throws ObjectNotFoundException if the acceptor is not found.
 	 */
-	ProcessorService removeAcceptor(Acceptor acceptor) throws IllegalArgumentException, ObjectNotFoundException;
+	ConnectorService removeAcceptor(Acceptor acceptor) throws IllegalArgumentException, ObjectNotFoundException;
 
 	/**
 	 * Retrieves the registered acceptors.
@@ -136,12 +135,12 @@ public interface ProcessorService extends Service {
 	 * method.
 	 * 
 	 * @param action the {@link Action} to be added.
-	 * @return the {@link ProcessorService} instance (fluent API).
+	 * @return the {@link ConnectorService} instance (fluent API).
 	 * @throws IllegalArgumentException if the action is null.
 	 * @throws ObjectAlreadyExistsException if the action already exists in the 
 	 * collection of pre-processing actions.
 	 */
-	ProcessorService addPreProcessingAction(Action action) throws IllegalArgumentException, ObjectAlreadyExistsException;
+	ConnectorService addPreProcessingAction(Action action) throws IllegalArgumentException, ObjectAlreadyExistsException;
 	
 	/**
 	 * Removes an {@link Action} from the collection of pre-processing actions if
@@ -149,11 +148,11 @@ public interface ProcessorService extends Service {
 	 * method.
 	 * 
 	 * @param action the {@link Action} to be removed.
-	 * @return the {@link ProcessorService} instance (fluent API).
+	 * @return the {@link ConnectorService} instance (fluent API).
 	 * @throws IllegalArgumentException if the action to be removed is null.
 	 * @throws ObjectNotFoundException if the action is not found.
 	 */
-	ProcessorService removePreProcessingAction(Action action) throws IllegalArgumentException, ObjectNotFoundException;
+	ConnectorService removePreProcessingAction(Action action) throws IllegalArgumentException, ObjectNotFoundException;
 	
 	/**
 	 * Retrieves the registered pre-processing actions.
@@ -169,12 +168,12 @@ public interface ProcessorService extends Service {
 	 * method.
 	 * 
 	 * @param action the {@link Action} to be added.
-	 * @return the {@link ProcessorService} instance (fluent API).
+	 * @return the {@link ConnectorService} instance (fluent API).
 	 * @throws IllegalArgumentException if the action to be added is null.
 	 * @throws ObjectAlreadyExistsException if the action already exists in the 
 	 * collection of post-processing actions.
 	 */
-	ProcessorService addPostProcessingAction(Action action) throws IllegalArgumentException, ObjectAlreadyExistsException;
+	ConnectorService addPostProcessingAction(Action action) throws IllegalArgumentException, ObjectAlreadyExistsException;
 	
 	/**
 	 * Removes an {@link Action} from the collection of post-processing actions if
@@ -182,12 +181,12 @@ public interface ProcessorService extends Service {
 	 * method.
 	 * 
 	 * @param action the {@link Action} to be removed.
-	 * @return the {@link ProcessorService} instance (fluent API).
+	 * @return the {@link ConnectorService} instance (fluent API).
 	 * @throws IllegalArgumentException if the action to be removed is null.
 	 * @throws ObjectNotFoundException if the action is not found in the 
 	 * collection of post-processing actions.
 	 */
-	ProcessorService removePostProcessingAction(Action action) throws IllegalArgumentException, ObjectNotFoundException;
+	ConnectorService removePostProcessingAction(Action action) throws IllegalArgumentException, ObjectNotFoundException;
 	
 	/**
 	 * Retrieves the registered post-processing actions.
@@ -203,12 +202,12 @@ public interface ProcessorService extends Service {
 	 * method.
 	 * 
 	 * @param action the {@link Action} to be added.
-	 * @return the {@link ProcessorService} instance (fluent API).
+	 * @return the {@link ConnectorService} instance (fluent API).
 	 * @throws IllegalArgumentException if the action to be added is null.
 	 * @throws ObjectAlreadyExistsException if the action already exists in the 
 	 * collection of post-receiving actions.
 	 */
-	ProcessorService addPostReceivingAction(Action action) throws IllegalArgumentException, ObjectAlreadyExistsException;
+	ConnectorService addPostReceivingAction(Action action) throws IllegalArgumentException, ObjectAlreadyExistsException;
 	
 	/**
 	 * Removes an {@link Action} from the collection of post-receiving actions if
@@ -216,12 +215,12 @@ public interface ProcessorService extends Service {
 	 * method.
 	 * 
 	 * @param action the {@link Action} to be removed.
-	 * @return the {@link ProcessorService} instance (fluent API).
+	 * @return the {@link ConnectorService} instance (fluent API).
 	 * @throws IllegalArgumentException if the action to be removed is null.
 	 * @throws ObjectNotFoundException if the action is not found in the 
 	 * collection of post-receiving actions.
 	 */
-	ProcessorService removePostReceivingAction(Action action) throws IllegalArgumentException, ObjectNotFoundException;
+	ConnectorService removePostReceivingAction(Action action) throws IllegalArgumentException, ObjectNotFoundException;
 	
 	/**
 	 * Retrieves the registered post-receiving actions.

@@ -38,7 +38,7 @@ public class OutboundInboundHandlerTest {
 		MessageHandler handler = createMessageHandler(outHandler, inHandler);
 		
 		Message message = new Message();
-		message.setDirection(Direction.OUTBOUND);
+		message.setDirection(Direction.TO_CONNECTIONS);
 		
 		handler.insertMessage(conn, message);
 		
@@ -56,7 +56,7 @@ public class OutboundInboundHandlerTest {
 		MessageHandler handler = createMessageHandler(outHandler, inHandler);
 		
 		Message message = new Message();
-		message.setDirection(Direction.INBOUND);
+		message.setDirection(Direction.TO_APPLICATIONS);
 		
 		handler.insertMessage(conn, message);
 		
@@ -102,7 +102,7 @@ public class OutboundInboundHandlerTest {
 		
 		Message message = new Message();
 		message.setId(10);
-		message.setDirection(Direction.OUTBOUND);
+		message.setDirection(Direction.TO_CONNECTIONS);
 		
 		handler.updateMessage(conn, message);
 	
@@ -125,7 +125,7 @@ public class OutboundInboundHandlerTest {
 		
 		Message message = new Message();
 		message.setId(10);
-		message.setDirection(Direction.INBOUND);
+		message.setDirection(Direction.TO_APPLICATIONS);
 		
 		handler.updateMessage(conn, message);
 		
@@ -158,7 +158,7 @@ public class OutboundInboundHandlerTest {
 		MessageHandler handler = createMessageHandler(outHandler, inHandler);
 		
 		MessageCriteria criteria = new MessageCriteria()
-			.direction(Direction.OUTBOUND);
+			.direction(Direction.TO_CONNECTIONS);
 		handler.updateMessagesStatus(conn, criteria, Status.RETRYING);	
 		
 		verify(outHandler).updateMessagesStatus(any(Connection.class), 
@@ -177,7 +177,7 @@ public class OutboundInboundHandlerTest {
 		MessageHandler handler = createMessageHandler(outHandler, inHandler);
 		
 		MessageCriteria criteria = new MessageCriteria()
-			.direction(Direction.INBOUND);
+			.direction(Direction.TO_APPLICATIONS);
 		handler.updateMessagesStatus(conn, criteria, Status.RETRYING);	
 		
 		verify(inHandler).updateMessagesStatus(any(Connection.class),  
@@ -251,7 +251,7 @@ public class OutboundInboundHandlerTest {
 		MessageHandler handler = createMessageHandler(outHandler, inHandler);
 		
 		Collection<Message> message = handler.listMessages(conn, 
-				new MessageCriteria().direction(Direction.OUTBOUND));
+				new MessageCriteria().direction(Direction.TO_CONNECTIONS));
 		Assert.assertEquals(1, message.size());
 		
 		verify(inHandler, never()).listMessages(any(Connection.class), any(MessageCriteria.class));
@@ -269,7 +269,7 @@ public class OutboundInboundHandlerTest {
 		MessageHandler handler = createMessageHandler(outHandler, inHandler);
 		
 		Collection<Message> message = handler.listMessages(conn, 
-				new MessageCriteria().direction(Direction.INBOUND));
+				new MessageCriteria().direction(Direction.TO_APPLICATIONS));
 		Assert.assertEquals(1, message.size());
 		
 		verify(outHandler, never()).listMessages(any(Connection.class), any(MessageCriteria.class));	
@@ -335,8 +335,8 @@ public class OutboundInboundHandlerTest {
 
 		MessageHandler handler = createMessageHandler(outHandler, inHandler);
 		
-		Assert.assertTrue(handler.supportsDirection(Direction.OUTBOUND));
-		Assert.assertTrue(handler.supportsDirection(Direction.INBOUND));
+		Assert.assertTrue(handler.supportsDirection(Direction.TO_CONNECTIONS));
+		Assert.assertTrue(handler.supportsDirection(Direction.TO_APPLICATIONS));
 		Assert.assertFalse(handler.supportsDirection(Direction.UNKNOWN));
 		Assert.assertFalse(handler.supportsDirection(null));
 	}

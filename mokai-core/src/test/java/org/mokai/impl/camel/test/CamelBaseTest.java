@@ -3,6 +3,7 @@ package org.mokai.impl.camel.test;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.camel.CamelContext;
 import org.apache.camel.ProducerTemplate;
+import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.impl.DefaultCamelContext;
 import org.mokai.Action;
@@ -24,6 +25,14 @@ public class CamelBaseTest {
 		CamelContext camelContext = new DefaultCamelContext();
 		camelContext.addComponent("activemq", defaultJmsComponent());
 		
+		// workaround to start the activemq broker - sucks
+		camelContext.addRoutes(new RouteBuilder() {
+			@Override
+			public void configure() throws Exception {
+				from("activemq:not").to("direct:guash");
+			}			
+		});
+		
 		camelContext.start();
 		
 		resourceRegistry = new ResourceRegistry();
@@ -32,7 +41,7 @@ public class CamelBaseTest {
 		camelProducer = camelContext.createProducerTemplate();
 	}
 	
-	protected JmsComponent defaultJmsComponent() {
+	protected JmsComponent defaultJmsComponent() throws Exception{
 		// a simple activemq connection factory
 		ActiveMQConnectionFactory connectionFactory = 
 			new ActiveMQConnectionFactory("vm://broker1?broker.persistent=false");

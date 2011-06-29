@@ -16,9 +16,13 @@ import org.apache.commons.lang.Validate;
 import org.mokai.Acceptor;
 import org.mokai.Action;
 import org.mokai.Configurable;
+import org.mokai.Connector;
+import org.mokai.ConnectorContext;
+import org.mokai.ConnectorService;
 import org.mokai.ExecutionException;
 import org.mokai.Message;
 import org.mokai.Message.DestinationType;
+import org.mokai.Message.Direction;
 import org.mokai.MessageProducer;
 import org.mokai.MonitorStatusBuilder;
 import org.mokai.Monitorable;
@@ -26,26 +30,31 @@ import org.mokai.Monitorable.Status;
 import org.mokai.ObjectAlreadyExistsException;
 import org.mokai.ObjectNotFoundException;
 import org.mokai.Processor;
-import org.mokai.ProcessorContext;
-import org.mokai.ProcessorService;
 import org.mokai.Serviceable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * {@link ProcessorService} implementation based on Apache Camel.
+ * {@link ConnectorService} implementation based on Apache Camel. Base class of {@link CamelApplicationService}
+ * and {@link CamelConnectionService}.
  * 
  * @author German Escobar
  */
-public class CamelProcessorService implements ProcessorService {
+public abstract class AbstractCamelConnectorService implements ConnectorService {
 	
-	private Logger log = LoggerFactory.getLogger(CamelProcessorService.class);
+	private Logger log = LoggerFactory.getLogger(AbstractCamelConnectorService.class);
 	
 	/**
-	 * The default number of consumers for this processor. This is applied to the
+	 * The default number of consumers for this connector service. This is applied to the
 	 * maxConcurrentMsgs attribute of this class.
 	 */
 	private final int DEFAULT_MAX_CONCURRENT_MSGS = 1;
+	
+	/**
+	 * The default priority of the connector service. Applied to the priority attribute of 
+	 * this class.
+	 */
+	private final int DEFAULT_PRIORITY = 1000;
 	
 	private String id;
 	
@@ -55,7 +64,7 @@ public class CamelProcessorService implements ProcessorService {
 	
 	private List<Acceptor> acceptors;
 	
-	private Processor processor;
+	private Connector connector;
 	
 	private List<Action> preProcessingActions;
 	
@@ -82,10 +91,10 @@ public class CamelProcessorService implements ProcessorService {
 	private List<RouteDefinition> routes;
 	
 	/**
-	 * The status of the processor service. Notice that this can differ from the
-	 * {@link Processor} status (if it implements {@link Monitorable}).
+	 * The status of the connector service. Notice that this can differ from the
+	 * {@link Connector} status (if it implements {@link Monitorable}).
 	 * 
-	 * @see ProcessorService#getStatus()
+	 * @see ConnectorService#getStatus()
 	 */
 	private Status status = Status.UNKNOWN;
 	
@@ -97,37 +106,35 @@ public class CamelProcessorService implements ProcessorService {
 	/**
 	 * Constructor. The id is modified by removing spaces and lowercasing it.
 	 * 
-	 * @param id the id of the processor service. Shouldn't be null or empty.
-	 * @param priority the priority of the processor service (can be positive
-	 * or negative)
-	 * @param processor the {@link Processor} implementation
+	 * @param id the id of the connector service. Shouldn't be null or empty.
+	 * @param connector the {@link Connector} implementation
 	 * @param resourceRegistry a populated {@link ResourceRegistry} implementation with
 	 * at least the CamelContext and the {@link RedeliveryPolicy}, among other resources.
 	 * @throws IllegalArgumentException if the id arg is null or empty, or if the 
 	 * processor arg is null.
-	 * @throws ExecutionException if an exception is thrown configuring the processor
+	 * @throws ExecutionException if an exception is thrown configuring the connector.
 	 */
-	public CamelProcessorService(String id, int priority, Processor processor, ResourceRegistry resourceRegistry) 
+	public AbstractCamelConnectorService(String id, Connector connector, ResourceRegistry resourceRegistry) 
 			throws IllegalArgumentException, ExecutionException {
 		
 		Validate.notEmpty(id, "An id must be provided");
-		Validate.notNull(processor, "A processor must be provided");
+		Validate.notNull(connector, "A connector must be provided");
 		Validate.notNull(resourceRegistry, "A ResourceRegistry must be provided");
 		Validate.notNull(resourceRegistry.getResource(CamelContext.class), "A CamelContext must be provided");
 		
 		String fixedId = StringUtils.lowerCase(id);
 		this.id = StringUtils.deleteWhitespace(fixedId);
-		this.priority = priority;
+		this.priority = DEFAULT_PRIORITY;
 		this.maxConcurrentMsgs = DEFAULT_MAX_CONCURRENT_MSGS;
-		this.processor = processor;
+		this.connector = connector;
 		
 		this.state = State.STOPPED;
 		
 		this.acceptors = new ArrayList<Acceptor>();
 	
-		this.preProcessingActions = new ArrayList<Action>();
-		this.postProcessingActions = new ArrayList<Action>();
-		this.postReceivingActions = new ArrayList<Action>();
+		this.preProcessingActions = Collections.synchronizedList(new ArrayList<Action>());
+		this.postProcessingActions = Collections.synchronizedList(new ArrayList<Action>());
+		this.postReceivingActions = Collections.synchronizedList(new ArrayList<Action>());
 		
 		this.resourceRegistry = resourceRegistry;
 		
@@ -135,13 +142,38 @@ public class CamelProcessorService implements ProcessorService {
 		this.camelProducer = camelContext.createProducerTemplate();
 		
 		// add the message producer to the processor
-		ResourceInjector.inject(processor, resourceRegistry);
-		injectMessageProducer(processor);
-		injectProcessorContext(processor);
+		ResourceInjector.inject(connector, resourceRegistry);
+		injectMessageProducer(connector);
+		injectConnectorContext(connector);
 		
 	}
 	
 	private void initRoutes() throws ExecutionException {
+		
+		try {
+
+			routes = new ArrayList<RouteDefinition>();
+			
+			// only add the outbound routes if the connector implements Processor
+			if (Processor.class.isInstance(connector)) {
+			
+				RouteBuilder outboundRouteBuilder = createOutboundRouteBuilder();
+				camelContext.addRoutes(outboundRouteBuilder);
+				routes.addAll(outboundRouteBuilder.getRouteCollection().getRoutes());
+			}
+			
+			// always add the inbound routes
+			RouteBuilder inboundRouteBuilder = createInboundRouteBuilder();
+			camelContext.addRoutes(inboundRouteBuilder);
+			routes.addAll(inboundRouteBuilder.getRouteCollection().getRoutes());
+			
+		} catch (Exception e) {
+			throw new ExecutionException(e);
+		}
+		
+	}
+	
+	private RouteBuilder createOutboundRouteBuilder() {
 		
 		// these are the outbound routes
 		RouteBuilder outboundRouteBuilder = new RouteBuilder() {
@@ -156,13 +188,13 @@ public class CamelProcessorService implements ProcessorService {
 						message.setStatus(Message.Status.FAILED);
 					}
 					
-				}).to("activemq:failedmessages");
+				}).to(getFailedMessagesUri());
 
 				ActionsProcessor preProcessingActionsProcessor = new ActionsProcessor(preProcessingActions);
 				ActionsProcessor postProcessingActionsProcessor = new ActionsProcessor(postProcessingActions);
 				
 				// from the queue
-				RouteDefinition route = from(getQueueUri());
+				RouteDefinition route = from(getOutboundUri());
 				
 				// set the source and type of the Message
 				route.process(new OutboundMessageProcessor());
@@ -177,12 +209,17 @@ public class CamelProcessorService implements ProcessorService {
 				route.process(postProcessingActionsProcessor);
 				
 				// route to the processed messages
-				route.to("direct:processedmessages");
+				route.to(getProcessedMessagesUri());
 					
 			}
 			
 		};
+		
+		return outboundRouteBuilder;
+	}
 	
+	private RouteBuilder createInboundRouteBuilder() {
+		
 		// these are the inbound routes
 		RouteBuilder inboundRouteBuilder = new RouteBuilder() {
 
@@ -191,7 +228,7 @@ public class CamelProcessorService implements ProcessorService {
 				ActionsProcessor postReceivingActionsProcessor = new ActionsProcessor(postReceivingActions);
 				
 				// from the component that receives the messages from the MessageProducer	
-				RouteDefinition route = from(getInternalUri());
+				RouteDefinition route = from(getInboundUri());
 				
 				// add the source and type of the Message
 				route.process(new InboundMessageProcessor());
@@ -199,31 +236,21 @@ public class CamelProcessorService implements ProcessorService {
 				// execute the post-receiving actions
 				route.process(postReceivingActionsProcessor);
 				
-				// route to the inbound router
-				route.to("activemq:inboundRouter");
+				// route to the received messages endpoint
+				route.to(getMessagesRouterUri());
 			}
 			
 		};
 		
-		try {
-			camelContext.addRoutes(outboundRouteBuilder);
-			camelContext.addRoutes(inboundRouteBuilder);
-			
-			routes = outboundRouteBuilder.getRouteCollection().getRoutes();
-			routes.addAll(inboundRouteBuilder.getRouteCollection().getRoutes());
-			
-		} catch (Exception e) {
-			throw new ExecutionException(e);
-		}
-		
+		return inboundRouteBuilder;
 	}
 	
 	/**
-	 * Helper method that injects a {@link MessageProducer} into a processor.
+	 * Helper method that injects a {@link MessageProducer} into a connector.
 	 * 
-	 * @param processor
+	 * @param connector the Connector to which we are injecting the MessageProducer.
 	 */
-	private void injectMessageProducer(Processor processor) {
+	private void injectMessageProducer(Connector connector) {
 		
 		// create the message producer that will send the message to an
 		// internal queue so we can process it.
@@ -236,7 +263,7 @@ public class CamelProcessorService implements ProcessorService {
 				Validate.notNull(message);
 				
 				try {
-					producer.sendBody(getInternalUri(), message);
+					producer.sendBody(getInboundUri(), message);
 				} catch (CamelExecutionException e) {
 					Throwable ex = e;
 					if (e.getCause() != null) {
@@ -248,18 +275,18 @@ public class CamelProcessorService implements ProcessorService {
 			
 		};
 		
-		ResourceInjector.inject(processor, messageProducer);
+		ResourceInjector.inject(connector, messageProducer);
 	}
 	
 	/**
-	 * Helper method that injects a {@link ProcessorContext} into a processor.
+	 * Helper method that injects a {@link ConnectorContext} into a processor.
 	 * 
 	 * @param processor
 	 */
-	private void injectProcessorContext(Processor processor) {
+	private void injectConnectorContext(Connector processor) {
 		
 		// create an implementation of the ProcessorContext interface
-		ProcessorContext context = new ProcessorContext() {
+		ConnectorContext context = new ConnectorContext() {
 
 			@Override
 			public String getId() {
@@ -287,6 +314,12 @@ public class CamelProcessorService implements ProcessorService {
 	}
 
 	@Override
+	public ConnectorService withPriority(int priority) {
+		setPriority(priority);
+		return this;
+	}
+
+	@Override
 	public int getMaxConcurrentMsgs() {
 		return maxConcurrentMsgs;
 	}
@@ -297,18 +330,18 @@ public class CamelProcessorService implements ProcessorService {
 	}
 
 	@Override
-	public final Processor getProcessor() {
-		return this.processor;
+	public final Connector getConnector() {
+		return this.connector;
 	}
 	
 	@Override
 	public final int getNumQueuedMessages() {
-		BrowsableEndpoint queueEndpoint = camelContext.getEndpoint("activemq:processor-" + id, BrowsableEndpoint.class);
+		BrowsableEndpoint queueEndpoint = camelContext.getEndpoint(getOutboundUriPrefix() + id, BrowsableEndpoint.class);
 		return queueEndpoint.getExchanges().size();
 	}
 
 	@Override
-	public final ProcessorService addAcceptor(Acceptor acceptor) throws IllegalArgumentException, 
+	public final ConnectorService addAcceptor(Acceptor acceptor) throws IllegalArgumentException, 
 			ObjectAlreadyExistsException, ExecutionException {
 		
 		Validate.notNull(acceptor);
@@ -331,7 +364,7 @@ public class CamelProcessorService implements ProcessorService {
 	}
 	
 	@Override
-	public final ProcessorService removeAcceptor(Acceptor acceptor) throws IllegalArgumentException, 
+	public final ConnectorService removeAcceptor(Acceptor acceptor) throws IllegalArgumentException, 
 			ObjectNotFoundException {
 		
 		Validate.notNull(acceptor);
@@ -353,7 +386,7 @@ public class CamelProcessorService implements ProcessorService {
 	}
 	
 	@Override
-	public final ProcessorService addPreProcessingAction(Action action) throws IllegalArgumentException, 
+	public final ConnectorService addPreProcessingAction(Action action) throws IllegalArgumentException, 
 			ObjectAlreadyExistsException {
 		
 		Validate.notNull(action);
@@ -376,7 +409,7 @@ public class CamelProcessorService implements ProcessorService {
 	}
 	
 	@Override
-	public final ProcessorService removePreProcessingAction(Action action) throws IllegalArgumentException, 
+	public final ConnectorService removePreProcessingAction(Action action) throws IllegalArgumentException, 
 			ObjectNotFoundException {
 		
 		Validate.notNull(action);
@@ -398,7 +431,7 @@ public class CamelProcessorService implements ProcessorService {
 	}
 
 	@Override
-	public final ProcessorService addPostProcessingAction(Action action) throws IllegalArgumentException, 
+	public final ConnectorService addPostProcessingAction(Action action) throws IllegalArgumentException, 
 			ObjectAlreadyExistsException {
 		
 		Validate.notNull(action);
@@ -421,7 +454,7 @@ public class CamelProcessorService implements ProcessorService {
 	}
 	
 	@Override
-	public final ProcessorService removePostProcessingAction(Action action) throws IllegalArgumentException,
+	public final ConnectorService removePostProcessingAction(Action action) throws IllegalArgumentException,
 			ObjectNotFoundException {
 		
 		Validate.notNull(action);
@@ -443,7 +476,7 @@ public class CamelProcessorService implements ProcessorService {
 	}
 
 	@Override
-	public final ProcessorService addPostReceivingAction(Action action) throws IllegalArgumentException, 
+	public final ConnectorService addPostReceivingAction(Action action) throws IllegalArgumentException, 
 			ObjectAlreadyExistsException {
 		
 		Validate.notNull(action);
@@ -466,7 +499,7 @@ public class CamelProcessorService implements ProcessorService {
 	}
 	
 	@Override
-	public final ProcessorService removePostReceivingAction(Action action) throws IllegalArgumentException, 
+	public final ConnectorService removePostReceivingAction(Action action) throws IllegalArgumentException, 
 			ObjectNotFoundException {
 		
 		Validate.notNull(action);
@@ -498,8 +531,8 @@ public class CamelProcessorService implements ProcessorService {
 		Status retStatus = status; // the status we are returning
 		
 		// check if the processor is monitorable
-		if (Monitorable.class.isInstance(processor)) {
-			Monitorable monitorable = (Monitorable) processor;
+		if (Monitorable.class.isInstance(connector)) {
+			Monitorable monitorable = (Monitorable) connector;
 			retStatus = monitorable.getStatus();
 		}
 		
@@ -518,17 +551,17 @@ public class CamelProcessorService implements ProcessorService {
 	
 	/**
 	 * This is the queue where messages are stored after the processor service
-	 * has accepted them. Remember that he {@link OutboundRouter#route(Exchange)} 
+	 * has accepted them. Remember that he {@link ConnectionsRouter#route(Exchange)} 
 	 * method is the responsible of choosing the processor service that will
 	 * handle the message.
 	 * 
 	 * @return an Apache Camel endpoint uri where the messages are queued
 	 * before processing them.
 	 * 
-	 * @see OutboundRouter
+	 * @see ConnectionsRouter
 	 */
-	private String getQueueUri() {
-		return "activemq:processor-" + id + "?maxConcurrentConsumers=" + maxConcurrentMsgs;
+	private String getOutboundUri() {
+		return getOutboundUriPrefix() + id + "?maxConcurrentConsumers=" + maxConcurrentMsgs;
 	}
 	
 	/**
@@ -537,13 +570,13 @@ public class CamelProcessorService implements ProcessorService {
 	 * 
 	 * @return an Apache Camel endpoint Uri where the received messages are stored.
 	 */
-	private String getInternalUri() {
-		return "direct:processor-" + id;
+	private String getInboundUri() {
+		return getInboundUriPrefix() + id;
 	}
 
 	/**
 	 * Starts consuming messages from the queue (returned by 
-	 * {@link CamelProcessorService#getQueueUri()} method) and builds the Apache 
+	 * {@link AbstractCamelConnectorService#getQueueUri()} method) and builds the Apache 
 	 * Camel routes to process and receive messages from the {@link Processor}. 
 	 * If the {@link Processor} implements {@link Serviceable}, it will call the 
 	 * {@link Serviceable#doStart()} method.
@@ -552,12 +585,12 @@ public class CamelProcessorService implements ProcessorService {
 	public final void start() throws ExecutionException {
 		
 		if (!state.isStartable()) {
-			log.warn("Processor " + id + " is already started, ignoring call");
+			log.warn("Connector " + id + " is already started, ignoring call");
 			return;
 		}
 		
 		// start the connector if is Serviceable
-		LifecycleMethodsHelper.start(processor);
+		LifecycleMethodsHelper.start(connector);
 		
 		try {
 			
@@ -581,7 +614,7 @@ public class CamelProcessorService implements ProcessorService {
 
 	/**
 	 * Starts consuming messages from the queue (returned by 
-	 * {@link CamelProcessorService#getQueueUri()} method) and stops
+	 * {@link AbstractCamelConnectorService#getQueueUri()} method) and stops
 	 * the Apache Camel routes. If the {@link Processor} implements
 	 * {@link Serviceable}, it calls the {@link Serviceable#doStop()}
 	 * method.
@@ -590,12 +623,12 @@ public class CamelProcessorService implements ProcessorService {
 	public final void stop() {
 		
 		if (!state.isStoppable()) {
-			log.warn("Processor " + id + " is already stopped, ignoring call");
+			log.warn("Connector " + id + " is already stopped, ignoring call");
 			return;
 		}
 			
 		// stop the processor if it implements Configurable
-		LifecycleMethodsHelper.stop(processor);
+		LifecycleMethodsHelper.stop(connector);
 			
 		try {
 			// stop the routes
@@ -619,7 +652,7 @@ public class CamelProcessorService implements ProcessorService {
 		
 		// stop and destroy
 		stop();
-		LifecycleMethodsHelper.destroy(processor);
+		LifecycleMethodsHelper.destroy(connector);
 		
 	}
 	
@@ -651,7 +684,16 @@ public class CamelProcessorService implements ProcessorService {
 		private boolean process(Message message, int attempt) {
 			
 			try {
+				
+				if (!Processor.class.isInstance(connector)) {
+					
+					// should not happen but just in case
+					throw new IllegalStateException("A message cannot be processed by connector " + id +  
+							", it doesn't implements org.mokai.Processor");
+				}
+				
 				// try to process the message
+				Processor processor = (Processor) connector;
 				processor.process(message);
 				message.setStatus(Message.Status.PROCESSED);
 				
@@ -692,7 +734,7 @@ public class CamelProcessorService implements ProcessorService {
 					
 					// send to failed messages
 					message.setStatus(Message.Status.FAILED);
-					camelProducer.sendBody("activemq:failedmessages", message);
+					camelProducer.sendBody(getFailedMessagesUri(), message);
 					
 				}
 				
@@ -743,10 +785,54 @@ public class CamelProcessorService implements ProcessorService {
 			Message message = exchange.getIn().getBody(Message.class);
 			
 			message.setSource(id);
-			message.setSourceType(Message.SourceType.PROCESSOR);
-			message.setDirection(Message.Direction.INBOUND);
+			if (Processor.class.isInstance(connector)) {
+				message.setSourceType(Message.SourceType.PROCESSOR);
+			} else {
+				message.setSourceType(Message.SourceType.RECEIVER);
+			}
+			message.setDirection(getReceivedMessageDirection());
 		}
 		
 	}
+	
+	/**
+	 * The outbound uri is the endpoint where messages are queued before they are processed by a {@link Processor}.
+	 *  
+	 * @return a string with the outbound uri prefix.
+	 */
+	protected abstract String getOutboundUriPrefix();
 
+	/**
+	 * The inbound uri is the enpoint where messages are received from a {@link MessageProducer}) and handled
+	 * by this connector service.
+	 * 
+	 * @return a string with the inbound uri prefix.
+	 */
+	protected abstract String getInboundUriPrefix();
+	
+	/**
+	 * The processed messages uri is the enpoint where processed messages are queued before persisted.
+	 * 
+	 * @return a string with a processed messages uri.
+	 */
+	protected abstract String getProcessedMessagesUri();
+	
+	/**
+	 * The failed messages uri is the endpoint where failed messages are queued before persisted.
+	 * 
+	 * @return a string with a failed messages uri.
+	 */
+	protected abstract String getFailedMessagesUri();
+	
+	/**
+	 * The messages router uri is the endpoint to which the received messages are routed.
+	 * 
+	 * @return a string with the messages router uri.
+	 */
+	protected abstract String getMessagesRouterUri();
+
+	/**
+	 * @return the direction that should be assigned to a received message.
+	 */
+	protected abstract Direction getReceivedMessageDirection();
 }

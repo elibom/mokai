@@ -11,9 +11,7 @@ public interface TypeLoader {
 
 	Set<AcceptorType> loadAcceptorTypes();
 	
-	Set<ReceiverType> loadReceiverTypes();
-	
-	Set<ProcessorType> loadProcessorTypes();
+	Set<ConnectorType> loadConnectorTypes();
 	
 	Set<ActionType> loadActionTypes();
 	

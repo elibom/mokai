@@ -1,7 +1,6 @@
 package org.mokai.web.admin.vaadin.dashboard;
 
-import org.mokai.ProcessorService;
-import org.mokai.ReceiverService;
+import org.mokai.ConnectorService;
 import org.mokai.RoutingEngine;
 import org.mokai.web.admin.vaadin.WebAdminContext;
 
@@ -27,9 +26,9 @@ public class DashboardViewImpl extends AbstractView<DashboardView, DashboardPres
 
 	private HorizontalLayout viewLayout;
 	
-	private VerticalLayout receiversLayout;
+	private VerticalLayout applicationsLayout;
 	
-	private VerticalLayout processorsLayout;
+	private VerticalLayout connectionsLayout;
 	
 	/**
 	 * Constructor.
@@ -63,8 +62,8 @@ public class DashboardViewImpl extends AbstractView<DashboardView, DashboardPres
 		viewLayout = new HorizontalLayout();
 		
 		// create the receivers layout, fill it and add it
-		receiversLayout = createReceiversLayout();
-		viewLayout.addComponent(receiversLayout);
+		applicationsLayout = createReceiversLayout();
+		viewLayout.addComponent(applicationsLayout);
 		
 		// spacer
 		Label spacer = new Label();
@@ -73,8 +72,8 @@ public class DashboardViewImpl extends AbstractView<DashboardView, DashboardPres
 		viewLayout.setExpandRatio(spacer, 1.0f);
 		
 		// create the processors layout, fill it and add it
-		processorsLayout = createProcessorsLayout();
-		viewLayout.addComponent(processorsLayout);
+		connectionsLayout = createConnectionsLayout();
+		viewLayout.addComponent(connectionsLayout);
 		
 		// create and add the refresher
 		Refresher refresher = createRefresher(REFRESHER_INTERVAL);
@@ -83,7 +82,7 @@ public class DashboardViewImpl extends AbstractView<DashboardView, DashboardPres
 	}
 	
 	/**
-	 * Helper method. Creates the layout that will hold the receivers.
+	 * Helper method. Creates the layout that will hold the applications.
 	 * 
 	 * @return n initialized layout.
 	 */
@@ -95,30 +94,30 @@ public class DashboardViewImpl extends AbstractView<DashboardView, DashboardPres
 		receiversLayout.setSpacing(true);
 		
 		// fill the receivers and add it to the outer layout
-		fillReceiversLayout(receiversLayout);
+		fillApplicationsLayout(receiversLayout);
 		
 		return receiversLayout;
 	}
 	
 	/**
-	 * Helper method. Adds the receivers to the layout.
+	 * Helper method. Adds the applications to the layout.
 	 * 
-	 * @param receiversLayout the layout to which we are adding the receivers.
+	 * @param applicationsLayout the layout to which we are adding the applications.
 	 */
-	private void fillReceiversLayout(VerticalLayout receiversLayout) {
+	private void fillApplicationsLayout(VerticalLayout applicationsLayout) {
 		
 		RoutingEngine routingEngine = getRoutingEngine();
 		
 		// delete all components
-		receiversLayout.removeAllComponents();
+		applicationsLayout.removeAllComponents();
 		
 		// title
-		receiversLayout.addComponent(new Label("<h2>Receivers</h2>", Label.CONTENT_XHTML));
+		applicationsLayout.addComponent(new Label("<h2>Applications</h2>", Label.CONTENT_XHTML));
 		
-		// receivers
-		for (final ReceiverService receiverService : routingEngine.getReceivers()) {
-			VerticalLayout receiverLayout = new ReceiverComponent(getPresenter(), receiverService);
-			receiversLayout.addComponent(receiverLayout);
+		// applications
+		for (final ConnectorService application : routingEngine.getApplications()) {
+			VerticalLayout receiverLayout = new ConnectorComponent(getPresenter(), application);
+			applicationsLayout.addComponent(receiverLayout);
 		}
 		
 	}
@@ -128,37 +127,37 @@ public class DashboardViewImpl extends AbstractView<DashboardView, DashboardPres
 	 * 
 	 * @return an initialized layout.
 	 */
-	private VerticalLayout createProcessorsLayout() {
+	private VerticalLayout createConnectionsLayout() {
 		
 		// create the layout and set the style
-		VerticalLayout processorsLayout = new VerticalLayout();
-		processorsLayout.setMargin(true);
-		processorsLayout.setSpacing(true);
+		VerticalLayout connectorsLayout = new VerticalLayout();
+		connectorsLayout.setMargin(true);
+		connectorsLayout.setSpacing(true);
 		
-		fillProcessorsLayout(processorsLayout);
+		fillConnectionsLayout(connectorsLayout);
 		
-		return processorsLayout;
+		return connectorsLayout;
 	}
 	
 	/**
-	 * Helper method. Adds the processors to the layout.
+	 * Helper method. Adds the connections to the layout.
 	 * 
-	 * @param processorsLayout the layout to which we are adding the processors.
+	 * @param connectionsLayout the layout to which we are adding the connections.
 	 */
-	private void fillProcessorsLayout(VerticalLayout processorsLayout) {
+	private void fillConnectionsLayout(VerticalLayout connectionsLayout) {
 		
 		RoutingEngine routingEngine = getRoutingEngine();
 		
 		// delete all components
-		processorsLayout.removeAllComponents();
+		connectionsLayout.removeAllComponents();
 		
 		// title
-		processorsLayout.addComponent(new Label("<h2>Processors</h2>", Label.CONTENT_XHTML));
+		connectionsLayout.addComponent(new Label("<h2>Connections</h2>", Label.CONTENT_XHTML));
 		
-		// receivers
-		for (final ProcessorService processorService : routingEngine.getProcessors()) {
-			VerticalLayout processorLayot = new ProcessorComponent(getPresenter(), processorService);
-			processorsLayout.addComponent(processorLayot);
+		// connections
+		for (final ConnectorService connection : routingEngine.getConnections()) {
+			VerticalLayout connectorLayot = new ConnectorComponent(getPresenter(), connection);
+			connectionsLayout.addComponent(connectorLayot);
 		}
 	}
 	
@@ -178,8 +177,8 @@ public class DashboardViewImpl extends AbstractView<DashboardView, DashboardPres
 
 			@Override
 			public void refresh(Refresher source) {
-				fillReceiversLayout(receiversLayout);
-				fillProcessorsLayout(processorsLayout);
+				fillApplicationsLayout(applicationsLayout);
+				fillConnectionsLayout(connectionsLayout);
 			}
 			
 		});

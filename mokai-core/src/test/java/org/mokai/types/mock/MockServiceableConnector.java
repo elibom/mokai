@@ -2,10 +2,10 @@ package org.mokai.types.mock;
 
 import org.mokai.Message;
 import org.mokai.Processor;
-import org.mokai.Receiver;
+import org.mokai.Connector;
 import org.mokai.Serviceable;
 
-public class MockServiceableConnector implements Processor, Serviceable, Receiver {
+public class MockServiceableConnector implements Processor, Serviceable, Connector {
 	
 	private long startWaitTime;
 	

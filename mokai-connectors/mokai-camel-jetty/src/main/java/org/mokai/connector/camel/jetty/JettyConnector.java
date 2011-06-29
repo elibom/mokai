@@ -11,10 +11,10 @@ import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.impl.DefaultCamelContext;
 import org.mokai.Configurable;
+import org.mokai.Connector;
 import org.mokai.ExposableConfiguration;
 import org.mokai.Message;
 import org.mokai.MessageProducer;
-import org.mokai.Receiver;
 import org.mokai.annotation.Description;
 import org.mokai.annotation.Name;
 import org.mokai.annotation.Resource;
@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
  */
 @Name("Jetty")
 @Description("Receives messages through HTTP")
-public class JettyConnector implements Receiver, Configurable, 
+public class JettyConnector implements Connector, Configurable, 
 		ExposableConfiguration<JettyConfiguration> {
 	
 	private Logger log = LoggerFactory.getLogger(JettyConnector.class);

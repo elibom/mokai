@@ -163,7 +163,7 @@ public class JdbcMessageStoreTest {
 		
 		MessageCriteria criteria = new MessageCriteria()
 			.type("test")
-			.direction(Direction.INBOUND);
+			.direction(Direction.TO_APPLICATIONS);
 		messageStore.updateStatus(criteria, Status.RETRYING);
 		
 		verify(handler)
@@ -199,7 +199,7 @@ public class JdbcMessageStoreTest {
 		JdbcMessageStore messageStore = createMessageStore(dataSource, handler);
 		
 		MessageCriteria criteria = new MessageCriteria()
-			.direction(Direction.INBOUND);
+			.direction(Direction.TO_APPLICATIONS);
 		messageStore.updateStatus(criteria, Status.RETRYING);
 		
 		verify(handler, never())
@@ -260,7 +260,7 @@ public class JdbcMessageStoreTest {
 		
 		MessageCriteria criteria = new MessageCriteria()
 			.type("test")
-			.direction(Direction.INBOUND);
+			.direction(Direction.TO_APPLICATIONS);
 		Collection<Message> messages = messageStore.list(criteria);
 		
 		Assert.assertEquals(1, messages.size());
@@ -313,7 +313,7 @@ public class JdbcMessageStoreTest {
 		JdbcMessageStore messageStore = createMessageStore(dataSource, handler);
 		
 		MessageCriteria criteria = new MessageCriteria()
-			.direction(Direction.INBOUND);
+			.direction(Direction.TO_APPLICATIONS);
 		Collection<Message> messages = messageStore.list(criteria);
 		Assert.assertNotNull(messages);
 		Assert.assertEquals(0, messages.size());

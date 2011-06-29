@@ -2,12 +2,12 @@ package org.mokai.boot;
 
 import org.mokai.RoutingEngine;
 import org.mokai.Service;
-import org.mokai.config.xml.ProcessorConfiguration;
-import org.mokai.config.xml.ReceiverConfiguration;
+import org.mokai.config.xml.ApplicationsConfiguration;
+import org.mokai.config.xml.ConnectionsConfiguration;
 
 /**
  * This class is configured in the core-context.xml file with dependencies to all the
- * classes that need to be configured before starting the routing engine. See MOKAI-21
+ * classes that need to be configured before starting the routing engine. See MOKAI-21 (Jira)
  * for more information.
  * 
  * @author German Escobar
@@ -16,12 +16,12 @@ public class RoutingEngineLifecycle {
 
 	private RoutingEngine routingEngine;
 	
-	private ReceiverConfiguration receiverConfiguration;
-	private ProcessorConfiguration processorConfiguration;
+	private ApplicationsConfiguration applicationsConfiguration;
+	private ConnectionsConfiguration connectionsConfiguration;
 	
 	public void start() {
-		processorConfiguration.load();
-		receiverConfiguration.load();
+		connectionsConfiguration.load();
+		applicationsConfiguration.load();
 		
 		if (Service.class.isInstance(routingEngine)) {
 			Service service = (Service) routingEngine;
@@ -40,13 +40,12 @@ public class RoutingEngineLifecycle {
 		this.routingEngine = routingEngine;
 	}
 
-	public void setReceiverConfiguration(ReceiverConfiguration receiverConfiguration) {
-		this.receiverConfiguration = receiverConfiguration;
+	public void setApplicationsConfiguration(ApplicationsConfiguration applicationsConfiguration) {
+		this.applicationsConfiguration = applicationsConfiguration;
 	}
 
-	public void setProcessorConfiguration(
-			ProcessorConfiguration processorConfiguration) {
-		this.processorConfiguration = processorConfiguration;
+	public void setConnectionsConfiguration(ConnectionsConfiguration connectionsConfiguration) {
+		this.connectionsConfiguration = connectionsConfiguration;
 	}
 	
 }

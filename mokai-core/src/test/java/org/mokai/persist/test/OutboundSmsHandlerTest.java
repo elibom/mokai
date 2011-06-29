@@ -23,7 +23,7 @@ import org.mokai.Message.Status;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.jdbc.DbInitializer;
 import org.mokai.persist.jdbc.JdbcHelper;
-import org.mokai.persist.jdbc.sms.OutboundSmsHandler;
+import org.mokai.persist.jdbc.sms.ConnectionsSmsHandler;
 import org.mokai.persist.jdbc.sms.TableScripts;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
@@ -36,7 +36,7 @@ public class OutboundSmsHandlerTest {
 	private DataSource dataSource;
 	private Connection connection;
 	
-	private String tableName = OutboundSmsHandler.DEFAULT_TABLENAME;
+	private String tableName = ConnectionsSmsHandler.DEFAULT_TABLENAME;
 	
 	@BeforeClass
 	public void setUp() throws Exception {
@@ -50,8 +50,8 @@ public class OutboundSmsHandlerTest {
 		
 		DbInitializer dbInitializer = new DbInitializer();
 		dbInitializer.setDataSource(dataSource);
-		dbInitializer.addTableScript(TableScripts.DERBY_OUTBOUND.getTableName(), 
-				TableScripts.DERBY_OUTBOUND.getTableScript());
+		dbInitializer.addTableScript(TableScripts.DERBY_CONNECTIONS.getTableName(), 
+				TableScripts.DERBY_CONNECTIONS.getTableScript());
 		
 		dbInitializer.initialize();
 	}
@@ -94,16 +94,16 @@ public class OutboundSmsHandlerTest {
 	
 	@Test
 	public void testSupportsSmsType() throws Exception {
-		OutboundSmsHandler handler = new OutboundSmsHandler();
+		ConnectionsSmsHandler handler = new ConnectionsSmsHandler();
 		Assert.assertTrue(handler.supportsType(Message.SMS_TYPE));
 		Assert.assertFalse(handler.supportsType("other"));
 		Assert.assertFalse(handler.supportsType("null"));
 	}
 	
 	public void testSupportsOutboundDirection() throws Exception {
-		OutboundSmsHandler handler = new OutboundSmsHandler();
-		Assert.assertTrue(handler.supportsDirection(Direction.OUTBOUND));
-		Assert.assertFalse(handler.supportsDirection(Direction.INBOUND));
+		ConnectionsSmsHandler handler = new ConnectionsSmsHandler();
+		Assert.assertTrue(handler.supportsDirection(Direction.TO_CONNECTIONS));
+		Assert.assertFalse(handler.supportsDirection(Direction.TO_APPLICATIONS));
 		Assert.assertFalse(handler.supportsDirection(Direction.UNKNOWN));
 		Assert.assertFalse(handler.supportsDirection(null));
 	}
@@ -112,7 +112,7 @@ public class OutboundSmsHandlerTest {
 	public void testInsertMessage() throws Exception {
 
 		final Message message = new Message(Message.SMS_TYPE);
-		message.setDirection(Direction.OUTBOUND);
+		message.setDirection(Direction.TO_CONNECTIONS);
 		message.setSource("test");
 		message.setSourceType(SourceType.RECEIVER);
 		message.setStatus(Status.CREATED);
@@ -120,7 +120,7 @@ public class OutboundSmsHandlerTest {
 		message.setProperty("to", "2222");
 		message.setProperty("text", "text");
 			
-		OutboundSmsHandler handler = new OutboundSmsHandler();
+		ConnectionsSmsHandler handler = new ConnectionsSmsHandler();
 		long id = handler.insertMessage(connection, message);
 
 		validateMessage(id, new MessageValidator() {
@@ -149,7 +149,7 @@ public class OutboundSmsHandlerTest {
 		message.setDestinationType(DestinationType.PROCESSOR);
 		message.setProperty("receiptStatus", "DELIVRD");
 		
-		OutboundSmsHandler handler = new OutboundSmsHandler();
+		ConnectionsSmsHandler handler = new ConnectionsSmsHandler();
 		boolean found = handler.updateMessage(connection, message);
 		
 		Assert.assertTrue(found);
@@ -178,7 +178,7 @@ public class OutboundSmsHandlerTest {
 		message.setDestination("test");
 		message.setDestinationType(DestinationType.PROCESSOR);
 		
-		OutboundSmsHandler handler = new OutboundSmsHandler();
+		ConnectionsSmsHandler handler = new ConnectionsSmsHandler();
 		boolean found = handler.updateMessage(connection, message);
 		
 		Assert.assertFalse(found);
@@ -189,7 +189,7 @@ public class OutboundSmsHandlerTest {
 		generateTestData();
 		Assert.assertEquals(3, getNumMessagesByStatus(Status.FAILED));
 		
-		OutboundSmsHandler handler = new OutboundSmsHandler();
+		ConnectionsSmsHandler handler = new ConnectionsSmsHandler();
 		handler.updateMessagesStatus(connection, null, Status.RETRYING);
 		
 		Assert.assertEquals(0, getNumMessagesByStatus(Status.FAILED));
@@ -201,7 +201,7 @@ public class OutboundSmsHandlerTest {
 		generateTestData();
 		Assert.assertEquals(3, getNumMessagesByStatus(Status.FAILED));
 		
-		OutboundSmsHandler handler = new OutboundSmsHandler();
+		ConnectionsSmsHandler handler = new ConnectionsSmsHandler();
 		handler.updateMessagesStatus(connection, new MessageCriteria().addStatus(Status.FAILED), Status.RETRYING);
 		
 		Assert.assertEquals(0, getNumMessagesByStatus(Status.FAILED));
@@ -212,7 +212,7 @@ public class OutboundSmsHandlerTest {
 	public void testRetrieveAllMessages() throws Exception {
 		generateTestData();
 		
-		OutboundSmsHandler handler = new OutboundSmsHandler();
+		ConnectionsSmsHandler handler = new ConnectionsSmsHandler();
 		Collection<Message> messages = handler.listMessages(connection, null);
 		
 		Assert.assertFalse(messages.isEmpty());
@@ -222,7 +222,7 @@ public class OutboundSmsHandlerTest {
 	public void testRetrieveMessageId() throws Exception {
 		generateTestData();
 		
-		OutboundSmsHandler handler = new OutboundSmsHandler();
+		ConnectionsSmsHandler handler = new ConnectionsSmsHandler();
 		
 		MessageCriteria criteria = new MessageCriteria()
 			.addProperty("smsc_messageid", "8");
@@ -236,7 +236,7 @@ public class OutboundSmsHandlerTest {
 	public void testRetrieveMessagesByStatus() throws Exception {
 		generateTestData();
 		
-		OutboundSmsHandler handler = new OutboundSmsHandler();
+		ConnectionsSmsHandler handler = new ConnectionsSmsHandler();
 		
 		MessageCriteria criteria = new MessageCriteria()
 			.addStatus(Status.FAILED);

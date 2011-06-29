@@ -37,7 +37,7 @@ import org.mokai.MessageProducer;
 import org.mokai.MonitorStatusBuilder;
 import org.mokai.Monitorable;
 import org.mokai.Processor;
-import org.mokai.ProcessorContext;
+import org.mokai.ConnectorContext;
 import org.mokai.Serviceable;
 import org.mokai.annotation.Description;
 import org.mokai.annotation.Name;
@@ -77,7 +77,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	 * number.
 	 */
 	@Resource
-	private ProcessorContext context;
+	private ConnectorContext context;
 	
 	/**
 	 * Used to produce received messages from the SMSC into the gateway.

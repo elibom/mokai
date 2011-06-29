@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<connectors xmlns="http://mokai.googlecode.com/connectors" 
+		   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		   xsi:schemaLocation=
+		   	"http://mokai.googlecode.com/connectors http://mokai.googlecode.com/svn/schema/connectors-0.3.xsd">
+  
+  <connector id="cemex" className="org.mokai.connector.camel.jetty.JettyConnector">
+  	<configuration>
+   		<property name="port">9080</property>
+    	<property name="context">test</property>
+    </configuration>
+  </connector>
+  
+  <connector id="flycast" priority="1000" className="org.mokai.connector.http.HttpConnector">
+  	<configuration>
+  		<property name="url">http://www.google.com/</property>
+  	</configuration>
+  	<acceptors>
+      <acceptor className="org.mokai.acceptor.AcceptAllAcceptor" />
+    </acceptors>
+  </connector>
+  
+</connectors>

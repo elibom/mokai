@@ -76,11 +76,11 @@ public class OutboundInboundHandler implements MessageHandler {
 		}
 		
 		// check if the outbound handler supports the direction
-		if (direction.equals(Direction.OUTBOUND)) {
+		if (direction.equals(Direction.TO_APPLICATIONS)) {
 			return true;
 		}
 		
-		if (direction.equals(Direction.INBOUND)) {
+		if (direction.equals(Direction.TO_CONNECTIONS)) {
 			return true;
 		}
 		
@@ -108,9 +108,9 @@ public class OutboundInboundHandler implements MessageHandler {
 		long id = -1;
 		
 		// insert the message using one of the handlers
-		if (direction.equals(Direction.OUTBOUND)) {
+		if (direction.equals(Direction.TO_CONNECTIONS)) {
 			id = outboundHandler.insertMessage(conn, message);
-		} else if (direction.equals(Direction.INBOUND)) {
+		} else if (direction.equals(Direction.TO_APPLICATIONS)) {
 			id = inboundHandler.insertMessage(conn, message);
 		} else {
 			throw new RejectedException("can't save a message with direction: " + direction);
@@ -138,9 +138,9 @@ public class OutboundInboundHandler implements MessageHandler {
 		Direction direction = message.getDirection();
 		
 		// generate statement and execute
-		if (direction.equals(Direction.OUTBOUND)) {
+		if (direction.equals(Direction.TO_CONNECTIONS)) {
 			return outboundHandler.updateMessage(conn, message);			
-		} else if (direction.equals(Direction.INBOUND)) {
+		} else if (direction.equals(Direction.TO_APPLICATIONS)) {
 			return inboundHandler.updateMessage(conn, message);
 		} else {
 			throw new RejectedException("can't save a message with direction: " + direction);
@@ -166,11 +166,11 @@ public class OutboundInboundHandler implements MessageHandler {
 			direction = criteria.getDirection();
 		}
 		
-		if (direction == null || direction.equals(Direction.OUTBOUND)) {
+		if (direction == null || direction.equals(Direction.TO_CONNECTIONS)) {
 			outboundHandler.updateMessagesStatus(conn, criteria, newStatus);
 		}
 		
-		if (direction == null || direction.equals(Direction.INBOUND)) {
+		if (direction == null || direction.equals(Direction.TO_APPLICATIONS)) {
 			inboundHandler.updateMessagesStatus(conn, criteria, newStatus);
 		}
 	}
@@ -198,11 +198,11 @@ public class OutboundInboundHandler implements MessageHandler {
 			direction = criteria.getDirection();
 		}
 		
-		if (direction == null || direction.equals(Direction.OUTBOUND) || direction.equals(Direction.UNKNOWN)) {
+		if (direction == null || direction.equals(Direction.TO_CONNECTIONS) || direction.equals(Direction.UNKNOWN)) {
 			messages.addAll(outboundHandler.listMessages(conn, criteria));
 		}
 		
-		if (direction == null || direction.equals(Direction.INBOUND) || direction.equals(Direction.UNKNOWN)) {
+		if (direction == null || direction.equals(Direction.TO_APPLICATIONS) || direction.equals(Direction.UNKNOWN)) {
 			messages.addAll(inboundHandler.listMessages(conn, criteria));
 		}
 		

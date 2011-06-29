@@ -6,8 +6,7 @@ import junit.framework.Assert;
 
 import org.mokai.type.AcceptorType;
 import org.mokai.type.ActionType;
-import org.mokai.type.ProcessorType;
-import org.mokai.type.ReceiverType;
+import org.mokai.type.ConnectorType;
 import org.mokai.type.impl.StandardTypeLoader;
 import org.mokai.types.mock.MockAcceptor;
 import org.mokai.types.mock.MockAction;
@@ -15,8 +14,6 @@ import org.mokai.types.mock.MockConnector;
 import org.testng.annotations.Test;
 
 public class StandardTypeLoaderTest {
-	
-	//private final String SERVICES_PATH = "src/test/resources/META-INF/services/"; 
 
 	@Test
 	public void testLoadAcceptorTypes() throws Exception {
@@ -41,41 +38,14 @@ public class StandardTypeLoaderTest {
 	}
 	
 	@Test
-	public void testLoadReceiverTypes() throws Exception {
+	public void testLoadConnectorTypes() throws Exception {
 		StandardTypeLoader typeLoader = new StandardTypeLoader();
 		
-		Set<ReceiverType> receiverTypes = typeLoader.loadReceiverTypes();
-		Assert.assertTrue(receiverTypes.size() > 0);
+		Set<ConnectorType> connectorTypes = typeLoader.loadConnectorTypes();
+		Assert.assertTrue(connectorTypes.size() > 0);
 		
-		ReceiverType test = new ReceiverType("", "", MockConnector.class);
-		Assert.assertTrue(receiverTypes.contains(test));
+		ConnectorType test = new ConnectorType("", "", MockConnector.class);
+		Assert.assertTrue(connectorTypes.contains(test));
 	}
 	
-	@Test
-	public void testLoadProcessorTypes() throws Exception {
-		StandardTypeLoader typeLoader = new StandardTypeLoader();
-		
-		Set<ProcessorType> processorTypes = typeLoader.loadProcessorTypes();
-		Assert.assertTrue(processorTypes.size() > 0);
-		
-		ProcessorType test = new ProcessorType("", "", MockConnector.class);
-		Assert.assertTrue(processorTypes.contains(test));
-	}
-	
-	/*private void createServiceFile(String fileName, String content) throws Exception {
-		
-		BufferedWriter out = null;
-		
-		try {
-		    out = new BufferedWriter(new FileWriter(fileName));
-		    out.write(content);
-		    
-		} catch (IOException e) {
-			
-		} finally {
-			if (out != null) {
-				try { out.close(); } catch (Exception e) {}
-			}
-		}
-	}*/
 }

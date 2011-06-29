@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<connectors xmlns="http://mokai.googlecode.com/connectors" 
+		    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		    xsi:schemaLocation=
+		   		"http://mokai.googlecode.com/connectors http://mokai.googlecode.com/svn/schema/connectors-0.3.xsd">
+		   		
+  <connector id="mokai-test" priority="700" className="org.mokai.connector.smpp.SmppConnector">
+  	<configuration>
+  		<property name="host">localhost</property>
+  		<property name="port">8321</property>
+  		<property name="systemId">test</property>
+  		<property name="password">test</property>
+  	</configuration>
+    <acceptors>
+      <acceptor className="org.mokai.acceptor.AcceptAllAcceptor" />
+    </acceptors>
+  </connector>
+  
+  <connector id="comcel" priority="1000" className="org.mokai.connector.http.HttpConnector">
+  	<configuration>
+  		<property name="url">http://www.google.com/</property>
+  	</configuration>
+  	<acceptors>
+      <acceptor className="org.mokai.acceptor.AcceptAllAcceptor" />
+    </acceptors>
+  </connector>
+  
+  <connector id="routo" className="org.mokai.connector.camel.jetty.JettyConnector">
+  	<configuration>
+   		<property name="port">9090</property>
+    	<property name="context">test</property>
+    </configuration>
+  </connector>
+</connectors>

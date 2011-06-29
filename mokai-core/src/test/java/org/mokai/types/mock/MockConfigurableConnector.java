@@ -3,9 +3,9 @@ package org.mokai.types.mock;
 import org.mokai.ExposableConfiguration;
 import org.mokai.Message;
 import org.mokai.Processor;
-import org.mokai.Receiver;
+import org.mokai.Connector;
 
-public class MockConfigurableConnector implements Receiver, Processor, 
+public class MockConfigurableConnector implements Connector, Processor, 
 		ExposableConfiguration<MockConfigurableConnector> {
 	
 	private String config1;

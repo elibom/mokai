@@ -6,12 +6,10 @@ import java.util.Set;
 
 import org.mokai.Acceptor;
 import org.mokai.Action;
-import org.mokai.Processor;
-import org.mokai.Receiver;
+import org.mokai.Connector;
 import org.mokai.type.AcceptorType;
 import org.mokai.type.ActionType;
-import org.mokai.type.ProcessorType;
-import org.mokai.type.ReceiverType;
+import org.mokai.type.ConnectorType;
 import org.mokai.type.TypeLoader;
 
 /**
@@ -54,35 +52,19 @@ public class StandardTypeLoader implements TypeLoader {
 	}
 
 	@Override
-	public final Set<ProcessorType> loadProcessorTypes() {
+	public final Set<ConnectorType> loadConnectorTypes() {
 		
-		Set<ProcessorType> processorTypes = new HashSet<ProcessorType>();
+		Set<ConnectorType> processorTypes = new HashSet<ConnectorType>();
 		
-		ServiceLoader<Processor> serviceLoader = ServiceLoader.load(Processor.class);
+		ServiceLoader<Connector> serviceLoader = ServiceLoader.load(Connector.class);
 		
-		for (Processor processor : serviceLoader) {
-			Class<? extends Processor> processorClass = processor.getClass();
-			ProcessorType processorType = TypeBuilder.buildProcessorType(processorClass);
+		for (Connector connector : serviceLoader) {
+			Class<? extends Connector> connectorClass = connector.getClass();
+			ConnectorType processorType = TypeBuilder.buildConnectorType(connectorClass);
 			processorTypes.add(processorType);
 		}
 		
 		return processorTypes;
-	}
-
-	@Override
-	public final Set<ReceiverType> loadReceiverTypes() {
-		
-		Set<ReceiverType> receiverTypes = new HashSet<ReceiverType>();
-		
-		ServiceLoader<Receiver> serviceLoader = ServiceLoader.load(Receiver.class);
-		
-		for (Receiver receiver : serviceLoader) {
-			Class<? extends Receiver> receiverClass = receiver.getClass();
-			ReceiverType receiverType = TypeBuilder.buildReceiverType(receiverClass);
-			receiverTypes.add(receiverType);
-		}
-		
-		return receiverTypes;
 	}
 	
 }

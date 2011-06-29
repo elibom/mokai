@@ -1,7 +1,6 @@
 package org.mokai.web.admin.vaadin.dashboard;
 
-import org.mokai.ProcessorService;
-import org.mokai.ReceiverService;
+import org.mokai.ConnectorService;
 
 import com.github.peholmst.mvp4vaadin.Presenter;
 
@@ -19,28 +18,28 @@ public class DashboardPresenter extends Presenter<DashboardView> {
 	}
 	
 	/**
-	 * If the processor service is started, it is stopped and viceversa.
+	 * If the connection service is started, it is stopped and viceversa.
 	 * 
-	 * @param processorService the ProcessorService to which we are going to change the state.
+	 * @param connectorService the ConnectorService to which we are going to change the state.
 	 */
-	public void changeProcessorServiceState(ProcessorService processorService) {
-		if (processorService.getState().isStartable()) {
-			processorService.start();
+	public void changeConnectionServiceState(ConnectorService connectorService) {
+		if (connectorService.getState().isStartable()) {
+			connectorService.start();
 		} else {
-			processorService.stop();
+			connectorService.stop();
 		}
 	}
 	
 	/**
-	 * If the receiver service is started, it is stopped and viceversa.
+	 * If the application service is started, it is stopped and viceversa.
 	 * 
-	 * @param receiverService the ReceiverService to which we are going to change the state.
+	 * @param connectorService the ReceiverService to which we are going to change the state.
 	 */
-	public void changeReceiverServiceState(ReceiverService receiverService) {
-		if (receiverService.getState().isStartable()) {
-			receiverService.start();
+	public void changeApplicationServiceState(ConnectorService connectorService) {
+		if (connectorService.getState().isStartable()) {
+			connectorService.start();
 		} else {
-			receiverService.stop();
+			connectorService.stop();
 		}
 	}
 

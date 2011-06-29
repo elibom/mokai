@@ -6,8 +6,7 @@ import junit.framework.Assert;
 
 import org.mokai.Acceptor;
 import org.mokai.Action;
-import org.mokai.Processor;
-import org.mokai.Receiver;
+import org.mokai.Connector;
 import org.mokai.plugin.jpf.JpfPluginMechanism;
 import org.testng.annotations.Test;
 
@@ -37,7 +36,7 @@ public class JpfPluginMechanismTest {
 		pluginMechanism.configure();
 		
 		// check that we can load the class
-		Class<?> acceptorClass = pluginMechanism.loadClass("org.mokai.acceptor.PluginAcceptor1");
+		Class<?> acceptorClass = pluginMechanism.loadClass("org.mokai.acceptor.TestAcceptor");
 		Assert.assertNotNull(acceptorClass);
 		
 		// check that we find the acceptor class in the test plugin
@@ -54,7 +53,7 @@ public class JpfPluginMechanismTest {
 		pluginMechanism.configure();
 		
 		// check that we can load the class
-		Class<?> actionClass = (Class<?>) pluginMechanism.loadClass("org.mokai.action.PluginAction1");
+		Class<?> actionClass = (Class<?>) pluginMechanism.loadClass("org.mokai.action.TestAction");
 		Assert.assertNotNull(actionClass);
 		
 		// check that we find the action class in the test plugin
@@ -66,35 +65,18 @@ public class JpfPluginMechanismTest {
 	}
 	
 	@Test
-	public void testLoadReceiverTypes() throws Exception {
+	public void testLoadConnectorTypes() throws Exception {
 		JpfPluginMechanism pluginMechanism = new JpfPluginMechanism(PLUGINS_PATH);
 		pluginMechanism.configure();
 		
 		// check that we can load the class
-		Class<?> receiverClass = (Class<?>) pluginMechanism.loadClass("org.mokai.connector.Connector1");
+		Class<?> receiverClass = (Class<?>) pluginMechanism.loadClass("org.mokai.connector.TestConnector");
 		Assert.assertNotNull(receiverClass);
 		
 		// check that we find the receiver class in the test plugin
-		Set<Class<? extends Receiver>> receiverTypes = pluginMechanism.loadTypes(Receiver.class);
+		Set<Class<? extends Connector>> receiverTypes = pluginMechanism.loadTypes(Connector.class);
 		Assert.assertEquals(1, receiverTypes.size());
 		Assert.assertEquals(receiverClass, receiverTypes.iterator().next());
-		
-		pluginMechanism.destroy();
-	}
-	
-	@Test
-	public void testLoadProcessorTypes() throws Exception {
-		JpfPluginMechanism pluginMechanism = new JpfPluginMechanism(PLUGINS_PATH);
-		pluginMechanism.configure();
-		
-		// check that we can load the class
-		Class<?> processorClass = (Class<?>) pluginMechanism.loadClass("org.mokai.connector.Connector1");
-		Assert.assertNotNull(processorClass);
-		
-		// check that we find the processor class in the test plugin
-		Set<Class<? extends Processor>> processorTypes = pluginMechanism.loadTypes(Processor.class);
-		Assert.assertEquals(1, processorTypes.size());
-		Assert.assertEquals(processorClass, processorTypes.iterator().next());
 		
 		pluginMechanism.destroy();
 	}

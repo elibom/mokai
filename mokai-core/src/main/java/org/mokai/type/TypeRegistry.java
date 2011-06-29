@@ -4,8 +4,7 @@ import java.util.Set;
 
 import org.mokai.Acceptor;
 import org.mokai.Action;
-import org.mokai.Processor;
-import org.mokai.Receiver;
+import org.mokai.Connector;
 
 /**
  * Mantains a cached registry of the different types.
@@ -13,18 +12,14 @@ import org.mokai.Receiver;
  * @author German Escobar
  */
 public interface TypeRegistry {
-	
-	ReceiverType getReceiverType(Class<? extends Receiver> receiverClass) throws IllegalArgumentException;
-	
-	Set<ReceiverType> getReceiverTypes();
 
 	AcceptorType getAcceptorType(Class<? extends Acceptor> acceptorClass) throws IllegalArgumentException;
 	
 	Set<AcceptorType> getAcceptorsTypes();
 
-	ProcessorType getProcessorType(Class<? extends Processor> processorClass) throws IllegalArgumentException;
+	ConnectorType getConnectorType(Class<? extends Connector> connectorClass) throws IllegalArgumentException;
 	
-	Set<ProcessorType> getProcessorTypes();
+	Set<ConnectorType> getConnectorTypes();
 	
 	ActionType getActionType(Class<? extends Action> actionClass) throws IllegalArgumentException;
 	

@@ -25,7 +25,7 @@ import org.mokai.ExecutionException;
 import org.mokai.Message;
 import org.mokai.MessageProducer;
 import org.mokai.Monitorable.Status;
-import org.mokai.ProcessorContext;
+import org.mokai.ConnectorContext;
 import org.mokai.annotation.Resource;
 import org.mokai.connector.smpp.SmppConfiguration;
 import org.mokai.connector.smpp.SmppConnector;
@@ -476,7 +476,7 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 		
 	}
 	
-	private class MockProcessorContext implements ProcessorContext {
+	private class MockProcessorContext implements ConnectorContext {
 
 		@Override
 		public String getId() {

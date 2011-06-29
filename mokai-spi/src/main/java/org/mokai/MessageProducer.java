@@ -1,14 +1,14 @@
 package org.mokai;
 
 /**
- * Used by {@link Receiver}s to inject messages into the gateway. 
+ * Used by {@link Connector}s to inject messages into the gateway. 
  * 
  * @author German Escobar
  */
 public interface MessageProducer {
 
 	/**
-	 * Called by the {@link Receiver} when a message needs to be routed 
+	 * Called by the {@link Connector} when a message needs to be routed 
 	 * inside the gateway.
 	 * 
 	 * @param message the {@link Message} that is going to be routed
@@ -17,7 +17,6 @@ public interface MessageProducer {
 	 * message. This includes all the flow through the receiver, until the
 	 * message is queued.
 	 */
-	void produce(Message message) throws IllegalArgumentException, 
-			ExecutionException;
+	void produce(Message message) throws IllegalArgumentException, ExecutionException;
 	
 }

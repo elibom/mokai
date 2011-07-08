@@ -5,7 +5,7 @@
 		    xsi:schemaLocation=
 		   		"http://mokai.googlecode.com/connectors http://mokai.googlecode.com/svn/schema/connectors-0.3.xsd">
 		   		
-  <connector id="mokai-test" priority="700" className="org.mokai.connector.smpp.SmppConnector">
+  <connector id="smpp-test" priority="700" className="org.mokai.connector.smpp.SmppConnector">
   	<configuration>
   		<property name="host">localhost</property>
   		<property name="port">8321</property>
@@ -17,7 +17,7 @@
     </acceptors>
   </connector>
   
-  <connector id="comcel" priority="1000" className="org.mokai.connector.http.HttpConnector">
+  <connector id="http-test" priority="1000" className="org.mokai.connector.http.HttpConnector">
   	<configuration>
   		<property name="url">http://www.google.com/</property>
   	</configuration>
@@ -26,10 +26,4 @@
     </acceptors>
   </connector>
   
-  <connector id="routo" className="org.mokai.connector.camel.jetty.JettyConnector">
-  	<configuration>
-   		<property name="port">9090</property>
-    	<property name="context">test</property>
-    </configuration>
-  </connector>
 </connectors>

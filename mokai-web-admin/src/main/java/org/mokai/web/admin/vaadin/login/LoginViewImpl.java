@@ -126,8 +126,7 @@ public class LoginViewImpl extends AbstractView<LoginView, LoginPresenter> imple
 
 	@Override
 	public void showLoginFailed() {
-		viewLayout.getWindow().showNotification("Login failed. Please try again.",
-				Notification.TYPE_HUMANIZED_MESSAGE);
+		viewLayout.getWindow().showNotification("Login failed", "Please try again.", Notification.TYPE_ERROR_MESSAGE);
 	}
 
 	@Override

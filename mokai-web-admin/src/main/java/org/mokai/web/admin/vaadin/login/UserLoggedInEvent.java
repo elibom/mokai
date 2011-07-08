@@ -4,11 +4,8 @@ import com.github.peholmst.mvp4vaadin.View;
 import com.github.peholmst.mvp4vaadin.ViewEvent;
 
 public class UserLoggedInEvent extends ViewEvent {
-	
-	/**
-	 * Generated Serial Version UID.
-	 */
-	private static final long serialVersionUID = 8181324577914257235L;
+
+	private static final long serialVersionUID = -1L;
 	
 	private final String username;
 

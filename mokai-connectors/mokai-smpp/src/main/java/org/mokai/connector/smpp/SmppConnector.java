@@ -828,8 +828,11 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 						
 				// update the reference of the delivery receipt
 				drMessage.setProperty("originalReference", originalMessage.getReference());
-					
-				messageProducer.produce(drMessage);
+				
+				// only route delivery receipt if configuration says so
+				if (configuration.isRouteDeliveryReceipts()) {
+					messageProducer.produce(drMessage);
+				}
 					
 			} else {
 				
@@ -991,7 +994,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			message.setProperty("to", to);
 			message.setProperty("from", from);
 			message.setProperty("text", text);
-			
+
 			messageProducer.produce(message);
 		}
 		

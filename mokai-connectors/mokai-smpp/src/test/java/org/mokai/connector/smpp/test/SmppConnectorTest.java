@@ -326,6 +326,7 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 		configuration.setPort(SERVER_PORT);
 		configuration.setSystemId("test");
 		configuration.setPassword("test");
+		configuration.setRouteDeliveryReceipts(true);
 		
 		MessageStore messageStore = new MockMessageStore();
 		
@@ -374,6 +375,56 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 		
 		connector.doStop();
 		
+	}
+	
+	@Test
+	public void shouldNotRouteDeliveryReceipt() throws Exception {
+		
+		MockMessageProducer messageProducer = new MockMessageProducer();
+		
+		SmppConfiguration configuration = new SmppConfiguration();
+		configuration.setHost("localhost");
+		configuration.setPort(SERVER_PORT);
+		configuration.setSystemId("test");
+		configuration.setPassword("test");
+		
+		MessageStore messageStore = new MockMessageStore();
+		
+		SmppConnector connector = new SmppConnector(configuration);
+		injectResource(new MockProcessorContext(), connector);
+		injectResource(messageStore, connector);
+		injectResource(messageProducer, connector);
+		connector.doStart();
+		waitUntilStatus(connector, DEFAULT_TIMEOUT, Status.OK);
+		
+		Message message = new Message();
+		message.setProperty("to", "3542");
+		message.setProperty("from", "3002175604");
+		message.setProperty("text", "This is the test");
+		message.setProperty("sequenceNumber", 1);
+		message.setProperty("messageId", "12000");
+		message.setProperty("commandStatus", 0);
+		
+		messageStore.saveOrUpdate(message);
+		
+		DeliverSM deliverSM = new DeliverSM();
+		deliverSM.setEsmClass(SMPPPacket.SMC_RECEIPT);
+		deliverSM.setDestination(new Address(0, 0, "3002175604"));
+		deliverSM.setSource(new Address(0, 0, "3542"));
+		deliverSM.setMessageText("id:12000 sub:1 dlvrd:1 submit date:1101010000 done date:1101010000 stat:DELIVRD err:0 text:This is a ... ");
+		
+		// retrieve the session
+		Assert.assertEquals(server.getSessions().size(), 1);
+		SmppSession session = server.getSessions().iterator().next();
+		Assert.assertNotNull(session);
+		
+		// send the delivery receipt
+		session.sendRequest(deliverSM);
+		
+		long timeout = 2000;
+		if (receiveMessage(messageProducer, timeout)) {
+			Assert.fail("the message was received");
+		}
 	}
 	
 	@Test

@@ -23,6 +23,18 @@
 	padding-bottom: 5px;
 }
 
+.v-horizontallayout-menu {
+	padding-left:    0px;
+	padding-right:  20px;
+	padding-top:     0px;
+	padding-bottom:  5px;
+}
+
+.v-button-menu .v-button-caption {
+	color: #FFF;
+	text-decoration: none;
+}
+
 .v-horizontallayout-green {
 	background-color: #CEE3AA;	
 }

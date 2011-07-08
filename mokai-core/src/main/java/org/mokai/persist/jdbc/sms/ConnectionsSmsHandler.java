@@ -12,7 +12,7 @@ import org.mokai.persist.jdbc.MessageHandler;
  */
 public class ConnectionsSmsHandler extends AbstractSmsHandler {
 	
-	public static final String DEFAULT_TABLENAME = "OUTBOUND_SMS";
+	public static final String DEFAULT_TABLENAME = "CONNECTIONS_MSGS";
 	
 	@Override
 	public final boolean supportsType(String type) {

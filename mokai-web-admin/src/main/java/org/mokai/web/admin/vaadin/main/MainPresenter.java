@@ -13,6 +13,10 @@ public class MainPresenter extends Presenter<MainView> {
 		super(view);
 	}
 	
+	public void createAndShowPasswordWindow() {
+		getView().createAndShowPasswordWindow();
+	}
+	
 	public void logout() {
 		fireViewEvent(new UserLoggedOutEvent(getView()));
 	}

@@ -25,7 +25,7 @@ import com.vaadin.ui.themes.Reindeer;
  */
 public class ConnectorComponent extends VerticalLayout {
 	
-	private static final long serialVersionUID = -979408995104262235L;
+	private static final long serialVersionUID = 1L;
 
 	private HorizontalLayout header;
 	

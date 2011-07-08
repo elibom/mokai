@@ -9,21 +9,17 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.Reindeer;
 
 public class WindowHeader extends HorizontalLayout {
-	
-	/**
-	 * Generated Serial Version UID. 
-	 */
-	private static final long serialVersionUID = 8577813175926779512L;
+
+	private static final long serialVersionUID = 1L;
 	
 	private MainPresenter mainPresenter;
 
 	public WindowHeader(MainPresenter mainPresenter) {
 		this.mainPresenter = mainPresenter;
-		
+
 		setWidth("100%");
-		setMargin(true);
 		setSpacing(true);
-		addStyleName(Reindeer.LAYOUT_BLACK);
+		setMargin(true);
 		
 		VerticalLayout title = createTitle();
 		addComponent(title);
@@ -42,7 +38,7 @@ public class WindowHeader extends HorizontalLayout {
 		appTitle.addStyleName(Reindeer.LABEL_H1);
 		layout.addComponent(appTitle);
 		
-		Label appDescription = new Label("Web Admin Console");
+		Label appDescription = new Label("Web Administration Console");
 		layout.addComponent(appDescription);
 		
 		return layout;

@@ -4,7 +4,7 @@
 	<parent>
 		<artifactId>mokai-parent</artifactId>
 		<groupId>org.mokai</groupId>
-		<version>0.3.0</version>
+		<version>1.0.0-SNAPSHOT</version>
 	</parent>
 	
 	<artifactId>mokai-connectors</artifactId>

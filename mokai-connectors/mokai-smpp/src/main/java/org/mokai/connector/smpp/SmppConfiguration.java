@@ -16,6 +16,7 @@ public class SmppConfiguration {
 	private static final long DEFAULT_INITIAL_RECONNECT_DELAY = 5000;
 	private static final long DEFAULT_RECONNECT_DELAY = 5000;
 	private static final int DEFAULT_DATA_CODING = 0;
+	private static final DlrIdConversion DEFAULT_DLR_ID_CONVERSION = DlrIdConversion.NO_CONVERSION;
 	
 	/**
 	 * Tells whether the connection will be in transmitter, receiver or 
@@ -40,7 +41,32 @@ public class SmppConfiguration {
 				return TRANSCIEVER;
 			}
 			
-			throw new IllegalArgumentException("value not supported");
+			throw new IllegalArgumentException("value '" + strValue + "' not supported");
+		}
+	}
+	
+	/**
+	 * Holds the possible DLR Message Id conversion mechanisms for the dlrIdConversion attribute.
+	 * 
+	 * @author German Escobar
+	 */
+	public enum DlrIdConversion {
+		NO_CONVERSION, HEXA_TO_DEC, DEC_TO_HEXA;
+		
+		public static DlrIdConversion convert(String strValue) {
+			if (strValue == null) {
+				throw new IllegalArgumentException("value not provided");
+			}
+			
+			if (strValue.equals("0")) {
+				return NO_CONVERSION;
+			} else if (strValue.equals("1")) {
+				return HEXA_TO_DEC;
+			} else if (strValue.equals("2")) {
+				return DEC_TO_HEXA;
+			}
+			
+			throw new IllegalArgumentException("value '" + strValue + "' not supported");
 		}
 	}
 
@@ -94,6 +120,14 @@ public class SmppConfiguration {
 	@Label("Request DLR")
 	private boolean requestDeliveryReceipts = true;
 	
+	/**
+	 * How should we handle delivery receipts id's? Some carriers return the submit response's and delivery receipt's
+	 * message id in different formats (both in hexadecimal, both in decimal, one in hexadecimal and the other decimal, 
+	 * or viceversa). 
+	 */
+	@Label("DLR Id Conversion")
+	private DlrIdConversion dlrIdConversion = DEFAULT_DLR_ID_CONVERSION;
+	
 	@Label("Initial Reconnect Delay")
 	private long initialReconnectDelay = DEFAULT_INITIAL_RECONNECT_DELAY;
 	
@@ -108,6 +142,9 @@ public class SmppConfiguration {
 	 */
 	@Label("Route Delivery Receipts")
 	private boolean routeDeliveryReceipts = false;
+	
+	@Label("Discard Incoming Msgs")
+	private boolean discardIncomingMsgs = false;
 	
 	public final String getHost() {
 		return host;
@@ -221,6 +258,14 @@ public class SmppConfiguration {
 		this.requestDeliveryReceipts = requestDeliveryReceipts;
 	}
 
+	public DlrIdConversion getDlrIdConversion() {
+		return dlrIdConversion;
+	}
+
+	public void setDlrIdConversion(DlrIdConversion dlrIdConversion) {
+		this.dlrIdConversion = dlrIdConversion;
+	}
+
 	public final long getInitialReconnectDelay() {
 		return initialReconnectDelay;
 	}
@@ -251,6 +296,14 @@ public class SmppConfiguration {
 
 	public void setRouteDeliveryReceipts(boolean routeDeliveryReceipts) {
 		this.routeDeliveryReceipts = routeDeliveryReceipts;
+	}
+
+	public boolean isDiscardIncomingMsgs() {
+		return discardIncomingMsgs;
+	}
+
+	public void setDiscardIncomingMsgs(boolean discardIncomingMsgs) {
+		this.discardIncomingMsgs = discardIncomingMsgs;
 	}
 	
 }

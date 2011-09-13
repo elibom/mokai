@@ -31,18 +31,19 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import org.mokai.ConnectorContext;
 import org.mokai.ExposableConfiguration;
 import org.mokai.Message;
 import org.mokai.MessageProducer;
 import org.mokai.MonitorStatusBuilder;
 import org.mokai.Monitorable;
 import org.mokai.Processor;
-import org.mokai.ConnectorContext;
 import org.mokai.Serviceable;
 import org.mokai.annotation.Description;
 import org.mokai.annotation.Name;
 import org.mokai.annotation.Resource;
 import org.mokai.connector.smpp.SmppConfiguration.BindType;
+import org.mokai.connector.smpp.SmppConfiguration.DlrIdConversion;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.MessageStore;
 import org.slf4j.Logger;
@@ -262,7 +263,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			for (int i=0; i < encodedBytes.length; i++) {
 				strBytes += " : " + encodedBytes[i];
 			}
-			log.debug("encoded bytes of the message: " + strBytes);
+			log.trace("encoded bytes of the message: " + strBytes);
 			
 			request.setMessage(encodedBytes);
 			request.setDataCoding(enc.getDataCoding());
@@ -683,10 +684,10 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		 * @param response the submit_sm response to be processed
 		 */
 		private void process(SubmitSmResp response) {
-			submitSmResponses.remove(response);
 			
 			// if no messageStore is set, we can't process this response
 			if (messageStore == null) {
+				submitSmResponses.remove(response);
 				log.warn("MessageStore is null: ignoring submit_sm response: " + response.submitSMResp.toString());
 				return;
 			}
@@ -709,7 +710,9 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 				
 			// if the message is found, update it, otherwise, try later
 			if (message != null) {
-				String messageId = handleMessageId(response.submitSMResp.getMessageId());
+				submitSmResponses.remove(response);
+				
+				String messageId = response.submitSMResp.getMessageId();
 				
 				message.setProperty("messageId", messageId);
 				message.setProperty("commandStatus", response.submitSMResp.getCommandStatus());
@@ -725,28 +728,6 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 				response.lastProcessedTime = new Date();
 				response.retries++;
 			}
-		}
-		
-		/**
-		 * Helper method to convert hexadecimal message id into a decimal message id.
-		 * The strategy we're taking here is to try to parse the message id as a 
-		 * hexadecimal number. If an exception is thrown, we'll leave it as it was.
-		 * 
-		 * @param messageId the message id returned by the SMSC.
-		 * @return the decimal messageId if it was hexadecimal or the same message
-		 * id if it wasn't.
-		 */
-		private String handleMessageId(String messageId) {
-			try {
-				int decimalMessageId = Integer.parseInt(messageId, 16);
-				log.debug(getLogHead() + "original messageId: '" + messageId + "', new messageId: '" + decimalMessageId + "'");
-				
-				messageId = decimalMessageId + "";
-			} catch (Exception e) {
-				// we are leaving the messageId intact
-			}
-			
-			return messageId;
 		}
 		
 	}
@@ -856,6 +837,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			Message originalMessage = null; // this is what we are returning 
 			
 			String messageId = drMessage.getProperty("messageId", String.class);
+			messageId = convertMessageId(messageId);
 			String to = drMessage.getProperty("to", String.class);
 			String from = drMessage.getProperty("from", String.class);
 				
@@ -889,6 +871,33 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			
 			return originalMessage;
 			
+		}
+		
+		/**
+		 * Helper method that checks the configuration to see if we have to convert the delivery receipt id to 
+		 * hexadecimal or decimal.
+		 * 
+		 * @param messageId the string to be converted.
+		 * @return the converted messageId according to the configuration (can happen that the value is not converted at all).
+		 */
+		private String convertMessageId(String messageId) {
+			
+			if (configuration.getDlrIdConversion().equals(DlrIdConversion.HEXA_TO_DEC)) {
+				
+				return SmppUtil.toMessageIdAsLong(messageId) + "";
+				
+			} else if (configuration.getDlrIdConversion().equals(DlrIdConversion.DEC_TO_HEXA)) {
+				
+				try {
+					long messageIdAsLong = Long.parseLong(messageId);
+					return SmppUtil.toMessageIdAsHexString(messageIdAsLong);
+				} catch (NumberFormatException e) {
+					log.warn("NumberFormatException trying to convert '" + messageId + " to hexadecimal");
+				}
+				
+			}
+			
+			return messageId;
 		}
 		
 	}
@@ -984,18 +993,23 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		 * @param deliverSm the deliver_sm PDU that was received.
 		 */
 		private void handleDeliverSm(DeliverSM deliverSm) {
-			log.info(getLogHead() + "received DeliverSM: " + deliverSm.toString());
 			
-			String from = deliverSm.getSource().getAddress();
-			String to = deliverSm.getDestination().getAddress();
-			String text = new String(deliverSm.getMessageText());
-			
-			Message message = new Message(Message.SMS_TYPE);
-			message.setProperty("to", to);
-			message.setProperty("from", from);
-			message.setProperty("text", text);
-
-			messageProducer.produce(message);
+			if (!configuration.isDiscardIncomingMsgs()) {
+				log.info(getLogHead() + "received DeliverSM: " + deliverSm.toString());
+				
+				String from = deliverSm.getSource().getAddress();
+				String to = deliverSm.getDestination().getAddress();
+				String text = new String(deliverSm.getMessageText());
+				
+				Message message = new Message(Message.SMS_TYPE);
+				message.setProperty("to", to);
+				message.setProperty("from", from);
+				message.setProperty("text", text);
+	
+				messageProducer.produce(message);
+			} else {
+				log.warn(getLogHead() + "received DeliverSM discardIncomingMessages is set ... ignoring message: " + deliverSm.toString());
+			}
 		}
 		
 		/**
@@ -1013,9 +1027,6 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			
 			String shortMessage = new String(deliverSm.getMessageText());
 			String id = getDeliveryReceiptValue("id", shortMessage);
-			if (id != null) { // sanity check
-				id = fixMessageId(id);
-			}
 			
 			int submitted = Integer.parseInt(getDeliveryReceiptValue("sub", shortMessage));
 			int delivered = Integer.parseInt(getDeliveryReceiptValue("dlvrd", shortMessage));
@@ -1085,16 +1096,6 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	            return source.substring(startIndex, endIndex);
 	        
 	        return source.substring(startIndex);
-	    }
-	    
-	    private String fixMessageId(final String messageId) {
-	    	String ret = messageId;
-	    	
-	    	while (ret.startsWith("0")) {
-	    		ret = ret.substring(1);
-	    	}
-	    	
-	    	return ret;
 	    }
     	
     }

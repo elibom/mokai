@@ -263,7 +263,7 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 				Validate.notNull(message);
 				
 				try {
-					producer.sendBody(getInboundUri(), message);
+					producer.asyncSendBody(getInboundUri(), message);
 				} catch (CamelExecutionException e) {
 					Throwable ex = e;
 					if (e.getCause() != null) {

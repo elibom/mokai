@@ -21,13 +21,14 @@ import net.gescobar.smppserver.SmppServer;
 import net.gescobar.smppserver.SmppSession;
 
 import org.mockito.Mockito;
+import org.mokai.ConnectorContext;
 import org.mokai.ExecutionException;
 import org.mokai.Message;
 import org.mokai.MessageProducer;
 import org.mokai.Monitorable.Status;
-import org.mokai.ConnectorContext;
 import org.mokai.annotation.Resource;
 import org.mokai.connector.smpp.SmppConfiguration;
+import org.mokai.connector.smpp.SmppConfiguration.DlrIdConversion;
 import org.mokai.connector.smpp.SmppConnector;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.MessageStore;
@@ -199,7 +200,7 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 					Assert.assertEquals(submitSM.getMessage(), enc.encodeString("This is the test with –"));
 					
 					Response response = Response.OK;
-					response.setMessageId(12000);
+					response.setMessageId("12000");
 					
 					return response;
 					
@@ -300,26 +301,7 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 	public void testReceiveDeliveryReceipt() throws Exception {
 		log.info("starting testReceiveDeliveryReceipt ... ");
 		
-		server.setPacketProcessor(new PacketProcessor() {
-
-			@Override
-			public Response processPacket(SMPPPacket packet) {
-				
-				if (packet.getCommandId() == SMPPPacket.SUBMIT_SM) {
-					
-					Response response = Response.OK;
-					response.setMessageId(12000);
-					
-					return response;
-					
-				}
-				
-				return Response.OK;
-			}
-			
-		});
-		
-		MockMessageProducer messageProducer = new MockMessageProducer();
+		server.setPacketProcessor(new CustomPacketProcessor("12000"));
 		
 		SmppConfiguration configuration = new SmppConfiguration();
 		configuration.setHost("localhost");
@@ -328,14 +310,9 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 		configuration.setPassword("test");
 		configuration.setRouteDeliveryReceipts(true);
 		
-		MessageStore messageStore = new MockMessageStore();
-		
-		SmppConnector connector = new SmppConnector(configuration);
-		injectResource(new MockProcessorContext(), connector);
-		injectResource(messageStore, connector);
-		injectResource(messageProducer, connector);
-		connector.doStart();
-		waitUntilStatus(connector, DEFAULT_TIMEOUT, Status.OK);
+		MockMessageStore messageStore = new MockMessageStore();
+		MockMessageProducer messageProducer = new MockMessageProducer();
+		SmppConnector connector = createAndStartSmppConnector(configuration, messageStore, messageProducer);
 		
 		String from = "3542";
 		String to = "3002175604";
@@ -345,8 +322,7 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 		message.setProperty("to", to);
 		message.setProperty("from", from);
 		message.setProperty("text", "This is the test");
-		connector.process(message);
-		messageStore.saveOrUpdate(message);
+		sendMessage(connector, messageStore, message);
 		
 		// retrieve the session
 		Assert.assertEquals(server.getSessions().size(), 1);
@@ -363,7 +339,7 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 		
 		long timeout = 2000;
 		if (!receiveMessage(messageProducer, timeout)) {
-			Assert.fail("the message was not received");
+			Assert.fail("the delivery receipt was not received");
 		}
 		
 		Message receivedMessage = (Message) messageProducer.getMessage(0);
@@ -375,6 +351,156 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 		
 		connector.doStop();
 		
+	}
+	
+	@Test
+	public void testReceiveDeliveryReceiptWithHexaId() throws Exception {
+		log.info("starting testReceiveDeliveryReceiptWithHexaId ... ");
+		
+		server.setPacketProcessor(new CustomPacketProcessor("98765432101"));
+		
+		SmppConfiguration configuration = new SmppConfiguration();
+		configuration.setHost("localhost");
+		configuration.setPort(SERVER_PORT);
+		configuration.setSystemId("test");
+		configuration.setPassword("test");
+		configuration.setRouteDeliveryReceipts(true);
+		configuration.setDlrIdConversion(DlrIdConversion.HEXA_TO_DEC);
+		
+		MockMessageStore messageStore = new MockMessageStore();
+		MockMessageProducer messageProducer = new MockMessageProducer();
+		SmppConnector connector = createAndStartSmppConnector(configuration, messageStore, messageProducer);
+		
+		// send a message
+		Message message = new Message();
+		message.setProperty("to", "3542");
+		message.setProperty("from", "3002175604");
+		message.setProperty("text", "This is the test");
+		sendMessage(connector, messageStore, message);
+		
+		// retrieve the session
+		Assert.assertEquals(server.getSessions().size(), 1);
+		SmppSession session = server.getSessions().iterator().next();
+		Assert.assertNotNull(session);
+		
+		DeliverSM deliverSM = new DeliverSM();
+		deliverSM.setEsmClass(SMPPPacket.SMC_RECEIPT);
+		deliverSM.setDestination(new Address(0, 0, "3002175604"));
+		deliverSM.setSource(new Address(0, 0, "3542"));
+		deliverSM.setMessageText("id:16fee0e525 sub:1 dlvrd:1 submit date:1101010000 done date:1101010000 stat:DELIVRD err:0 text:This is a ... ");
+		
+		session.sendRequest(deliverSM);
+		
+		long timeout = 2000;
+		if (!receiveMessage(messageProducer, timeout)) {
+			Assert.fail("the delivery receipt was not received");
+		}
+		
+		Message receivedMessage = (Message) messageProducer.getMessage(0);
+		Assert.assertEquals(receivedMessage.getType(), Message.DELIVERY_RECEIPT_TYPE);
+		
+		connector.doStop();
+		
+	}
+	
+	@Test
+	public void testReceiveDeliveryReceiptWithDecId() throws Exception {
+		log.info("starting testReceiveDeliveryReceiptWithHexaId ... ");
+		
+		server.setPacketProcessor(new CustomPacketProcessor("16fee0e525"));
+		
+		SmppConfiguration configuration = new SmppConfiguration();
+		configuration.setHost("localhost");
+		configuration.setPort(SERVER_PORT);
+		configuration.setSystemId("test");
+		configuration.setPassword("test");
+		configuration.setRouteDeliveryReceipts(true);
+		configuration.setDlrIdConversion(DlrIdConversion.DEC_TO_HEXA);
+		
+		MockMessageStore messageStore = new MockMessageStore();
+		MockMessageProducer messageProducer = new MockMessageProducer();
+		SmppConnector connector = createAndStartSmppConnector(configuration, messageStore, messageProducer);
+		
+		// send a message
+		Message message = new Message();
+		message.setProperty("to", "3542");
+		message.setProperty("from", "3002175604");
+		message.setProperty("text", "This is the test");
+		sendMessage(connector, messageStore, message);
+		
+		// retrieve the session
+		Assert.assertEquals(server.getSessions().size(), 1);
+		SmppSession session = server.getSessions().iterator().next();
+		Assert.assertNotNull(session);
+		
+		DeliverSM deliverSM = new DeliverSM();
+		deliverSM.setEsmClass(SMPPPacket.SMC_RECEIPT);
+		deliverSM.setDestination(new Address(0, 0, "3002175604"));
+		deliverSM.setSource(new Address(0, 0, "3542"));
+		deliverSM.setMessageText("id:98765432101 sub:1 dlvrd:1 submit date:1101010000 done date:1101010000 stat:DELIVRD err:0 text:This is a ... ");
+		
+		session.sendRequest(deliverSM);
+		
+		long timeout = 2000;
+		if (!receiveMessage(messageProducer, timeout)) {
+			Assert.fail("the delivery receipt was not received");
+		}
+		
+		Message receivedMessage = (Message) messageProducer.getMessage(0);
+		Assert.assertEquals(receivedMessage.getType(), Message.DELIVERY_RECEIPT_TYPE);
+		
+		connector.doStop();
+		
+	}
+	
+	private SmppConnector createAndStartSmppConnector(SmppConfiguration configuration, MessageStore messageStore, MessageProducer messageProducer) throws Exception {
+		
+		SmppConnector connector = new SmppConnector(configuration);
+		injectResource(new MockProcessorContext(), connector);
+		
+		if (messageStore == null) {
+			messageStore = new MockMessageStore();
+		}
+		injectResource(messageStore, connector);
+		
+		if (messageProducer == null) {
+			messageProducer = new MockMessageProducer();
+		}
+		injectResource(messageProducer, connector);
+		
+		connector.doStart();
+		waitUntilStatus(connector, DEFAULT_TIMEOUT, Status.OK);
+		
+		return connector;
+	}
+	
+	class CustomPacketProcessor implements PacketProcessor {
+		
+		private String messageId;
+		
+		public CustomPacketProcessor(String messageId) {
+			this.messageId = messageId;
+		}
+
+		@Override
+		public Response processPacket(SMPPPacket packet) {
+			if (packet.getCommandId() == SMPPPacket.SUBMIT_SM) {
+				
+				Response response = Response.OK;
+				response.setMessageId(messageId);
+				
+				return response;
+				
+			}
+			
+			return Response.OK;
+		}
+		
+	}
+	
+	private void sendMessage(SmppConnector connector, MessageStore messageStore, Message message) throws Exception {
+		connector.process(message);
+		messageStore.saveOrUpdate(message);
 	}
 	
 	@Test
@@ -547,12 +673,33 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 
 		@Override
 		public void updateStatus(MessageCriteria criteria,
-				org.mokai.Message.Status newStatus) throws StoreException {
+			org.mokai.Message.Status newStatus) throws StoreException {
 			
 		}
 
 		@Override
 		public Collection<Message> list(MessageCriteria criteria) throws StoreException {
+			
+			if (criteria != null && criteria.getProperties().get("smsc_messageid") != null) {
+				
+				Collection<Message> ret = new ArrayList<Message>();
+				
+				// check messageId
+				String messageId = (String) criteria.getProperties().get("smsc_messageid");
+				if (messageId != null) {
+					
+					for (Message message : messages) {
+						String testId = message.getProperty("messageId", String.class);
+						if (testId != null && messageId.equals(testId)) {
+							ret.add(message);
+						}
+					}
+					
+				}
+				
+				return ret;
+			}
+			
 			return messages;
 		}
 		

@@ -1,5 +1,6 @@
 package org.mokai.impl.camel;
 
+import java.util.Date;
 import java.util.List;
 
 import org.apache.camel.Exchange;
@@ -33,7 +34,13 @@ public abstract class AbstractRouter {
 	public final String route(Exchange exchange) {
 		Message message = exchange.getIn().getBody(Message.class);
 		
-		return route(message);
+		long startTime = new Date().getTime();
+		String route =  route(message);
+		long endTime = new Date().getTime();
+		
+		log.trace("route took: " + (endTime - startTime) + " millis");
+	
+		return route;
 	}
 	
 	/**

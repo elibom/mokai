@@ -464,6 +464,7 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 		resourceRegistry.getResource(RedeliveryPolicy.class);
 	}
 
+	@Override
 	public final MessageStore getMessageStore() {
 		return resourceRegistry.getResource(MessageStore.class);
 	}

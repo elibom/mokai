@@ -13,7 +13,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.jetty.util.log.Log;
 import org.mokai.Message;
 import org.mokai.Message.DestinationType;
 import org.mokai.Message.Direction;
@@ -200,7 +199,7 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 		
 		String strSQL = "SELECT * FROM " + tableName;
 		strSQL += addCommonCriteria(criteria, params);
-		Log.debug(strSQL);
+		log.debug(strSQL);
 		
 		PreparedStatement stmt = conn.prepareStatement(strSQL);
 		
@@ -285,6 +284,19 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 					strSQL += " DESC";
 				}
 			}
+			
+			// limit
+			int lowerLimit = 0;
+			if (criteria.getLowerLimit() > 0) {
+				lowerLimit = criteria.getLowerLimit();
+			}
+			
+			int numRecords = 500;
+			if (criteria.getNumRecords() > 0) {
+				numRecords = criteria.getNumRecords();
+			}
+			
+			strSQL += " LIMIT " + lowerLimit + "," + numRecords; 
 			
 		}
 		

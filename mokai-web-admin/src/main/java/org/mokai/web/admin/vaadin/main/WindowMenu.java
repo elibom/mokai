@@ -18,6 +18,19 @@ public class WindowMenu extends HorizontalLayout {
 		setSpacing(true);
 		
 		HorizontalLayout left = new HorizontalLayout();
+		left.addStyleName("menu");
+		
+		Button showDashboard = new Button("Dashboard");
+		showDashboard.addStyleName(BaseTheme.BUTTON_LINK);
+		showDashboard.addStyleName("menu");
+		showDashboard.addListener(showDashboardButtonListener());
+		left.addComponent(showDashboard);
+		
+		Button showMessages = new Button("Messages");
+		showMessages.addStyleName(BaseTheme.BUTTON_LINK);
+		showMessages.addStyleName("menu");
+		showMessages.addListener(showMessagesButtonListener());
+		left.addComponent(showMessages);
 		
 		addComponent(left);
 		setExpandRatio(left, 1.0F);
@@ -41,6 +54,28 @@ public class WindowMenu extends HorizontalLayout {
 			@Override
 			public void buttonClick(ClickEvent event) {
 				mainPresenter.createAndShowPasswordWindow();
+			}
+		};
+	}
+	
+	@SuppressWarnings("serial")
+	private Button.ClickListener showDashboardButtonListener() {
+		return new Button.ClickListener() {
+
+			@Override
+			public void buttonClick(ClickEvent event) {
+				mainPresenter.createAndShowDashboard();
+			}
+		};
+	}
+	
+	@SuppressWarnings("serial")
+	private Button.ClickListener showMessagesButtonListener() {
+		return new Button.ClickListener() {
+
+			@Override
+			public void buttonClick(ClickEvent event) {
+				mainPresenter.createAndShowMessages();
 			}
 		};
 	}

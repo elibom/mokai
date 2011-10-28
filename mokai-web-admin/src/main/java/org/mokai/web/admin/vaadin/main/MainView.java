@@ -9,4 +9,8 @@ import com.github.peholmst.mvp4vaadin.View;
 public interface MainView extends View {
 
 	void createAndShowPasswordWindow();
+	
+	void createAndShowDashboard();
+	
+	void createAndShowMessages();
 }

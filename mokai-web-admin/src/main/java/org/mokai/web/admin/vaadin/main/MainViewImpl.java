@@ -1,6 +1,7 @@
 package org.mokai.web.admin.vaadin.main;
 
 import org.mokai.web.admin.vaadin.dashboard.DashboardViewImpl;
+import org.mokai.web.admin.vaadin.msgs.MessagesViewImpl;
 import org.mokai.web.admin.vaadin.pwd.PasswordChangedEvent;
 import org.mokai.web.admin.vaadin.pwd.PasswordViewImpl;
 
@@ -26,6 +27,11 @@ public class MainViewImpl extends AbstractView<MainView, MainPresenter> implemen
 	private WindowHeader windowHeader;
 	
 	private WindowMenu windowMenu;
+	
+	/**
+	 * The component that we are showing in the body of the page.
+	 */
+	private ComponentContainer activeComponent;
 	
 	public MainViewImpl() {
 		super(true);
@@ -64,10 +70,7 @@ public class MainViewImpl extends AbstractView<MainView, MainPresenter> implemen
 		
 		viewLayout.addComponent(header);
 		
-		DashboardViewImpl dashboardView = new DashboardViewImpl();
-		ComponentContainer dashboardComponent = dashboardView.getViewComponent();
-		viewLayout.addComponent(dashboardComponent);
-		viewLayout.setExpandRatio(dashboardComponent, 1.0F);
+		createAndShowDashboard();
 		
 	}
 
@@ -89,6 +92,38 @@ public class MainViewImpl extends AbstractView<MainView, MainPresenter> implemen
 		passwordWindow.setContent(view.getViewComponent());
 		
 		viewLayout.getWindow().addWindow(passwordWindow);
+	}
+	
+	@Override
+	public void createAndShowDashboard() {
+		DashboardViewImpl dashboardView = new DashboardViewImpl();
+		ComponentContainer dashboardComponent = dashboardView.getViewComponent();
+		
+		if (activeComponent != null) {
+			viewLayout.replaceComponent(activeComponent, dashboardComponent);
+		} else {
+			viewLayout.addComponent(dashboardComponent);
+		}
+		
+		viewLayout.setExpandRatio(dashboardComponent, 1.0F);
+		
+		activeComponent = dashboardComponent;
+	}
+	
+	@Override
+	public void createAndShowMessages() {
+		MessagesViewImpl messagesView = new MessagesViewImpl();
+		ComponentContainer messagesComponent = messagesView.getViewComponent();
+		
+		if (activeComponent != null) {
+			viewLayout.replaceComponent(activeComponent, messagesComponent);
+		} else {
+			viewLayout.addComponent(messagesComponent);
+		}
+		
+		viewLayout.setExpandRatio(messagesComponent, 1.0F);
+		
+		activeComponent = messagesComponent;
 	}
 
 	@Override

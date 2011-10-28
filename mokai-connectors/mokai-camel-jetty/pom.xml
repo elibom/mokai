@@ -25,7 +25,6 @@
 			<groupId>org.apache.camel</groupId>
 			<artifactId>camel-jetty</artifactId>
 			<version>${camel.version}</version>
-			<scope>provided</scope>
 		</dependency>
 		
 		<dependency>

@@ -1,4 +1,4 @@
-package org.mokai.persist.test;
+package org.mokai.persist.jdbc.sms.test;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -21,17 +21,16 @@ import org.mokai.Message.Direction;
 import org.mokai.Message.SourceType;
 import org.mokai.Message.Status;
 import org.mokai.persist.MessageCriteria;
-import org.mokai.persist.jdbc.DbInitializer;
 import org.mokai.persist.jdbc.JdbcHelper;
 import org.mokai.persist.jdbc.sms.ConnectionsSmsHandler;
-import org.mokai.persist.jdbc.sms.TableScripts;
+import org.mokai.persist.jdbc.sms.DerbyEngine;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-public class OutboundSmsHandlerTest {
+public class ConnectionsSmsHandlerTest {
 
 	private DataSource dataSource;
 	private Connection connection;
@@ -48,12 +47,10 @@ public class OutboundSmsHandlerTest {
 		
 		this.dataSource = dataSource;
 		
-		DbInitializer dbInitializer = new DbInitializer();
-		dbInitializer.setDataSource(dataSource);
-		dbInitializer.addTableScript(TableScripts.DERBY_CONNECTIONS.getTableName(), 
-				TableScripts.DERBY_CONNECTIONS.getTableScript());
+		DerbyEngine derbyEngine = new DerbyEngine();
+		derbyEngine.setDataSource(dataSource);
 		
-		dbInitializer.initialize();
+		derbyEngine.init();
 	}
 	
 	@BeforeMethod
@@ -213,9 +210,28 @@ public class OutboundSmsHandlerTest {
 		generateTestData();
 		
 		ConnectionsSmsHandler handler = new ConnectionsSmsHandler();
+		handler.setSqlEngine(new DerbyEngine(dataSource));
+		
 		Collection<Message> messages = handler.listMessages(connection, null);
 		
 		Assert.assertFalse(messages.isEmpty());
+		Assert.assertEquals(9, messages.size());
+	}
+	
+	@Test
+	public void testRetrieveSomeMessages() throws Exception {
+		generateTestData();
+		
+		ConnectionsSmsHandler handler = new ConnectionsSmsHandler();
+		handler.setSqlEngine(new DerbyEngine(dataSource));
+		
+		MessageCriteria criteria = new MessageCriteria() 
+			.lowerLimit(3)
+			.numRecords(3);
+		Collection<Message> messages = handler.listMessages(connection, criteria);
+		
+		Assert.assertFalse(messages.isEmpty());
+		Assert.assertEquals(9, messages.size());
 	}
 	
 	@Test
@@ -223,6 +239,7 @@ public class OutboundSmsHandlerTest {
 		generateTestData();
 		
 		ConnectionsSmsHandler handler = new ConnectionsSmsHandler();
+		handler.setSqlEngine(new DerbyEngine(dataSource));
 		
 		MessageCriteria criteria = new MessageCriteria()
 			.addProperty("smsc_messageid", "8");
@@ -237,6 +254,7 @@ public class OutboundSmsHandlerTest {
 		generateTestData();
 		
 		ConnectionsSmsHandler handler = new ConnectionsSmsHandler();
+		handler.setSqlEngine(new DerbyEngine(dataSource));
 		
 		MessageCriteria criteria = new MessageCriteria()
 			.addStatus(Status.FAILED);

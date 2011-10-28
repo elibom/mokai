@@ -1,4 +1,4 @@
-package org.mokai.persist.test;
+package org.mokai.persist.jdbc.test;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;

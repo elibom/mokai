@@ -22,12 +22,15 @@ import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.MessageCriteria.OrderType;
 import org.mokai.persist.jdbc.JdbcHelper;
 import org.mokai.persist.jdbc.MessageHandler;
+import org.mokai.persist.jdbc.SqlEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class AbstractSmsHandler implements MessageHandler {
 	
 	private Logger log = LoggerFactory.getLogger(AbstractSmsHandler.class);
+	
+	private SqlEngine sqlEngine;
 	
 	private String tableName = getDefaultTableName();
 
@@ -286,17 +289,11 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 			}
 			
 			// limit
-			int lowerLimit = 0;
-			if (criteria.getLowerLimit() > 0) {
-				lowerLimit = criteria.getLowerLimit();
+			int lowerLimit = criteria.getLowerLimit();
+			int numRecords = criteria.getNumRecords();
+			if (numRecords > 0) {
+				sqlEngine.addLimitToQuery(strSQL, lowerLimit, numRecords);
 			}
-			
-			int numRecords = 500;
-			if (criteria.getNumRecords() > 0) {
-				numRecords = criteria.getNumRecords();
-			}
-			
-			strSQL += " LIMIT " + lowerLimit + "," + numRecords; 
 			
 		}
 		
@@ -348,6 +345,14 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 		}
 		
 		return messages;
+	}
+
+	public SqlEngine getSqlEngine() {
+		return sqlEngine;
+	}
+
+	public void setSqlEngine(SqlEngine sqlEngine) {
+		this.sqlEngine = sqlEngine;
 	}
 
 	public final String getTableName() {

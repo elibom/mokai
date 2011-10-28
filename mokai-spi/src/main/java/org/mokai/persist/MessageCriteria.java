@@ -49,6 +49,16 @@ public class MessageCriteria implements Serializable {
 	 */
 	private OrderType orderType = OrderType.UPWARDS;
 	
+	/**
+	 * The lower limit of records to be retrieved.
+	 */
+	protected int lowerLimit;
+	
+	/**
+	 * The number of records to be retrieved.
+	 */
+	protected int numRecords;
+	
 	public MessageCriteria() {
 		this.status = new ArrayList<Status>();
 	}
@@ -148,6 +158,32 @@ public class MessageCriteria implements Serializable {
 	public final MessageCriteria destinationType(DestinationType destinationType) {
 		setDestinationType(destinationType);
 		
+		return this;
+	}
+
+	public int getLowerLimit() {
+		return lowerLimit;
+	}
+
+	public void setLowerLimit(int lowerLimit) {
+		this.lowerLimit = lowerLimit;
+	}
+	
+	public MessageCriteria lowerLimit(int lowerLimit) {
+		setLowerLimit(lowerLimit);	
+		return this;
+	}
+
+	public int getNumRecords() {
+		return numRecords;
+	}
+
+	public void setNumRecords(int numRecords) {
+		this.numRecords = numRecords;
+	}
+	
+	public MessageCriteria numRecords(int numRecords) {
+		setNumRecords(numRecords);
 		return this;
 	}
 

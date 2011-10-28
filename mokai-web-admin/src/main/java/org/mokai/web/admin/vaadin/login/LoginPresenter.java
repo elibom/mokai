@@ -19,8 +19,6 @@ public class LoginPresenter extends Presenter<LoginView> {
 	
 	public void attemptLogin(String username, String password) {
 		
-		
-		
 		if ("admin".equals(username) && isPasswordValid(password)) {
 			fireViewEvent(new UserLoggedInEvent(getView(), username));
 		} else {

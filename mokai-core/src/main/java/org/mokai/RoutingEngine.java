@@ -2,6 +2,8 @@ package org.mokai;
 
 import java.util.List;
 
+import org.mokai.persist.MessageStore;
+
 /**
  * Controls the message flow inside the gateway between applications and connections, which are represented
  * by a {@link ConnectorService}. 
@@ -94,5 +96,8 @@ public interface RoutingEngine {
 	 */
 	List<ConnectorService> getConnections();
 	
-	
+	/**
+	 * @return the implementation of the MessageStore that is being used. It should never be null.
+	 */
+	MessageStore getMessageStore();
 }

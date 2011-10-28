@@ -58,7 +58,7 @@
 										</property>
 										<property>
 											<name>wrapper.logfile</name>
-											<value>wrapper.log</value>
+											<value>log/wrapper.log</value>
 										</property>
 										<property>
 											<name>wrapper.logfile.format</name>

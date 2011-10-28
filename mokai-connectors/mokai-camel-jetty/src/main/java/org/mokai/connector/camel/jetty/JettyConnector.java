@@ -9,6 +9,7 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.jetty.JettyHttpComponent;
 import org.apache.camel.impl.DefaultCamelContext;
 import org.mokai.Configurable;
 import org.mokai.Connector;
@@ -50,6 +51,7 @@ public class JettyConnector implements Connector, Configurable,
 	@Override
 	public final void configure() throws Exception {
 		camelContext = new DefaultCamelContext();
+		camelContext.addComponent("jetty", new JettyHttpComponent());
 		
 		final String uri = "jetty:http://0.0.0.0:" + getConfiguration().getPort() 
 			+ "/" + getConfiguration().getContext();

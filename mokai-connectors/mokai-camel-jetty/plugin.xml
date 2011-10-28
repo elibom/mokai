@@ -6,6 +6,10 @@
 		<library id="core" path="classes/" type="code">
 			<export prefix="*" />
 		</library>
+		<library id="camel-jetty" path="lib/camel-jetty-2.5.0.jar" type="code" />
+		<library id="camel-http" path="lib/camel-http-2.5.0.jar" type="code" />
+		<library id="http-client" path="lib/commons-httpclient-3.1.jar" type="code" />
+		<library id="jetty-servlets" path="lib/jetty-servlets-7.1.6.v20100715.jar" type="code" />
 	</runtime>
 	
 </plugin>

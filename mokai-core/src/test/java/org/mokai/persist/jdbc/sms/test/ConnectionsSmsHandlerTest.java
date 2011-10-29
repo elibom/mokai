@@ -231,7 +231,7 @@ public class ConnectionsSmsHandlerTest {
 		Collection<Message> messages = handler.listMessages(connection, criteria);
 		
 		Assert.assertFalse(messages.isEmpty());
-		Assert.assertEquals(9, messages.size());
+		Assert.assertEquals(3, messages.size());
 	}
 	
 	@Test

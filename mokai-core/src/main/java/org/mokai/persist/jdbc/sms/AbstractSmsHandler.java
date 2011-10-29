@@ -292,7 +292,7 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 			int lowerLimit = criteria.getLowerLimit();
 			int numRecords = criteria.getNumRecords();
 			if (numRecords > 0) {
-				sqlEngine.addLimitToQuery(strSQL, lowerLimit, numRecords);
+				strSQL = sqlEngine.addLimitToQuery(strSQL, lowerLimit, numRecords);
 			}
 			
 		}

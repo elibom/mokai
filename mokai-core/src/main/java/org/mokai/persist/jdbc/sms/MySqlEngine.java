@@ -63,7 +63,7 @@ public class MySqlEngine implements SqlEngine {
 					"smsc_text VARCHAR(1000), " +
 					"smsc_sequencenumber INT, " +
 					"smsc_messageid VARCHAR(50), " +
-					"smsc_commandstatus TINYINT, " +
+					"smsc_commandstatus SMALLINT, " +
 					"smsc_receiptstatus VARCHAR(20), " +
 					"smsc_receipttime DATETIME, " +
 					"creation_time DATETIME NOT NULL, " +

@@ -1,0 +1,6 @@
+org.mokai.action.AddPrefixAction
+org.mokai.action.AddSpacesAction
+org.mokai.action.AddSuffixAction
+org.mokai.action.ConcatAction
+org.mokai.action.CopyAction
+org.mokai.action.ReplaceAction

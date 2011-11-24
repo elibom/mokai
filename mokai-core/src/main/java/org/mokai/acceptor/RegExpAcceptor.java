@@ -17,7 +17,7 @@ import org.mokai.ui.annotation.List;
 public class RegExpAcceptor implements Acceptor, ExposableConfiguration<RegExpAcceptor> {
 	
 	@Label("Field")
-	@List({"to", "from", "message"})
+	@List({"to", "from", "text"})
 	private String field;
 	
 	@Label("Regular Expression")

@@ -12,82 +12,100 @@ public class HttpConfiguration {
 	@Label("Url")
 	private String url;
 	
+	@Label("Http Method")
+	private String method = "GET";
+	
+	@Label("Encoding")
+	private String encoding = "ISO-8859-1";
+	
 	@Label("Throw Exception on Failure")
 	private boolean throwExceptionOnFailure = true;
 	
-	@Label("Auth - Method")
-	private String authMethod;
+	@Label("Additional Params")
+	private Map<String,String> additionalParams = new HashMap<String,String>();
 	
-	@Label("Auth - Username")
-	private String authUsername;
+	@Label("Basic Auth")
+	private boolean basicAuth;
 	
-	@Label("Auth - Password")
-	private String authPassword;
+	@Label("Basic - Username")
+	private String username;
 	
-	@Label("Additional Query")
-	private String additionalQuery;
+	@Label("Basic - Password")
+	private String password;
 	
 	@Label("Mapper")
 	private Map<String,String> mapper = new HashMap<String,String>();
-
-	public final String getUrl() {
+	
+	public String getUrl() {
 		return url;
 	}
 
-	public final void setUrl(String url) {
+	public void setUrl(String url) {
 		this.url = url;
 	}
 
-	public final boolean isThrowExceptionOnFailure() {
+	public String getMethod() {
+		return method;
+	}
+
+	public void setMethod(String method) {
+		this.method = method;
+	}
+
+	public boolean isThrowExceptionOnFailure() {
 		return throwExceptionOnFailure;
 	}
 
-	public final void setThrowExceptionOnFailure(boolean throwExceptionOnFailure) {
+	public void setThrowExceptionOnFailure(boolean throwExceptionOnFailure) {
 		this.throwExceptionOnFailure = throwExceptionOnFailure;
 	}
 
-	public final String getAuthMethod() {
-		return authMethod;
+	public Map<String, String> getAdditionalParams() {
+		return additionalParams;
 	}
 
-	public final void setAuthMethod(String authMethod) {
-		this.authMethod = authMethod;
+	public void setAdditionalParams(Map<String, String> additionalParams) {
+		this.additionalParams = additionalParams;
 	}
 
-	public final String getAuthUsername() {
-		return authUsername;
+	public boolean isBasicAuth() {
+		return basicAuth;
 	}
 
-	public final void setAuthUsername(String authUsername) {
-		this.authUsername = authUsername;
+	public void setBasicAuth(boolean basicAuth) {
+		this.basicAuth = basicAuth;
 	}
 
-	public final String getAuthPassword() {
-		return authPassword;
+	public String getUsername() {
+		return username;
 	}
 
-	public final void setAuthPassword(String authPassword) {
-		this.authPassword = authPassword;
+	public void setUsername(String username) {
+		this.username = username;
 	}
 
-	public final String getAdditionalQuery() {
-		return additionalQuery;
+	public String getPassword() {
+		return password;
 	}
 
-	public final void setAdditionalQuery(String additionalQuery) {
-		this.additionalQuery = additionalQuery;
+	public void setPassword(String password) {
+		this.password = password;
 	}
 
-	public final Map<String, String> getMapper() {
+	public Map<String, String> getMapper() {
 		return mapper;
 	}
 
-	public final void setMapper(Map<String, String> mapper) {
+	public void setMapper(Map<String, String> mapper) {
 		this.mapper = mapper;
 	}
-	
-	public final void addMapper(String key, String value) {
-		mapper.put(key, value);
+
+	public String getEncoding() {
+		return encoding;
+	}
+
+	public void setEncoding(String encoding) {
+		this.encoding = encoding;
 	}
 	
 }

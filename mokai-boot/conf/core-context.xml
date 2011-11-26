@@ -60,8 +60,6 @@
 	
 	<bean id="sqlEngine" class="org.mokai.persist.jdbc.sms.DerbyEngine" init-method="init">
 		<property name="dataSource"><ref bean="dataSource" /></property>
-		<property name="tableScripts">
-		</property>
 	</bean>
 	<!-- End of Derby Configuration -->
 	

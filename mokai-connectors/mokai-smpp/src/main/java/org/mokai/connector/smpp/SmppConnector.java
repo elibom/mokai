@@ -767,7 +767,10 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			List<DeliveryReceipt> deliveryReceiptsCopy = new ArrayList<DeliveryReceipt>(deliveryReceipts);
 			
 			for (DeliveryReceipt dr : deliveryReceiptsCopy) { 
-				if (dr.lastProcessedTime == null || (new Date().getTime() - dr.lastProcessedTime.getTime()) > 900) {
+				
+				long idleTime = 900 * dr.retries; 
+				
+				if (dr.lastProcessedTime == null || (new Date().getTime() - dr.lastProcessedTime.getTime()) > idleTime) {
 					process(dr);
 				}
 				
@@ -817,11 +820,19 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 					
 			} else {
 				
-				log.trace(getLogHead() + " could not find message with messageId: " + drMessage.getProperty("messageId", String.class) + " ... trying later");
-				
-				// we couldn't find a matching message, try later 
-				dr.lastProcessedTime = new Date();
-				dr.retries++;
+				// we couldn't find a matching message, remove or try later if less than 6 retries 
+				if (dr.retries > 9) {
+					
+					log.warn(getLogHead() + " could not find message with messageId '" + drMessage.getProperty("messageId", String.class) + "' after " + dr.retries + " retries ... ignoring.");
+					deliveryReceipts.remove(dr);
+					
+				} else {
+					
+					dr.lastProcessedTime = new Date();
+					dr.retries++;
+					
+					log.debug(getLogHead() + " could not find message with messageId: " + drMessage.getProperty("messageId", String.class) + " ... trying later, retry " + dr.retries);
+				}
 			}
 				
 		}

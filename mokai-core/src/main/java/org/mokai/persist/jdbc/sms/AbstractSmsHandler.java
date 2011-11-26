@@ -202,7 +202,7 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 		
 		String strSQL = "SELECT * FROM " + tableName;
 		strSQL += addCommonCriteria(criteria, params);
-		log.debug(strSQL);
+		log.trace("List messages SQL: " + strSQL);
 		
 		PreparedStatement stmt = conn.prepareStatement(strSQL);
 		

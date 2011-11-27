@@ -12,9 +12,9 @@ import java.util.Date;
 
 import javax.sql.DataSource;
 
-import junit.framework.Assert;
-
 import org.apache.commons.dbcp.BasicDataSource;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.mokai.Message;
 import org.mokai.Message.DestinationType;
 import org.mokai.Message.Direction;
@@ -24,6 +24,7 @@ import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.jdbc.JdbcHelper;
 import org.mokai.persist.jdbc.sms.ConnectionsSmsHandler;
 import org.mokai.persist.jdbc.sms.DerbyEngine;
+import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -116,6 +117,7 @@ public class ConnectionsSmsHandlerTest {
 		message.setProperty("from", "1111");
 		message.setProperty("to", "2222");
 		message.setProperty("text", "text");
+		message.setProperty("other", "other value");
 			
 		ConnectionsSmsHandler handler = new ConnectionsSmsHandler();
 		long id = handler.insertMessage(connection, message);
@@ -124,12 +126,17 @@ public class ConnectionsSmsHandlerTest {
 
 			@Override
 			public void validate(ResultSet rs) throws SQLException {
-				Assert.assertEquals(message.getSource(), rs.getString("source"));
-				Assert.assertEquals(message.getSourceType().value(), rs.getByte("sourcetype"));
-				Assert.assertEquals(message.getStatus().value(), rs.getByte("status"));
-				Assert.assertEquals(message.getProperty("from", String.class), rs.getString("smsc_from"));
-				Assert.assertEquals(message.getProperty("to", String.class), rs.getString("smsc_to"));
-				Assert.assertEquals(message.getProperty("text", String.class), rs.getString("smsc_text"));
+				Assert.assertEquals(rs.getString("source"), message.getSource());
+				Assert.assertEquals(rs.getByte("sourcetype"), message.getSourceType().value());
+				Assert.assertEquals(rs.getByte("status"), message.getStatus().value());
+				Assert.assertEquals(rs.getString("smsc_from"), message.getProperty("from", String.class));
+				Assert.assertEquals(rs.getString("smsc_to"), message.getProperty("to", String.class));
+				Assert.assertEquals(rs.getString("smsc_text"), message.getProperty("text", String.class));
+				try { 
+					Assert.assertEquals(rs.getString("other"), new JSONObject().put("other", "other value").toString());
+				} catch (JSONException e) {
+					Assert.fail("shouldn't had to throw exception", e);
+				}
 			}
 			
 		});
@@ -145,6 +152,7 @@ public class ConnectionsSmsHandlerTest {
 		message.setDestination("test");
 		message.setDestinationType(DestinationType.PROCESSOR);
 		message.setProperty("receiptStatus", "DELIVRD");
+		message.setProperty("other", "other value");
 		
 		ConnectionsSmsHandler handler = new ConnectionsSmsHandler();
 		boolean found = handler.updateMessage(connection, message);
@@ -155,11 +163,16 @@ public class ConnectionsSmsHandlerTest {
 
 			@Override
 			public void validate(ResultSet rs) throws SQLException {
-				Assert.assertEquals(message.getStatus().value(), rs.getByte("status"));
-				Assert.assertEquals(message.getDestination(), rs.getString("destination"));
-				Assert.assertEquals(message.getDestinationType().value(), rs.getByte("destinationtype"));
-				Assert.assertEquals(message.getProperty("receiptStatus", String.class), rs.getString("smsc_receiptstatus"));
-				Assert.assertEquals(null, rs.getTimestamp("smsc_receipttime"));
+				Assert.assertEquals(rs.getByte("status"), message.getStatus().value());
+				Assert.assertEquals(rs.getString("destination"), message.getDestination());
+				Assert.assertEquals(rs.getByte("destinationtype"), message.getDestinationType().value());
+				Assert.assertEquals(rs.getString("smsc_receiptstatus"), message.getProperty("receiptStatus", String.class));
+				Assert.assertNull(rs.getTimestamp("smsc_receipttime"));
+				try { 
+					Assert.assertEquals(rs.getString("other"), new JSONObject().put("other", "other value").toString());
+				} catch (JSONException e) {
+					Assert.fail("shouldn't had to throw exception", e);
+				}
 			}
 			
 		});
@@ -184,25 +197,25 @@ public class ConnectionsSmsHandlerTest {
 	@Test
 	public void testUpdateStatusToAllMessages() throws Exception {
 		generateTestData();
-		Assert.assertEquals(3, getNumMessagesByStatus(Status.FAILED));
+		Assert.assertEquals(getNumMessagesByStatus(Status.FAILED), 3);
 		
 		ConnectionsSmsHandler handler = new ConnectionsSmsHandler();
 		handler.updateMessagesStatus(connection, null, Status.RETRYING);
 		
-		Assert.assertEquals(0, getNumMessagesByStatus(Status.FAILED));
-		Assert.assertEquals(9, getNumMessagesByStatus(Status.RETRYING));
+		Assert.assertEquals(getNumMessagesByStatus(Status.FAILED), 0);
+		Assert.assertEquals(getNumMessagesByStatus(Status.RETRYING), 9);
 	}
 	
 	@Test
 	public void testUpdateStatusToFailedMessages() throws Exception {
 		generateTestData();
-		Assert.assertEquals(3, getNumMessagesByStatus(Status.FAILED));
+		Assert.assertEquals(getNumMessagesByStatus(Status.FAILED), 3);
 		
 		ConnectionsSmsHandler handler = new ConnectionsSmsHandler();
 		handler.updateMessagesStatus(connection, new MessageCriteria().addStatus(Status.FAILED), Status.RETRYING);
 		
-		Assert.assertEquals(0, getNumMessagesByStatus(Status.FAILED));
-		Assert.assertEquals(3, getNumMessagesByStatus(Status.RETRYING));
+		Assert.assertEquals(getNumMessagesByStatus(Status.FAILED), 0);
+		Assert.assertEquals(getNumMessagesByStatus(Status.RETRYING), 3);
 	}
 	
 	@Test
@@ -215,7 +228,7 @@ public class ConnectionsSmsHandlerTest {
 		Collection<Message> messages = handler.listMessages(connection, null);
 		
 		Assert.assertFalse(messages.isEmpty());
-		Assert.assertEquals(9, messages.size());
+		Assert.assertEquals(messages.size(), 9);
 	}
 	
 	@Test
@@ -231,7 +244,7 @@ public class ConnectionsSmsHandlerTest {
 		Collection<Message> messages = handler.listMessages(connection, criteria);
 		
 		Assert.assertFalse(messages.isEmpty());
-		Assert.assertEquals(3, messages.size());
+		Assert.assertEquals(messages.size(), 3);
 	}
 	
 	@Test
@@ -246,7 +259,7 @@ public class ConnectionsSmsHandlerTest {
 		
 		Collection<Message> messages = handler.listMessages(connection, criteria);
 		
-		Assert.assertEquals(1, messages.size());
+		Assert.assertEquals(messages.size(), 1);
 	}
 	
 	@Test
@@ -261,7 +274,7 @@ public class ConnectionsSmsHandlerTest {
 		
 		Collection<Message> messages = handler.listMessages(connection, criteria);
 		
-		Assert.assertEquals(3, messages.size());
+		Assert.assertEquals(messages.size(), 3);
 	}
 	
 	private int getNumMessagesByStatus(Status status) throws SQLException {
@@ -314,7 +327,7 @@ public class ConnectionsSmsHandlerTest {
 		}
 	}
 	
-	private void generateTestData() throws SQLException {
+	private void generateTestData() throws SQLException, JSONException {
 		Connection conn = null;
 		PreparedStatement stmt = null;
 		
@@ -326,7 +339,8 @@ public class ConnectionsSmsHandlerTest {
 					"destinationtype, " +
 					"status, " +
 					"smsc_messageid, " +
-					"creation_time) VALUES (?, ?, ?, ?, ?, ?)");
+					"other, " +
+					"creation_time) VALUES (?, ?, ?, ?, ?, ?, ?)");
 			
 			// create 3 failed messages
 			createMessage(stmt, Status.FAILED.value(), "1");
@@ -348,14 +362,15 @@ public class ConnectionsSmsHandlerTest {
 		}
 	}
 	
-	private void createMessage(PreparedStatement stmt, byte status, String messageId) throws SQLException {
+	private void createMessage(PreparedStatement stmt, byte status, String messageId) throws SQLException, JSONException {
 		
 		stmt.setString(1, "test");
 		stmt.setByte(2, SourceType.RECEIVER.value());
 		stmt.setByte(3, DestinationType.UNKNOWN.value());
 		stmt.setByte(4, status);
 		stmt.setString(5, messageId);
-		stmt.setTimestamp(6, new Timestamp(new Date().getTime()));
+		stmt.setString(6, new JSONObject().put("other", "other value").toString());
+		stmt.setTimestamp(7, new Timestamp(new Date().getTime()));
 		
 		stmt.execute();
 	}

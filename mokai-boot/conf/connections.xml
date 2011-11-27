@@ -3,9 +3,9 @@
 <connectors xmlns="http://mokai.googlecode.com/connectors" 
 		    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		    xsi:schemaLocation=
-		   		"http://mokai.googlecode.com/connectors http://mokai.googlecode.com/svn/schema/connectors-0.3.xsd">
+		   		"http://mokai.googlecode.com/connectors http://mokai.googlecode.com/svn/schema/connectors-0.4.xsd">
 		   		
-  <connector id="smpp-test" priority="700" className="org.mokai.connector.smpp.SmppConnector">
+  <!-- <connector id="smpp-test" priority="700" className="org.mokai.connector.smpp.SmppConnector">
   	<configuration>
   		<property name="host">localhost</property>
   		<property name="port">8321</property>
@@ -15,14 +15,20 @@
     <acceptors>
       <acceptor className="org.mokai.acceptor.AcceptAllAcceptor" />
     </acceptors>
-  </connector>
+  </connector> -->
   
   <connector id="http-test" priority="1000" className="org.mokai.connector.http.HttpConnector">
   	<configuration>
   		<property name="url">http://www.google.com/</property>
   	</configuration>
   	<acceptors>
-      <acceptor className="org.mokai.acceptor.AcceptAllAcceptor" />
+      	<and>
+      		<acceptor className="org.mokai.acceptor.AcceptAllAcceptor" />
+      		<acceptor className="org.mokai.acceptor.ExactMatchAcceptor">
+      			<property name="field">from</property>
+      			<property name="expression">3542</property>
+      		</acceptor>
+      	</and>
     </acceptors>
   </connector>
   

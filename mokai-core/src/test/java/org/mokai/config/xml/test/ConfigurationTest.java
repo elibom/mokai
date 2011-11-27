@@ -2,8 +2,8 @@ package org.mokai.config.xml.test;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.endsWith;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -18,8 +18,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import junit.framework.Assert;
-
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
@@ -30,15 +28,18 @@ import org.mokai.Action;
 import org.mokai.Connector;
 import org.mokai.ConnectorService;
 import org.mokai.Processor;
+import org.mokai.acceptor.AndAcceptor;
 import org.mokai.config.ConfigurationException;
 import org.mokai.config.xml.AbstractConfiguration;
 import org.mokai.plugin.PluginMechanism;
 import org.mokai.types.mock.MockAcceptor;
+import org.mokai.types.mock.MockAcceptorWithAcceptor;
 import org.mokai.types.mock.MockAction;
 import org.mokai.types.mock.MockConfigurableAcceptor;
 import org.mokai.types.mock.MockConfigurableAction;
 import org.mokai.types.mock.MockConfigurableConnector;
 import org.mokai.types.mock.MockConnector;
+import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
@@ -164,6 +165,74 @@ public class ConfigurationTest {
 		return pluginMechanism;
 	}
 	
+	@Test
+	public void shouldLoadFileWithNestedAcceptors() throws Exception {
+		String path = "src/test/resources/config-test/nested-acceptors-connectors.xml";
+
+		ConfigDelegator delegator = new ConfigDelegatorImpl();
+		
+		MockConfiguration config = new MockConfiguration(delegator);
+		config.setPath(path);
+		
+		config.load();
+		
+		List<ConnectorService> connectorServices = delegator.getConnectors();
+		Assert.assertNotNull(connectorServices);
+		Assert.assertEquals(connectorServices.size(), 1);
+		
+		ConnectorService connectorService = connectorServices.iterator().next();
+		Assert.assertNotNull(connectorService);
+		
+		List<Acceptor> acceptors = connectorService.getAcceptors();
+		Assert.assertNotNull(acceptors);
+		Assert.assertEquals(acceptors.size(), 1);
+		
+		MockAcceptorWithAcceptor acceptor = (MockAcceptorWithAcceptor) acceptors.iterator().next();
+		Assert.assertNotNull(acceptor);
+		Assert.assertNotNull(acceptor.getAcceptor());
+		
+		Assert.assertEquals(acceptor.getListAcceptors().size(), 1);
+		Assert.assertEquals(acceptor.getMapAcceptors().size(), 1);
+		
+	}
+	
+	@Test
+	public void shouldLoadFileWithAndAcceptors() throws Exception {
+		String path = "src/test/resources/config-test/and-acceptors-connectors.xml";
+
+		ConfigDelegator delegator = new ConfigDelegatorImpl();
+		
+		MockConfiguration config = new MockConfiguration(delegator);
+		config.setPath(path);
+		
+		config.load();
+		
+		List<ConnectorService> connectorServices = delegator.getConnectors();
+		Assert.assertNotNull(connectorServices);
+		Assert.assertEquals(connectorServices.size(), 1);
+		
+		ConnectorService connectorService = connectorServices.iterator().next();
+		Assert.assertNotNull(connectorService);
+		
+		List<Acceptor> acceptors = connectorService.getAcceptors();
+		Assert.assertNotNull(acceptors);
+		Assert.assertEquals(acceptors.size(), 3);
+		
+		Acceptor acceptor0 = acceptors.get(0);
+		Assert.assertNotNull(acceptor0);
+		Assert.assertEquals(acceptor0.getClass(), AndAcceptor.class);
+		Assert.assertEquals(((AndAcceptor) acceptor0).getAcceptors().size(), 2); 
+		
+		Acceptor acceptor1 = acceptors.get(1);
+		Assert.assertNotNull(acceptor1);
+		Assert.assertEquals(acceptor1.getClass(), AndAcceptor.class);
+		Assert.assertEquals(((AndAcceptor) acceptor1).getAcceptors().size(), 2);
+		
+		Acceptor acceptor2 = acceptors.get(2);
+		Assert.assertNotNull(acceptor2);
+		Assert.assertEquals(acceptor2.getClass(), MockAcceptor.class);
+	}
+	
 	@Test(expectedExceptions=ConfigurationException.class)
 	public void shouldFailLoadEmptyFile() throws Exception {
 		String path = "src/test/resources/config-test/empty-connectors.xml";
@@ -251,10 +320,10 @@ public class ConfigurationTest {
 
 			@Override
 			public void validate(Element rootElement) {
-				Assert.assertEquals("connectors", rootElement.getName());
+				Assert.assertEquals(rootElement.getName(), "connectors");
 				
 				// validate no receivers
-				Assert.assertEquals(0, rootElement.elements("connector").size());
+				Assert.assertEquals(rootElement.elements("connector").size(), 0);
 			}
 			
 		}.validate();
@@ -286,21 +355,21 @@ public class ConfigurationTest {
 
 			@Override
 			public void validate(Element rootElement) {
-				Assert.assertEquals("connectors", rootElement.getName());
+				Assert.assertEquals(rootElement.getName(), "connectors");
 				
 				// validate connector
-				Assert.assertEquals(1, rootElement.elements("connector").size());
+				Assert.assertEquals(rootElement.elements("connector").size(), 1);
 				Element connectorElement = rootElement.element("connector");
-				Assert.assertEquals(3, connectorElement.attributeCount());
-				Assert.assertEquals("test", connectorElement.attributeValue("id"));
-				Assert.assertEquals("1000", connectorElement.attributeValue("priority"));
-				Assert.assertEquals("org.mokai.types.mock.MockConnector", connectorElement.attributeValue("className"));
+				Assert.assertEquals(connectorElement.attributeCount(), 3);
+				Assert.assertEquals(connectorElement.attributeValue("id"), "test");
+				Assert.assertEquals(connectorElement.attributeValue("priority"), "1000");
+				Assert.assertEquals(connectorElement.attributeValue("className"), "org.mokai.types.mock.MockConnector");
 				
 				// validate no additional
-				Assert.assertEquals(0, connectorElement.elements("acceptors").size());
-				Assert.assertEquals(0, connectorElement.elements("pre-processing-actions").size());
-				Assert.assertEquals(0, connectorElement.elements("post-processing-actions").size());
-				Assert.assertEquals(0, connectorElement.elements("post-receiving-actions").size());
+				Assert.assertEquals(connectorElement.elements("acceptors").size(), 0);
+				Assert.assertEquals(connectorElement.elements("pre-processing-actions").size(), 0);
+				Assert.assertEquals(connectorElement.elements("post-processing-actions").size(), 0);
+				Assert.assertEquals(connectorElement.elements("post-receiving-actions").size(), 0);
 			}
 			
 		}.validate();
@@ -339,32 +408,32 @@ public class ConfigurationTest {
 
 			@Override
 			public void validate(Element rootElement) {
-				Assert.assertEquals("connectors", rootElement.getName());
+				Assert.assertEquals(rootElement.getName(), "connectors");
 				
 				// validate connector
 				Assert.assertEquals(1, rootElement.elements("connector").size());
 				Element connectorElement = rootElement.element("connector");
 				Assert.assertEquals(3, connectorElement.attributeCount());
-				Assert.assertEquals("test", connectorElement.attributeValue("id"));
-				Assert.assertEquals("1000", connectorElement.attributeValue("priority"));
-				Assert.assertEquals("org.mokai.types.mock.MockConnector", connectorElement.attributeValue("className"));
+				Assert.assertEquals(connectorElement.attributeValue("id"), "test");
+				Assert.assertEquals(connectorElement.attributeValue("priority"), "1000");
+				Assert.assertEquals(connectorElement.attributeValue("className"), "org.mokai.types.mock.MockConnector");
 				
 				// validate additional
-				Assert.assertEquals(1, connectorElement.elements("acceptors").size());
+				Assert.assertEquals(connectorElement.elements("acceptors").size(), 1);
 				Element acceptorsElement = connectorElement.element("acceptors");
-				Assert.assertEquals(2, acceptorsElement.elements("acceptor").size());
+				Assert.assertEquals(acceptorsElement.elements("acceptor").size(), 2);
 				
-				Assert.assertEquals(1, connectorElement.elements("pre-processing-actions").size());
+				Assert.assertEquals(connectorElement.elements("pre-processing-actions").size(), 1);
 				Element preProcessingActionsElement = connectorElement.element("pre-processing-actions");
-				Assert.assertEquals(2, preProcessingActionsElement.elements("action").size());
+				Assert.assertEquals(preProcessingActionsElement.elements("action").size(), 2);
 				
-				Assert.assertEquals(1, connectorElement.elements("post-processing-actions").size());
+				Assert.assertEquals(connectorElement.elements("post-processing-actions").size(), 1);
 				Element postProcessingActionsElement = connectorElement.element("post-processing-actions");
-				Assert.assertEquals(2, postProcessingActionsElement.elements("action").size());
+				Assert.assertEquals(postProcessingActionsElement.elements("action").size(), 2);
 				
-				Assert.assertEquals(1, connectorElement.elements("post-receiving-actions").size());
+				Assert.assertEquals(connectorElement.elements("post-receiving-actions").size(), 1);
 				Element postReceivingActionsElement = connectorElement.element("post-receiving-actions");
-				Assert.assertEquals(2, postReceivingActionsElement.elements("action").size());
+				Assert.assertEquals(postReceivingActionsElement.elements("action").size(), 2);
 			}
 			
 		}.validate();
@@ -397,10 +466,10 @@ public class ConfigurationTest {
 
 			@Override
 			public void validate(Element rootElement) {
-				Assert.assertEquals("connectors", rootElement.getName());
+				Assert.assertEquals(rootElement.getName(), "connectors");
 				
 				// validate receiver
-				Assert.assertEquals(2, rootElement.elements("connector").size());
+				Assert.assertEquals(rootElement.elements("connector").size(), 2);
 			}
 			
 		}.validate();
@@ -437,62 +506,57 @@ public class ConfigurationTest {
 
 			@Override
 			public void validate(Element rootElement) {
-				Assert.assertEquals("connectors", rootElement.getName());
+				Assert.assertEquals(rootElement.getName(), "connectors");
 				
 				// validate connector
-				Assert.assertEquals(1, rootElement.elements("connector").size());
+				Assert.assertEquals(rootElement.elements("connector").size(), 1);
 				Element connectorElement = rootElement.element("connector");
-				Assert.assertEquals(3, connectorElement.attributeCount());
-				Assert.assertEquals("test", connectorElement.attributeValue("id"));
-				Assert.assertEquals("1000", connectorElement.attributeValue("priority"));
-				Assert.assertEquals("org.mokai.types.mock.MockConfigurableConnector", 
-						connectorElement.attributeValue("className"));
+				Assert.assertEquals(connectorElement.attributeCount(), 3);
+				Assert.assertEquals(connectorElement.attributeValue("id"), "test");
+				Assert.assertEquals(connectorElement.attributeValue("priority"), "1000");
+				Assert.assertEquals(connectorElement.attributeValue("className"), "org.mokai.types.mock.MockConfigurableConnector");
 				
 				Element configurationElement = connectorElement.element("configuration");
 				validateProperties(configurationElement, "test", "0");
 				
 				// validate acceptors
-				Assert.assertEquals(1, connectorElement.elements("acceptors").size());
+				Assert.assertEquals(connectorElement.elements("acceptors").size(), 1);
 				Element acceptorsElement = connectorElement.element("acceptors");
 				
-				Assert.assertEquals(1, acceptorsElement.elements("acceptor").size());
+				Assert.assertEquals(acceptorsElement.elements("acceptor").size(), 1);
 				Element acceptorElement = acceptorsElement.element("acceptor");
-				Assert.assertEquals(1, acceptorElement.attributeCount());
-				Assert.assertEquals("org.mokai.types.mock.MockConfigurableAcceptor", 
-						acceptorElement.attributeValue("className"));
+				Assert.assertEquals(acceptorElement.attributeCount(), 1);
+				Assert.assertEquals(acceptorElement.attributeValue("className"), "org.mokai.types.mock.MockConfigurableAcceptor");
 				validateProperties(acceptorElement, "test1", "1");
 				
 				// validate pre-processing-actions
-				Assert.assertEquals(1, connectorElement.elements("pre-processing-actions").size());
+				Assert.assertEquals(connectorElement.elements("pre-processing-actions").size(), 1);
 				Element preProcessingActionsElement = connectorElement.element("pre-processing-actions");
 				
-				Assert.assertEquals(1, preProcessingActionsElement.elements("action").size());
+				Assert.assertEquals(preProcessingActionsElement.elements("action").size(), 1);
 				Element preProcessingActionElement = preProcessingActionsElement.element("action");
-				Assert.assertEquals(1, preProcessingActionElement.attributeCount());
-				Assert.assertEquals("org.mokai.types.mock.MockConfigurableAction", 
-						preProcessingActionElement.attributeValue("className"));
+				Assert.assertEquals(preProcessingActionElement.attributeCount(), 1);
+				Assert.assertEquals(preProcessingActionElement.attributeValue("className"), "org.mokai.types.mock.MockConfigurableAction");
 				validateProperties(preProcessingActionElement, "test1", "1");
 				
 				// validate post-processing-actions
-				Assert.assertEquals(1, connectorElement.elements("post-processing-actions").size());
+				Assert.assertEquals(connectorElement.elements("post-processing-actions").size(), 1);
 				Element postProcessingActionsElement = connectorElement.element("post-processing-actions");
 				
-				Assert.assertEquals(1, postProcessingActionsElement.elements("action").size());
+				Assert.assertEquals(postProcessingActionsElement.elements("action").size(), 1);
 				Element postProcessingActionElement = postProcessingActionsElement.element("action");
-				Assert.assertEquals(1, postProcessingActionElement.attributeCount());
-				Assert.assertEquals("org.mokai.types.mock.MockConfigurableAction", 
-						postProcessingActionElement.attributeValue("className"));
+				Assert.assertEquals(postProcessingActionElement.attributeCount(), 1);
+				Assert.assertEquals(postProcessingActionElement.attributeValue("className"), "org.mokai.types.mock.MockConfigurableAction");
 				validateProperties(postProcessingActionElement, "test1", "1");
 				
 				// validate post-receiving-actions
-				Assert.assertEquals(1, connectorElement.elements("post-receiving-actions").size());
+				Assert.assertEquals(connectorElement.elements("post-receiving-actions").size(), 1);
 				Element postReceivingActionsElement = connectorElement.element("post-receiving-actions");
 				
-				Assert.assertEquals(1, postReceivingActionsElement.elements("action").size());
+				Assert.assertEquals(postReceivingActionsElement.elements("action").size(), 1);
 				Element postReceivingActionElement = postReceivingActionsElement.element("action");
-				Assert.assertEquals(1, postReceivingActionElement.attributeCount());
-				Assert.assertEquals("org.mokai.types.mock.MockConfigurableAction", 
-						postReceivingActionElement.attributeValue("className"));
+				Assert.assertEquals(postReceivingActionElement.attributeCount(), 1);
+				Assert.assertEquals(postReceivingActionElement.attributeValue("className"), "org.mokai.types.mock.MockConfigurableAction");
 				validateProperties(postReceivingActionElement, "test1", "1");
 			}
 			
@@ -503,11 +567,11 @@ public class ConfigurationTest {
 	@SuppressWarnings("rawtypes")
 	private void validateProperties(Element parentElement, String config1, String config2) {
 		// validate connector properties
-		Assert.assertEquals(2, parentElement.elements("property").size());
+		Assert.assertEquals(parentElement.elements("property").size(), 2);
 		Iterator connectorProperties = parentElement.elements("property").iterator();
 		while (connectorProperties.hasNext()) {
 			Element propertyElement = (Element) connectorProperties.next();
-			Assert.assertEquals(1, propertyElement.attributeCount());
+			Assert.assertEquals(propertyElement.attributeCount(), 1);
 			
 			String propertyName = propertyElement.attributeValue("name");
 			String propertyValue = propertyElement.getText();
@@ -546,6 +610,24 @@ public class ConfigurationTest {
 		ConnectorService addConnector(String id, Connector connector);
 		
 		List<ConnectorService> getConnectors();
+	}
+	
+	private class ConfigDelegatorImpl implements ConfigDelegator {
+		
+		private List<ConnectorService> connectorServices = new ArrayList<ConnectorService>();
+
+		@Override
+		public ConnectorService addConnector(String id, Connector connector) {
+			ConnectorService connectorService = new MockConnectorService(id);
+			connectorServices.add(connectorService);
+			return connectorService;
+		}
+
+		@Override
+		public List<ConnectorService> getConnectors() {
+			return connectorServices;
+		}
+		
 	}
 	
 	private ConnectorService mockConnectorService(String id, int priority, Processor processor, 

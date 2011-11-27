@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<connectors xmlns="http://mokai.googlecode.com/connectors" 
+		    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		    xsi:schemaLocation=
+		   		"http://mokai.googlecode.com/connectors http://mokai.googlecode.com/svn/schema/connectors-0.4.xsd">
+		   		
+	<connector id="test-1" priority="1" maxConcurrentMsgs="10" className="org.mokai.types.mock.MockConnector">
+		<acceptors>
+			<and>
+				<acceptor className="org.mokai.types.mock.MockAcceptor" />
+				<acceptor className="org.mokai.types.mock.MockAcceptorWithAcceptor" />
+			</and>
+			<and>
+				<acceptor className="org.mokai.types.mock.MockAcceptor" />
+				<acceptor className="org.mokai.types.mock.MockAcceptorWithAcceptor" />
+			</and>
+			<acceptor className="org.mokai.types.mock.MockAcceptor" />
+		</acceptors>
+	</connector>
+	
+</connectors>

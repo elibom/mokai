@@ -9,7 +9,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * Used to annotate a connector or a collection of connectors. Tells the UI to show a list of connectors. 
+ * Used to annotate an acceptor or a collection of acceptors. Tells the UI to show a list of acceptors. 
  * 
  * @author German Escobar
  */
@@ -17,6 +17,6 @@ import java.lang.annotation.Target;
 @Retention(value=RUNTIME)
 @Target(value=FIELD)
 @Inherited
-public @interface ConnectorsList {
+public @interface AcceptorsList {
 
 }

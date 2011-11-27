@@ -102,7 +102,7 @@ public abstract class AbstractConfiguration implements Configuration {
 	private void handleConnectorElement(final Element connectorElement) throws Exception {
 		
 		// build the processor connector
-		final Connector connector = buildConnector(connectorElement);
+		final Connector connector = buildConnector(connectorElement, true);
 		
 		// build the acceptors
 		final List<Acceptor> acceptors = buildAcceptors(connectorElement.element("acceptors"));
@@ -170,7 +170,9 @@ public abstract class AbstractConfiguration implements Configuration {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private Connector buildConnector(Element element) throws Exception {
+	private Connector buildConnector(Element element, boolean hasConfigElement) throws ClassNotFoundException, InstantiationException, IllegalAccessException, SecurityException, 
+				IllegalArgumentException, NoSuchFieldException, NoSuchMethodException {
+		
 		String className = element.attributeValue("className");
 		
 		Class<? extends Connector> connectorClass = null;
@@ -188,9 +190,13 @@ public abstract class AbstractConfiguration implements Configuration {
 		if (ExposableConfiguration.class.isInstance(connector)) {
 			ExposableConfiguration<?> configurableConnector = (ExposableConfiguration<?>) connector;
 
-			Element configurationElement = element.element("configuration");
-			if (configurationElement != null) {
-				setConfigurationFields(configurationElement, configurableConnector.getConfiguration());
+			if (hasConfigElement) {
+				Element configurationElement = element.element("configuration");
+				if (configurationElement != null) {
+					setConfigurationFields(configurationElement, configurableConnector.getConfiguration());
+				}
+			} else {
+				setConfigurationFields(element, configurableConnector.getConfiguration());
 			}
 		}
 		
@@ -452,7 +458,12 @@ public abstract class AbstractConfiguration implements Configuration {
 			return null;
 			
 		} else if (elementValue.getName().equals("acceptor")) {
+			
 			return buildAcceptor(elementValue);
+			
+		} else if (elementValue.getName().equals("connector")) {
+			
+			return buildConnector(elementValue, false);
 		}
 		
 		return "";

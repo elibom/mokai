@@ -34,8 +34,9 @@ public class MockConnectorService implements ConnectorService {
 	
 	private List<Action> postReceivingActions = new ArrayList<Action>();
 	
-	public MockConnectorService(String id) {
+	public MockConnectorService(String id, Connector connector) {
 		this.id = id;
+		this.connector = connector;
 	}
 
 	@Override

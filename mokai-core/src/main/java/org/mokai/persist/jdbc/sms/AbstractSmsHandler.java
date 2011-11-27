@@ -10,9 +10,12 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.mokai.Message;
 import org.mokai.Message.DestinationType;
 import org.mokai.Message.Direction;
@@ -26,6 +29,10 @@ import org.mokai.persist.jdbc.SqlEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * 
+ * @author German Escobar
+ */
 public abstract class AbstractSmsHandler implements MessageHandler {
 	
 	private Logger log = LoggerFactory.getLogger(AbstractSmsHandler.class);
@@ -33,6 +40,8 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 	private SqlEngine sqlEngine;
 	
 	private String tableName = getDefaultTableName();
+	
+	private final String[] KNOWN_PROPERTIES = { "to", "from", "text", "sequenceNumber", "messageId", "commandStatus", "receiptStatus", "receiptTime" };
 
 	@Override
 	public final long insertMessage(Connection conn, Message message) throws SQLException {
@@ -54,8 +63,9 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 			"smsc_commandstatus, " +
 			"smsc_receiptstatus, " +
 			"smsc_receipttime, " +
+			"other, " + 
 			"creation_time) " +
-			"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 		// create the prepared statement
 		PreparedStatement stmt = conn.prepareStatement(strSQL, Statement.RETURN_GENERATED_KEYS);
@@ -105,7 +115,53 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 		Date receiptTime = message.getProperty("receiptTime", Date.class);
 		stmt.setTimestamp(15, receiptTime != null ? new Timestamp(receiptTime.getTime()) : null);
 		
-		stmt.setTimestamp(16, new Timestamp(message.getCreationTime().getTime()));
+		stmt.setString(16, buildJSON(message));
+		
+		stmt.setTimestamp(17, new Timestamp(message.getCreationTime().getTime()));
+	}
+	
+	/**
+	 * Helper method. Builds a JSON representation of all the "unknown" properties of the message (ie. properties that don't 
+	 * have an associated column in the db). 
+	 * 
+	 * @param message the message from which we are retreiving the properties to build the JSON object.
+	 * @return a String representation of the JSON object.
+	 */
+	private String buildJSON(Message message)  {
+		
+		JSONObject obj = new JSONObject();
+		
+		for (Map.Entry<String, Object> entry : message.getProperties().entrySet()) {
+			
+			if (!isKnownProperty(entry.getKey())) {
+				
+				try { 
+					obj.put(entry.getKey(), entry.getValue());
+				} catch (JSONException e) {
+					log.error("Could not persist JSON property '" + entry.getKey() + "': " + e.getMessage(), e);
+				}
+				
+			}
+		}
+		
+		return obj.toString();
+	}
+	
+	/**
+	 * Helper method. Tells if a property is in the list of known properties (ie. the properties that don't have an associated
+	 * column in the db).
+	 * 
+	 * @param property the property we are testing against the known properties.
+	 * @return true if it is a "known property", false otherwise.
+	 */
+	private boolean isKnownProperty(String property) {
+		for (String knownProperty : KNOWN_PROPERTIES) {
+			if (property.equals(knownProperty)) {
+				return true;
+			}
+		}
+		
+		return false;
 	}
 	
 	@Override
@@ -120,6 +176,7 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 				"smsc_messageid = ?, " +
 				"smsc_receiptstatus = ?, " +
 				"smsc_receipttime = ?, " +
+				"other = ?, " +
 				"modification_time = ? " +
 				"WHERE id = ?";
 		
@@ -153,14 +210,15 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 			stmt.setTimestamp(8, null);
 		}
 		
+		stmt.setString(9, buildJSON(message));
+		
 		if (message.getModificationTime() != null) {
-			stmt.setTimestamp(9, new Timestamp(message.getModificationTime().getTime()));
+			stmt.setTimestamp(10, new Timestamp(message.getModificationTime().getTime()));
 		} else {
-			stmt.setTimestamp(9, null);
+			stmt.setTimestamp(10, null);
 		}
 			
-		stmt.setLong(10, message.getId());
-		
+		stmt.setLong(11, message.getId());
 		
 		int affected = stmt.executeUpdate();
 		
@@ -311,6 +369,7 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 		return ret;
 	}
 	
+	@SuppressWarnings("rawtypes")
 	private Collection<Message> createMessages(ResultSet rs) throws SQLException {
 		
 		Collection<Message> messages = new ArrayList<Message>();
@@ -337,6 +396,20 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 			message.setProperty("commandStatus", rs.getInt("smsc_commandstatus"));
 			message.setProperty("receiptStatus", rs.getString("smsc_receiptstatus"));
 			message.setProperty("receiptTime", rs.getTimestamp("smsc_receipttime"));
+			
+			String jsonString = rs.getString("other");
+			try {
+				JSONObject json = new JSONObject(jsonString);
+				
+				Iterator iterator = json.keys();
+				while (iterator.hasNext()) {
+					String key = (String) iterator.next();
+					message.setProperty(key, json.get(key));
+				}
+				
+			} catch (JSONException e) {
+				log.error("JSONException while retreiving string: " + jsonString + ": " + e.getMessage(), e);
+			}
 			
 			message.setCreationTime(rs.getTimestamp("creation_time"));
 			message.setModificationTime(rs.getTimestamp("modification_time"));

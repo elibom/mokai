@@ -62,6 +62,7 @@ public class DerbyEngine implements SqlEngine {
 					"smsc_commandstatus INTEGER, " +
 					"smsc_receiptstatus VARCHAR(20), " +
 					"smsc_receipttime TIMESTAMP, " +
+					"other VARCHAR(1000), " +
 					"creation_time TIMESTAMP NOT NULL, " +
 					"modification_time TIMESTAMP)";
 	}
@@ -84,6 +85,7 @@ public class DerbyEngine implements SqlEngine {
 					"smsc_commandstatus INTEGER, " +
 					"smsc_receiptstatus VARCHAR(20), " +
 					"smsc_receipttime TIMESTAMP, " +
+					"other VARCHAR(1000), " +
 					"creation_time TIMESTAMP NOT NULL, " +
 					"modification_time TIMESTAMP)";
 	}

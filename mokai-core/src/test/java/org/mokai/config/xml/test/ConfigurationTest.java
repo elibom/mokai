@@ -39,6 +39,7 @@ import org.mokai.types.mock.MockConfigurableAcceptor;
 import org.mokai.types.mock.MockConfigurableAction;
 import org.mokai.types.mock.MockConfigurableConnector;
 import org.mokai.types.mock.MockConnector;
+import org.mokai.types.mock.MockConnectorWithConnectors;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
@@ -163,6 +164,40 @@ public class ConfigurationTest {
 			});
 		
 		return pluginMechanism;
+	}
+	
+	@Test
+	public void shouldLoadFileWithNestedConnectors() throws Exception {
+		String path = "src/test/resources/config-test/nested-connectors-connectors.xml";
+		
+		ConfigDelegator delegator = new ConfigDelegatorImpl();
+		
+		MockConfiguration config = new MockConfiguration(delegator);
+		config.setPath(path);
+		
+		config.load();
+		
+		List<ConnectorService> connectorServices = delegator.getConnectors();
+		Assert.assertNotNull(connectorServices);
+		Assert.assertEquals(connectorServices.size(), 1);
+		
+		ConnectorService connectorService = connectorServices.iterator().next();
+		Assert.assertNotNull(connectorService);
+		
+		MockConnectorWithConnectors connector = (MockConnectorWithConnectors) connectorService.getConnector();
+		Assert.assertNotNull(connector);
+		
+		Assert.assertNotNull(connector.getConnector());
+		Assert.assertEquals(connector.getListConnectors().size(), 1);
+		Assert.assertEquals(connector.getMapConnectors().size(), 1);
+		
+		Connector innerConnector = connector.getMapConnectors().get("test-1");
+		Assert.assertNotNull(innerConnector);
+		Assert.assertEquals(innerConnector.getClass(), MockConfigurableConnector.class);
+
+		Assert.assertEquals(((MockConfigurableConnector) innerConnector).getConfig1(), "config1");
+		Assert.assertEquals(((MockConfigurableConnector) innerConnector).getConfig2(), 2);
+		
 	}
 	
 	@Test
@@ -618,7 +653,7 @@ public class ConfigurationTest {
 
 		@Override
 		public ConnectorService addConnector(String id, Connector connector) {
-			ConnectorService connectorService = new MockConnectorService(id);
+			ConnectorService connectorService = new MockConnectorService(id, connector);
 			connectorServices.add(connectorService);
 			return connectorService;
 		}

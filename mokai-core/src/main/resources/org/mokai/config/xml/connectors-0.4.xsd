@@ -26,7 +26,6 @@
         	<xs:attribute name="priority" type="xs:int" />
 			<xs:attribute name="maxConcurrentMsgs" type="xs:int" />
         	<xs:attribute name="className" type="xs:string" use="required" />
-        	<xs:attribute name="type" type="xs:string" />
         </xs:complexType>
 	</xs:element>
 	
@@ -90,14 +89,14 @@
 			<xs:element ref="connectors:listProperty"/>
 		</xs:choice>
 		
-		<xs:attribute name="className" type="xs:string" />			
-		<xs:attribute name="type" type="xs:string" />
+		<xs:attribute name="className" type="xs:string" use="required" />
 	</xs:complexType>
 	
 	<xs:element name="property">
 		<xs:complexType mixed="true">
 			<xs:sequence>
           		<xs:element ref="connectors:acceptor" minOccurs="0" />
+          		<xs:element name="connector" type="connectors:extensionType" minOccurs="0" />
         	</xs:sequence>
 			<xs:attribute name="name" type="xs:string" use="required" />
 			<xs:attribute name="value" type="xs:string" />
@@ -111,6 +110,7 @@
 					<xs:complexType mixed="true">
 						<xs:sequence>
           					<xs:element ref="connectors:acceptor" minOccurs="0" />
+          					<xs:element name="connector" type="connectors:extensionType" minOccurs="0" />
         				</xs:sequence>
 						<xs:attribute name="key" type="xs:string" use="required" />
 						<xs:attribute name="value" type="xs:string" />
@@ -129,6 +129,7 @@
 					<xs:complexType mixed="true">
 						<xs:sequence>
           					<xs:element ref="connectors:acceptor" minOccurs="0" />
+          					<xs:element name="connector" type="connectors:extensionType" minOccurs="0" />
         				</xs:sequence>
 						<xs:attribute name="value" type="xs:string" />
 					</xs:complexType>

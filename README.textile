@@ -1,6 +1,6 @@
-h1. Mokai Gateway
+h1. Mokai SMS Gateway
 
-Mokai is a messaging gateway server that routes messages between applications and mobile operators without having to write complex rules or routes. It supports a variety of mechanisms and protocols including HTTP, Mail, SMPP and JMS (Java Message Service), among others.
+Mokai is a *messaging gateway server* that routes messages between endpoints (e.g. from applications to mobile operators or between applications) without having to write complex rules or routes. It supports a variety of mechanisms and protocols including HTTP, Mail, SMPP and JMS (Java Message Service), among others.
 
 h2. Features
 
@@ -9,9 +9,8 @@ h2. Features
  * Handle any type of message.
  * Use any storage mechanism. Built-in support for MySQL and Apache Derby is provided.
  * Manage and monitor the gateway using the Web Administration Console.
- * Hot-deploy extensions using the plugin mechanism.
  
- h2. Documentation
+h2. Documentation
  
   * "User Guide":http://code.google.com/p/mokai/wiki/UserGuide
   * "Javadoc":http://mokai.googlecode.com/svn/api/0.3.1/index.html

@@ -1,18 +1,17 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	
 	<parent>
-		<artifactId>mokai-connectors</artifactId>
 		<groupId>org.mokai</groupId>
+		<artifactId>mokai-connectors</artifactId>
 		<version>1.0.0-SNAPSHOT</version>
 	</parent>
 	
-	<groupId>org.mokai</groupId>
-	<artifactId>mokai-camel-jetty</artifactId>
-	
-	<name>Mokai Camel Jetty Connector</name>
-	<description>Mokai Camel Jetty Connector Module</description>
+	<artifactId>mokai-jetty</artifactId>
+
+	<name>Mokai Jetty Connector</name>
+	<description>Mokai Jetty Connector Module</description>
 	
 	<dependencies>
 		<dependency>
@@ -22,46 +21,28 @@
 		</dependency>
 		
 		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-jetty</artifactId>
-			<version>${camel.version}</version>
+    		<groupId>org.eclipse.jetty</groupId>
+    		<artifactId>jetty-server</artifactId>
+    		<version>${jetty.version}</version>
+		</dependency>
+		<dependency>
+    		<groupId>org.eclipse.jetty</groupId>
+    		<artifactId>jetty-servlet</artifactId>
+    		<version>${jetty.version}</version>
 		</dependency>
 		
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.testng</groupId>
-			<artifactId>testng</artifactId>
-			<version>${testng.version}</version>
-			<scope>test</scope>
-		</dependency>
 		<dependency>
   			<groupId>commons-httpclient</groupId>
   			<artifactId>commons-httpclient</artifactId>
   			<version>3.1</version>
   			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-simple</artifactId>
-			<version>${slf4j.version}</version>
-			<scope>test</scope>
-		</dependency>
+		
 	</dependencies>
 	
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>org.apache.camel</groupId>
-				<artifactId>camel-core</artifactId>
-				<version>${camel.version}</version>
-				<scope>provided</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
+	<properties>
+		<jetty.version>7.1.6.v20100715</jetty.version>
+	</properties>
 	
 	<build>
 		<plugins>
@@ -72,7 +53,7 @@
 					<descriptors>
 						<descriptor>src/main/assembly/bin.xml</descriptor>
 					</descriptors>
-					<finalName>org.mokai.camel.jetty-${project.version}</finalName>
+					<finalName>org.mokai.jetty-${project.version}</finalName>
       				<appendAssemblyId>false</appendAssemblyId>
 				</configuration>
 				<executions>
@@ -118,4 +99,5 @@
 			</plugin>
 		</plugins>
 	</build>
+	
 </project>

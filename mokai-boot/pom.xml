@@ -48,7 +48,7 @@
 		<!-- Provided connectors - only for testing -->
 		<dependency>
 			<groupId>org.mokai</groupId>
-			<artifactId>mokai-camel-jetty</artifactId>
+			<artifactId>mokai-jetty</artifactId>
 			<version>${project.version}</version>
 			<scope>provided</scope>
 		</dependency>

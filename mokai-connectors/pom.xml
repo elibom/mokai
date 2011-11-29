@@ -15,7 +15,7 @@
 	
 	<modules>
 		<module>mokai-smpp</module>
-		<module>mokai-camel-jetty</module>
 		<module>mokai-http</module>
+		<module>mokai-jetty</module>
 	</modules>
 </project>

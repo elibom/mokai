@@ -539,7 +539,7 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 		// resolve conflicts
 		if (retStatus.equals(Status.OK) && status.equals(Status.FAILED)) {
 			String message = status.getMessage();
-			message = "Processor is OK but " + message;
+			message = "Connector is OK but " + message;
 			
 			status.setMessage(message);
 			
@@ -697,7 +697,7 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 				processor.process(message);
 				message.setStatus(Message.Status.PROCESSED);
 				
-				status = MonitorStatusBuilder.ok();
+				status = Monitorable.class.isInstance(processor) ? MonitorStatusBuilder.ok() : MonitorStatusBuilder.unknown();
 				failedMessages = 0;
 				
 				return true;

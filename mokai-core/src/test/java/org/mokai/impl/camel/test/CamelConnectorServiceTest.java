@@ -63,7 +63,7 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 		outboundEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
 		failedEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
 		
-		Assert.assertEquals(Status.OK, connectorService.getStatus());
+		Assert.assertEquals(Status.UNKNOWN, connectorService.getStatus());
 		Assert.assertEquals(1, processor.getCount());
 		
 		Message message = (Message) processor.getMessage(0);
@@ -136,8 +136,8 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 		outboundEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
 		failedEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
 		
-		// check that the status is OK
-		Assert.assertEquals(Status.OK, processorService.getStatus());
+		// check that the status is back to UNKNOWN
+		Assert.assertEquals(Status.UNKNOWN, processorService.getStatus());
 	}
 	
 	/**

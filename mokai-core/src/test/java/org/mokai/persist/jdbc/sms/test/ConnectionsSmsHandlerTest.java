@@ -343,33 +343,38 @@ public class ConnectionsSmsHandlerTest {
 					"creation_time) VALUES (?, ?, ?, ?, ?, ?, ?)");
 			
 			// create 3 failed messages
-			createMessage(stmt, Status.FAILED.value(), "1");
-			createMessage(stmt, Status.FAILED.value(), "2");
-			createMessage(stmt, Status.FAILED.value(), "3");
+			createMessage(stmt, Status.FAILED.value(), "1", false);
+			createMessage(stmt, Status.FAILED.value(), "2", false);
+			createMessage(stmt, Status.FAILED.value(), "3", true);
 			
 			// create 3 processed messages
-			createMessage(stmt, Status.PROCESSED.value(), "4");
-			createMessage(stmt, Status.PROCESSED.value(), "5");
-			createMessage(stmt, Status.PROCESSED.value(), "6");
+			createMessage(stmt, Status.PROCESSED.value(), "4", false);
+			createMessage(stmt, Status.PROCESSED.value(), "5", false);
+			createMessage(stmt, Status.PROCESSED.value(), "6", true);
 			
 			// create 3 unroutable messages
-			createMessage(stmt, Status.UNROUTABLE.value(), "7");
-			createMessage(stmt, Status.UNROUTABLE.value(), "8");
-			createMessage(stmt, Status.UNROUTABLE.value(), "9");
+			createMessage(stmt, Status.UNROUTABLE.value(), "7", false);
+			createMessage(stmt, Status.UNROUTABLE.value(), "8", false);
+			createMessage(stmt, Status.UNROUTABLE.value(), "9", true);
 			
 		} finally {
 			closeResources(null, stmt, conn);
 		}
 	}
 	
-	private void createMessage(PreparedStatement stmt, byte status, String messageId) throws SQLException, JSONException {
+	private void createMessage(PreparedStatement stmt, byte status, String messageId, boolean nullOther) throws SQLException, JSONException {
 		
 		stmt.setString(1, "test");
 		stmt.setByte(2, SourceType.RECEIVER.value());
 		stmt.setByte(3, DestinationType.UNKNOWN.value());
 		stmt.setByte(4, status);
 		stmt.setString(5, messageId);
-		stmt.setString(6, new JSONObject().put("other", "other value").toString());
+		if (nullOther) {
+			stmt.setString(6, null);
+		} else {
+			stmt.setString(6, new JSONObject().put("other", "other value").toString());
+		}
+		
 		stmt.setTimestamp(7, new Timestamp(new Date().getTime()));
 		
 		stmt.execute();

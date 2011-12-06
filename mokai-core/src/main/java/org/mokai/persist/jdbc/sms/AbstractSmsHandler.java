@@ -398,17 +398,19 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 			message.setProperty("receiptTime", rs.getTimestamp("smsc_receipttime"));
 			
 			String jsonString = rs.getString("other");
-			try {
-				JSONObject json = new JSONObject(jsonString);
-				
-				Iterator iterator = json.keys();
-				while (iterator.hasNext()) {
-					String key = (String) iterator.next();
-					message.setProperty(key, json.get(key));
+			if (jsonString != null && !"".equals(jsonString)) {
+				try {
+					JSONObject json = new JSONObject(jsonString);
+					
+					Iterator iterator = json.keys();
+					while (iterator.hasNext()) {
+						String key = (String) iterator.next();
+						message.setProperty(key, json.get(key));
+					}
+					
+				} catch (JSONException e) {
+					log.error("JSONException while retreiving string: " + jsonString + ": " + e.getMessage(), e);
 				}
-				
-			} catch (JSONException e) {
-				log.error("JSONException while retreiving string: " + jsonString + ": " + e.getMessage(), e);
 			}
 			
 			message.setCreationTime(rs.getTimestamp("creation_time"));

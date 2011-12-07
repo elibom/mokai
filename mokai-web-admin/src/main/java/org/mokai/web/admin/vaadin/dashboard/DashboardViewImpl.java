@@ -69,7 +69,6 @@ public class DashboardViewImpl extends AbstractView<DashboardView, DashboardPres
 		Label spacer = new Label();
 		spacer.setHeight("1em");
 		viewLayout.addComponent(spacer);
-		viewLayout.setExpandRatio(spacer, 1.0f);
 		
 		// create the processors layout, fill it and add it
 		connectionsLayout = createConnectionsLayout();
@@ -133,6 +132,7 @@ public class DashboardViewImpl extends AbstractView<DashboardView, DashboardPres
 		VerticalLayout connectorsLayout = new VerticalLayout();
 		connectorsLayout.setMargin(true);
 		connectorsLayout.setSpacing(true);
+		connectorsLayout.setSizeUndefined();
 		
 		fillConnectionsLayout(connectorsLayout);
 		

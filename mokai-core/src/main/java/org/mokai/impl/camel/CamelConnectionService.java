@@ -43,8 +43,8 @@ public class CamelConnectionService extends AbstractCamelConnectorService {
 	}
 	
 	@Override
-	protected Direction getReceivedMessageDirection() {
-		return Direction.TO_APPLICATIONS;
+	protected Direction getDirection() {
+		return Direction.TO_CONNECTIONS;
 	}
 	
 }

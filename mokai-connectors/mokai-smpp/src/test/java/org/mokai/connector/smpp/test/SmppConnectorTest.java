@@ -24,6 +24,7 @@ import org.mockito.Mockito;
 import org.mokai.ConnectorContext;
 import org.mokai.ExecutionException;
 import org.mokai.Message;
+import org.mokai.Message.Direction;
 import org.mokai.MessageProducer;
 import org.mokai.Monitorable.Status;
 import org.mokai.annotation.Resource;
@@ -658,6 +659,11 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 		@Override
 		public String getId() {
 			return "test";
+		}
+
+		@Override
+		public Direction getDirection() {
+			return Direction.UNKNOWN;
 		}
 		
 	}

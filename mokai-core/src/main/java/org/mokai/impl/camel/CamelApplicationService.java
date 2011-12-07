@@ -52,8 +52,8 @@ public class CamelApplicationService extends AbstractCamelConnectorService {
 	}
 
 	@Override
-	protected Direction getReceivedMessageDirection() {
-		return Direction.TO_CONNECTIONS;
+	protected Direction getDirection() {
+		return Direction.TO_APPLICATIONS;
 	}
 
 }

@@ -845,6 +845,24 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 		Assert.assertNotNull(action.getMessageStore());
 	}
 	
+	@Test
+	public void testInjectConnectorContext() throws Exception {
+		
+		MockConnectorWithContext connector = new MockConnectorWithContext();
+		new MockConnectorService("test", connector, resourceRegistry) {
+
+			@Override
+			protected Direction getDirection() {
+				return Direction.TO_CONNECTIONS;
+			}
+			
+		};
+		
+		Assert.assertNotNull(connector.context);
+		Assert.assertEquals(connector.context.getId(), "test");
+		Assert.assertEquals(connector.context.getDirection(), Direction.TO_CONNECTIONS);
+	}
+	
 	/**
 	 * Helper method to create the route that validates the output of the receivers.
 	 * @return
@@ -923,7 +941,7 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 		}
 
 		@Override
-		protected Direction getReceivedMessageDirection() {
+		protected Direction getDirection() {
 			return Direction.UNKNOWN;
 		}
 		
@@ -937,6 +955,11 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 	 */
 	private void simulateMessage(Message message, String endpoint) {
 		camelProducer.sendBody(endpoint, message);
+	}
+	
+	private class MockConnectorWithContext implements Connector {
+		@Resource
+		public ConnectorContext context;
 	}
 	
 	/**

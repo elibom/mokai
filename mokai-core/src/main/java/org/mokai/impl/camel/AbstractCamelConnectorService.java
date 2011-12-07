@@ -292,6 +292,11 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 			public String getId() {
 				return id;
 			}
+
+			@Override
+			public Direction getDirection() {
+				return AbstractCamelConnectorService.this.getDirection();
+			}
 			
 		};
 		
@@ -790,7 +795,20 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 			} else {
 				message.setSourceType(Message.SourceType.RECEIVER);
 			}
-			message.setDirection(getReceivedMessageDirection());
+			
+			// set the direction of the message
+			if (getDirection().equals(Direction.TO_APPLICATIONS)) {
+				
+				message.setDirection(Direction.TO_CONNECTIONS);
+				
+			} else if (getDirection().equals(Direction.TO_CONNECTIONS)) {
+				
+				message.setDirection(Direction.TO_APPLICATIONS);
+				
+			} else {
+				message.setDirection(Direction.UNKNOWN);
+			}
+			
 		}
 		
 	}
@@ -834,5 +852,5 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 	/**
 	 * @return the direction that should be assigned to a received message.
 	 */
-	protected abstract Direction getReceivedMessageDirection();
+	protected abstract Direction getDirection();
 }

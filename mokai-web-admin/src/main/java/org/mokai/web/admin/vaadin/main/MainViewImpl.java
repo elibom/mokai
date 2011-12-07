@@ -55,11 +55,9 @@ public class MainViewImpl extends AbstractView<MainView, MainPresenter> implemen
 	@Override
 	protected void initView() {
 		viewLayout = new VerticalLayout();
-		viewLayout.setWidth("100%");
 		
 		// header and menu wrapper
 		VerticalLayout header = new VerticalLayout();
-		header.setWidth("100%");
 		header.addStyleName(Reindeer.LAYOUT_BLACK);
 		
 		windowHeader = new WindowHeader(getPresenter());

@@ -46,7 +46,7 @@
 		</fileSet>
 		
 		<fileSet>
-			<directory>../mokai-connectors/mokai-camel-jetty/target</directory>
+			<directory>../mokai-connectors/mokai-jetty/target</directory>
 			<outputDirectory>plugins</outputDirectory>
 			<includes>
 				<include>*.zip</include>
@@ -55,14 +55,6 @@
 		
 		<fileSet>
 			<directory>../mokai-connectors/mokai-http/target</directory>
-			<outputDirectory>plugins</outputDirectory>
-			<includes>
-				<include>*.zip</include>
-			</includes>
-		</fileSet>
-		
-		<fileSet>
-			<directory>../mokai-connectors/mokai-jms/target</directory>
 			<outputDirectory>plugins</outputDirectory>
 			<includes>
 				<include>*.zip</include>

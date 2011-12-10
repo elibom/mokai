@@ -8,7 +8,6 @@ import java.util.Map;
 
 import org.mokai.Message;
 import org.mokai.Message.Direction;
-import org.mokai.Message.Status;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.MessageCriteria.OrderType;
 import org.mokai.persist.MessageStore;
@@ -112,7 +111,7 @@ public class MessagesTable extends Table {
 				sdf.format(message.getCreationTime()),
 				message.getSource(),
 				message.getDestination(),
-				message.getStatus().toString(),
+				message.getStatus(),
 				message.getProperty("to", String.class),
 				message.getProperty("from", String.class),
 				message.getProperty("sequenceNumber", Integer.class),
@@ -145,7 +144,7 @@ public class MessagesTable extends Table {
 			Message message = messagesMap.get((Long) itemId);
 			
 			if (propertyId.equals("Status")) {
-				if (message.getStatus().equals(Status.FAILED)) {
+				if (message.getStatus() == Message.STATUS_FAILED) {
 					return "red";
 				}
 			}

@@ -6,7 +6,6 @@ import java.util.Collection;
 
 import org.mokai.Message;
 import org.mokai.Message.Direction;
-import org.mokai.Message.Status;
 import org.mokai.persist.MessageCriteria;
 
 /**
@@ -70,7 +69,7 @@ public interface MessageHandler {
 	 * @param newStatus the new status for the messages.
 	 * @throws SQLException if something goes wrong.
 	 */
-	void updateMessagesStatus(Connection conn, MessageCriteria criteria, Status newStatus) throws SQLException;
+	void updateMessagesStatus(Connection conn, MessageCriteria criteria, byte newStatus) throws SQLException;
 	
 	/**
 	 * Retrieves the messages that matches the criteria.

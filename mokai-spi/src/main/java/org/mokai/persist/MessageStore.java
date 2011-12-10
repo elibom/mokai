@@ -3,7 +3,6 @@ package org.mokai.persist;
 import java.util.Collection;
 
 import org.mokai.Message;
-import org.mokai.Message.Status;
 
 /**
  * Responsible of saving, updating and retrieving {@link Message}s. The 
@@ -29,10 +28,10 @@ public interface MessageStore {
 	 * the newStatus argument.
 	 * 
 	 * @param criteria the {@link MessageCriteria} used to match the messages.
-	 * @param newStatus the new {@link Status} to update the messages. 
+	 * @param newStatus the new status for the messages. 
 	 * @throws StoreException if something goes wrong.
 	 */
-	void updateStatus(MessageCriteria criteria, Status newStatus) throws StoreException;
+	void updateStatus(MessageCriteria criteria, byte newStatus) throws StoreException;
 	
 	/**
 	 * Retrieves the messages that matches the criteria.

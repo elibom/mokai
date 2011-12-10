@@ -16,10 +16,7 @@ import org.apache.commons.dbcp.BasicDataSource;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mokai.Message;
-import org.mokai.Message.DestinationType;
 import org.mokai.Message.Direction;
-import org.mokai.Message.SourceType;
-import org.mokai.Message.Status;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.jdbc.JdbcHelper;
 import org.mokai.persist.jdbc.sms.ConnectionsSmsHandler;
@@ -112,8 +109,7 @@ public class ConnectionsSmsHandlerTest {
 		final Message message = new Message(Message.SMS_TYPE);
 		message.setDirection(Direction.TO_CONNECTIONS);
 		message.setSource("test");
-		message.setSourceType(SourceType.RECEIVER);
-		message.setStatus(Status.CREATED);
+		message.setStatus(Message.STATUS_CREATED);
 		message.setProperty("from", "1111");
 		message.setProperty("to", "2222");
 		message.setProperty("text", "text");
@@ -127,8 +123,7 @@ public class ConnectionsSmsHandlerTest {
 			@Override
 			public void validate(ResultSet rs) throws SQLException {
 				Assert.assertEquals(rs.getString("source"), message.getSource());
-				Assert.assertEquals(rs.getByte("sourcetype"), message.getSourceType().value());
-				Assert.assertEquals(rs.getByte("status"), message.getStatus().value());
+				Assert.assertEquals(rs.getByte("status"), message.getStatus());
 				Assert.assertEquals(rs.getString("smsc_from"), message.getProperty("from", String.class));
 				Assert.assertEquals(rs.getString("smsc_to"), message.getProperty("to", String.class));
 				Assert.assertEquals(rs.getString("smsc_text"), message.getProperty("text", String.class));
@@ -148,9 +143,8 @@ public class ConnectionsSmsHandlerTest {
 		
 		final Message message = new Message(Message.SMS_TYPE);
 		message.setId(id);
-		message.setStatus(Status.RETRYING);
+		message.setStatus(Message.STATUS_RETRYING);
 		message.setDestination("test");
-		message.setDestinationType(DestinationType.PROCESSOR);
 		message.setProperty("receiptStatus", "DELIVRD");
 		message.setProperty("other", "other value");
 		
@@ -163,9 +157,8 @@ public class ConnectionsSmsHandlerTest {
 
 			@Override
 			public void validate(ResultSet rs) throws SQLException {
-				Assert.assertEquals(rs.getByte("status"), message.getStatus().value());
+				Assert.assertEquals(rs.getByte("status"), message.getStatus());
 				Assert.assertEquals(rs.getString("destination"), message.getDestination());
-				Assert.assertEquals(rs.getByte("destinationtype"), message.getDestinationType().value());
 				Assert.assertEquals(rs.getString("smsc_receiptstatus"), message.getProperty("receiptStatus", String.class));
 				Assert.assertNull(rs.getTimestamp("smsc_receipttime"));
 				try { 
@@ -184,9 +177,8 @@ public class ConnectionsSmsHandlerTest {
 
 		final Message message = new Message(Message.SMS_TYPE);
 		message.setId(1);
-		message.setStatus(Status.RETRYING);
+		message.setStatus(Message.STATUS_RETRYING);
 		message.setDestination("test");
-		message.setDestinationType(DestinationType.PROCESSOR);
 		
 		ConnectionsSmsHandler handler = new ConnectionsSmsHandler();
 		boolean found = handler.updateMessage(connection, message);
@@ -197,25 +189,25 @@ public class ConnectionsSmsHandlerTest {
 	@Test
 	public void testUpdateStatusToAllMessages() throws Exception {
 		generateTestData();
-		Assert.assertEquals(getNumMessagesByStatus(Status.FAILED), 3);
+		Assert.assertEquals(getNumMessagesByStatus(Message.STATUS_FAILED), 3);
 		
 		ConnectionsSmsHandler handler = new ConnectionsSmsHandler();
-		handler.updateMessagesStatus(connection, null, Status.RETRYING);
+		handler.updateMessagesStatus(connection, null, Message.STATUS_RETRYING);
 		
-		Assert.assertEquals(getNumMessagesByStatus(Status.FAILED), 0);
-		Assert.assertEquals(getNumMessagesByStatus(Status.RETRYING), 9);
+		Assert.assertEquals(getNumMessagesByStatus(Message.STATUS_FAILED), 0);
+		Assert.assertEquals(getNumMessagesByStatus(Message.STATUS_RETRYING), 9);
 	}
 	
 	@Test
 	public void testUpdateStatusToFailedMessages() throws Exception {
 		generateTestData();
-		Assert.assertEquals(getNumMessagesByStatus(Status.FAILED), 3);
+		Assert.assertEquals(getNumMessagesByStatus(Message.STATUS_FAILED), 3);
 		
 		ConnectionsSmsHandler handler = new ConnectionsSmsHandler();
-		handler.updateMessagesStatus(connection, new MessageCriteria().addStatus(Status.FAILED), Status.RETRYING);
+		handler.updateMessagesStatus(connection, new MessageCriteria().addStatus(Message.STATUS_FAILED), Message.STATUS_RETRYING);
 		
-		Assert.assertEquals(getNumMessagesByStatus(Status.FAILED), 0);
-		Assert.assertEquals(getNumMessagesByStatus(Status.RETRYING), 3);
+		Assert.assertEquals(getNumMessagesByStatus(Message.STATUS_FAILED), 0);
+		Assert.assertEquals(getNumMessagesByStatus(Message.STATUS_RETRYING), 3);
 	}
 	
 	@Test
@@ -270,14 +262,14 @@ public class ConnectionsSmsHandlerTest {
 		handler.setSqlEngine(new DerbyEngine(dataSource));
 		
 		MessageCriteria criteria = new MessageCriteria()
-			.addStatus(Status.FAILED);
+			.addStatus(Message.STATUS_FAILED);
 		
 		Collection<Message> messages = handler.listMessages(connection, criteria);
 		
 		Assert.assertEquals(messages.size(), 3);
 	}
 	
-	private int getNumMessagesByStatus(Status status) throws SQLException {
+	private int getNumMessagesByStatus(byte status) throws SQLException {
 		Connection conn = null;
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
@@ -285,7 +277,7 @@ public class ConnectionsSmsHandlerTest {
 		try {
 			
 			conn = dataSource.getConnection();
-			stmt = conn.prepareStatement("select count(*) from " + tableName + " where status = " + status.value());
+			stmt = conn.prepareStatement("select count(*) from " + tableName + " where status = " + status);
 			rs = stmt.executeQuery();
 			
 			if (rs.next()) {
@@ -307,16 +299,12 @@ public class ConnectionsSmsHandlerTest {
 			conn = dataSource.getConnection();
 			stmt = conn.prepareStatement("INSERT INTO " + tableName + " (" +
 					"source, " +
-					"sourcetype, " +
-					"destinationtype, " +
 					"status, " +
-					"creation_time) VALUES (?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+					"creation_time) VALUES (?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
 			
 			stmt.setString(1, "test");
-			stmt.setByte(2, SourceType.RECEIVER.value());
-			stmt.setByte(3, DestinationType.UNKNOWN.value());
-			stmt.setByte(4, Status.FAILED.value());
-			stmt.setTimestamp(5, new Timestamp(new Date().getTime()));
+			stmt.setByte(2, Message.STATUS_FAILED);
+			stmt.setTimestamp(3, new Timestamp(new Date().getTime()));
 			
 			stmt.executeUpdate();
 			
@@ -335,27 +323,25 @@ public class ConnectionsSmsHandlerTest {
 			conn = dataSource.getConnection();
 			stmt = conn.prepareStatement("INSERT INTO " + tableName + " (" +
 					"source, " +
-					"sourcetype, " +
-					"destinationtype, " +
 					"status, " +
 					"smsc_messageid, " +
 					"other, " +
-					"creation_time) VALUES (?, ?, ?, ?, ?, ?, ?)");
+					"creation_time) VALUES (?, ?, ?, ?, ?)");
 			
 			// create 3 failed messages
-			createMessage(stmt, Status.FAILED.value(), "1", false);
-			createMessage(stmt, Status.FAILED.value(), "2", false);
-			createMessage(stmt, Status.FAILED.value(), "3", true);
+			createMessage(stmt, Message.STATUS_FAILED, "1", false);
+			createMessage(stmt, Message.STATUS_FAILED, "2", false);
+			createMessage(stmt, Message.STATUS_FAILED, "3", true);
 			
 			// create 3 processed messages
-			createMessage(stmt, Status.PROCESSED.value(), "4", false);
-			createMessage(stmt, Status.PROCESSED.value(), "5", false);
-			createMessage(stmt, Status.PROCESSED.value(), "6", true);
+			createMessage(stmt, Message.STATUS_PROCESSED, "4", false);
+			createMessage(stmt, Message.STATUS_PROCESSED, "5", false);
+			createMessage(stmt, Message.STATUS_PROCESSED, "6", true);
 			
 			// create 3 unroutable messages
-			createMessage(stmt, Status.UNROUTABLE.value(), "7", false);
-			createMessage(stmt, Status.UNROUTABLE.value(), "8", false);
-			createMessage(stmt, Status.UNROUTABLE.value(), "9", true);
+			createMessage(stmt, Message.STATUS_UNROUTABLE, "7", false);
+			createMessage(stmt, Message.STATUS_UNROUTABLE, "8", false);
+			createMessage(stmt, Message.STATUS_UNROUTABLE, "9", true);
 			
 		} finally {
 			closeResources(null, stmt, conn);
@@ -365,17 +351,15 @@ public class ConnectionsSmsHandlerTest {
 	private void createMessage(PreparedStatement stmt, byte status, String messageId, boolean nullOther) throws SQLException, JSONException {
 		
 		stmt.setString(1, "test");
-		stmt.setByte(2, SourceType.RECEIVER.value());
-		stmt.setByte(3, DestinationType.UNKNOWN.value());
-		stmt.setByte(4, status);
-		stmt.setString(5, messageId);
+		stmt.setByte(2, status);
+		stmt.setString(3, messageId);
 		if (nullOther) {
-			stmt.setString(6, null);
+			stmt.setString(4, null);
 		} else {
-			stmt.setString(6, new JSONObject().put("other", "other value").toString());
+			stmt.setString(4, new JSONObject().put("other", "other value").toString());
 		}
 		
-		stmt.setTimestamp(7, new Timestamp(new Date().getTime()));
+		stmt.setTimestamp(5, new Timestamp(new Date().getTime()));
 		
 		stmt.execute();
 	}

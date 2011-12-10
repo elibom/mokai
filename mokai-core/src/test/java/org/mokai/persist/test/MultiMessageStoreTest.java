@@ -1,6 +1,7 @@
 package org.mokai.persist.test;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyByte;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -12,7 +13,6 @@ import junit.framework.Assert;
 
 import org.mockito.Mockito;
 import org.mokai.Message;
-import org.mokai.Message.Status;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.MessageStore;
 import org.mokai.persist.impl.MultiMessageStore;
@@ -37,9 +37,8 @@ public class MultiMessageStoreTest {
 		messageStore.saveOrUpdate(new Message());
 		verify(defaultMessageStore).saveOrUpdate(any(Message.class));
 		
-		messageStore.updateStatus(new MessageCriteria(), Status.CREATED);
-		verify(defaultMessageStore).updateStatus(any(MessageCriteria.class), 
-				any(Status.class));
+		messageStore.updateStatus(new MessageCriteria(), Message.STATUS_CREATED);
+		verify(defaultMessageStore).updateStatus(any(MessageCriteria.class), anyByte());
 		
 		messageStore.list(new MessageCriteria());
 		verify(defaultMessageStore).list(any(MessageCriteria.class));
@@ -107,34 +106,34 @@ public class MultiMessageStoreTest {
 		messageStore.addMessageStore("test1", test1MessageStore);
 		messageStore.addMessageStore("test2", test2MessageStore);
 		
-		messageStore.updateStatus(new MessageCriteria(), Status.RETRYING);
-		verify(test1MessageStore).updateStatus(any(MessageCriteria.class), any(Status.class));
-		verify(test2MessageStore).updateStatus(any(MessageCriteria.class), any(Status.class));
-		verify(defaultMessageStore).updateStatus(any(MessageCriteria.class), any(Status.class));
+		messageStore.updateStatus(new MessageCriteria(), Message.STATUS_RETRYING);
+		verify(test1MessageStore).updateStatus(any(MessageCriteria.class), anyByte());
+		verify(test2MessageStore).updateStatus(any(MessageCriteria.class), anyByte());
+		verify(defaultMessageStore).updateStatus(any(MessageCriteria.class), anyByte());
 		
 		// reset the mocks
 		Mockito.reset(test1MessageStore, test2MessageStore, defaultMessageStore);
 		
-		messageStore.updateStatus(new MessageCriteria().type("test1"), Status.RETRYING);
-		verify(test1MessageStore).updateStatus(any(MessageCriteria.class), any(Status.class));
-		verify(test2MessageStore, times(0)).updateStatus(any(MessageCriteria.class), any(Status.class));
-		verify(defaultMessageStore, times(0)).updateStatus(any(MessageCriteria.class), any(Status.class));
+		messageStore.updateStatus(new MessageCriteria().type("test1"), Message.STATUS_RETRYING);
+		verify(test1MessageStore).updateStatus(any(MessageCriteria.class), anyByte());
+		verify(test2MessageStore, times(0)).updateStatus(any(MessageCriteria.class), anyByte());
+		verify(defaultMessageStore, times(0)).updateStatus(any(MessageCriteria.class), anyByte());
 		
 		// reset the mocks
 		Mockito.reset(test1MessageStore, test2MessageStore, defaultMessageStore);
 		
-		messageStore.updateStatus(new MessageCriteria().type("test2"), Status.RETRYING);
-		verify(test1MessageStore, times(0)).updateStatus(any(MessageCriteria.class), any(Status.class));
-		verify(test2MessageStore).updateStatus(any(MessageCriteria.class), any(Status.class));
-		verify(defaultMessageStore, times(0)).updateStatus(any(MessageCriteria.class), any(Status.class));
+		messageStore.updateStatus(new MessageCriteria().type("test2"), Message.STATUS_RETRYING);
+		verify(test1MessageStore, times(0)).updateStatus(any(MessageCriteria.class), anyByte());
+		verify(test2MessageStore).updateStatus(any(MessageCriteria.class), anyByte());
+		verify(defaultMessageStore, times(0)).updateStatus(any(MessageCriteria.class), anyByte());
 		
 		// reset the mocks
 		Mockito.reset(test1MessageStore, test2MessageStore, defaultMessageStore);
 		
-		messageStore.updateStatus(new MessageCriteria().type("other"), Status.RETRYING);
-		verify(test1MessageStore, times(0)).updateStatus(any(MessageCriteria.class), any(Status.class));
-		verify(test2MessageStore, times(0)).updateStatus(any(MessageCriteria.class), any(Status.class));
-		verify(defaultMessageStore).updateStatus(any(MessageCriteria.class), any(Status.class));
+		messageStore.updateStatus(new MessageCriteria().type("other"), Message.STATUS_RETRYING);
+		verify(test1MessageStore, times(0)).updateStatus(any(MessageCriteria.class), anyByte());
+		verify(test2MessageStore, times(0)).updateStatus(any(MessageCriteria.class), anyByte());
+		verify(defaultMessageStore).updateStatus(any(MessageCriteria.class), anyByte());
 	}
 	
 	@Test

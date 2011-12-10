@@ -17,10 +17,7 @@ import java.util.Map;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mokai.Message;
-import org.mokai.Message.DestinationType;
 import org.mokai.Message.Direction;
-import org.mokai.Message.SourceType;
-import org.mokai.Message.Status;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.MessageCriteria.OrderType;
 import org.mokai.persist.jdbc.JdbcHelper;
@@ -48,12 +45,9 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 		
 		// create the SQL
 		String strSQL = "INSERT INTO " + tableName + " (" +
-			"account, " +
 			"reference, " +
 			"source, " +
-			"sourcetype, " +
 			"destination, " +
-			"destinationtype, " +
 			"status, " +
 			"smsc_to, " +
 			"smsc_from, " +
@@ -65,7 +59,7 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 			"smsc_receipttime, " +
 			"other, " + 
 			"creation_time) " +
-			"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 		// create the prepared statement
 		PreparedStatement stmt = conn.prepareStatement(strSQL, Statement.RETURN_GENERATED_KEYS);
@@ -81,43 +75,40 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 	}
 
 	private void populateInsertStatement(PreparedStatement stmt, Message message) throws SQLException {
-		
-		stmt.setString(1, message.getAccountId());
-		stmt.setString(2, message.getReference());
-		stmt.setString(3, message.getSource());
-		stmt.setByte(4, message.getSourceType().value());
-		stmt.setString(5, message.getDestination());
-		stmt.setByte(6, message.getDestinationType().value());
-		stmt.setByte(7, message.getStatus().value());
-		stmt.setString(8, message.getProperty("to", String.class));
-		stmt.setString(9, message.getProperty("from", String.class));
-		stmt.setString(10, message.getProperty("text", String.class));
+
+		stmt.setString(1, message.getReference());
+		stmt.setString(2, message.getSource());
+		stmt.setString(3, message.getDestination());
+		stmt.setByte(4, message.getStatus());
+		stmt.setString(5, message.getProperty("to", String.class));
+		stmt.setString(6, message.getProperty("from", String.class));
+		stmt.setString(7, message.getProperty("text", String.class));
 		
 		Integer sequenceNumber = message.getProperty("sequenceNumber", Integer.class);
 		log.trace("sequenceNumber: " + sequenceNumber);
 		if (sequenceNumber != null) {
-			stmt.setInt(11, sequenceNumber);
+			stmt.setInt(8, sequenceNumber);
 		} else {
-			stmt.setNull(11, Types.INTEGER);
+			stmt.setNull(8, Types.INTEGER);
 		}
 		
-		stmt.setString(12, message.getProperty("messageId", String.class));
+		stmt.setString(9, message.getProperty("messageId", String.class));
 		
 		Integer commandStatus = message.getProperty("commandStatus", Integer.class);
 		if (commandStatus != null) {
-			stmt.setInt(13, commandStatus);
+			stmt.setInt(10, commandStatus);
 		} else {
-			stmt.setNull(13, Types.INTEGER);
+			stmt.setNull(10, Types.INTEGER);
 		}
 		
-		stmt.setString(14, message.getProperty("receiptStatus", String.class));
+		stmt.setString(11, message.getProperty("receiptStatus", String.class));
 		
 		Date receiptTime = message.getProperty("receiptTime", Date.class);
-		stmt.setTimestamp(15, receiptTime != null ? new Timestamp(receiptTime.getTime()) : null);
+		stmt.setTimestamp(12, receiptTime != null ? new Timestamp(receiptTime.getTime()) : null);
 		
-		stmt.setString(16, buildJSON(message));
+		stmt.setString(13, buildJSON(message));
 		
-		stmt.setTimestamp(17, new Timestamp(message.getCreationTime().getTime()));
+		stmt.setTimestamp(14, new Timestamp(message.getCreationTime().getTime()));
 	}
 	
 	/**
@@ -170,7 +161,6 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 		String strSQL = "UPDATE " + tableName + " SET " +
 				"status = ?, " +
 				"destination = ?, " +
-				"destinationtype = ?, " +
 				"smsc_sequencenumber = ?, " +
 				"smsc_commandstatus = ?, " +
 				"smsc_messageid = ?, " +
@@ -182,43 +172,42 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 		
 		PreparedStatement stmt = conn.prepareStatement(strSQL);
 		
-		stmt.setByte(1, message.getStatus().value());
+		stmt.setByte(1, message.getStatus());
 		stmt.setString(2, message.getDestination());
-		stmt.setByte(3, message.getDestinationType().value());
 		
 		Integer sequenceNumber = message.getProperty("sequenceNumber", Integer.class);
 		if (sequenceNumber != null) {
-			stmt.setInt(4, sequenceNumber);
+			stmt.setInt(3, sequenceNumber);
 		} else {
-			stmt.setNull(4, Types.INTEGER);
+			stmt.setNull(3, Types.INTEGER);
 		}
 		
 		Integer commandStatus = message.getProperty("commandStatus", Integer.class);
 		if (commandStatus != null) {
-			stmt.setInt(5, commandStatus);
+			stmt.setInt(4, commandStatus);
 		} else {
-			stmt.setNull(5, Types.INTEGER);
+			stmt.setNull(4, Types.INTEGER);
 		}
 		
-		stmt.setString(6, message.getProperty("messageId", String.class));
-		stmt.setString(7, message.getProperty("receiptStatus", String.class));
+		stmt.setString(5, message.getProperty("messageId", String.class));
+		stmt.setString(6, message.getProperty("receiptStatus", String.class));
 		
 		Date receiptTime = message.getProperty("receiptTime", Date.class);
 		if (receiptTime != null) {
-			stmt.setTimestamp(8, new Timestamp(receiptTime.getTime()));
+			stmt.setTimestamp(7, new Timestamp(receiptTime.getTime()));
 		} else {
-			stmt.setTimestamp(8, null);
+			stmt.setTimestamp(7, null);
 		}
 		
-		stmt.setString(9, buildJSON(message));
+		stmt.setString(8, buildJSON(message));
 		
 		if (message.getModificationTime() != null) {
-			stmt.setTimestamp(10, new Timestamp(message.getModificationTime().getTime()));
+			stmt.setTimestamp(9, new Timestamp(message.getModificationTime().getTime()));
 		} else {
-			stmt.setTimestamp(10, null);
+			stmt.setTimestamp(9, null);
 		}
 			
-		stmt.setLong(11, message.getId());
+		stmt.setLong(10, message.getId());
 		
 		int affected = stmt.executeUpdate();
 		
@@ -230,8 +219,7 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 	}
 	
 	@Override
-	public final void updateMessagesStatus(Connection conn, MessageCriteria criteria, 
-			Status newStatus) throws SQLException {
+	public final void updateMessagesStatus(Connection conn, MessageCriteria criteria, byte newStatus) throws SQLException {
 		
 		List<Object> params = new ArrayList<Object>();
 		
@@ -240,7 +228,7 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 		
 		PreparedStatement stmt = conn.prepareStatement(strSQL);
 		
-		stmt.setByte(1, newStatus.value());
+		stmt.setByte(1, newStatus);
 		
 		if (!params.isEmpty()) {
 			int index = 2;
@@ -285,19 +273,19 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 			boolean existsCriteria = false;
 			
 			// status
-			List<Status> status = criteria.getStatus();
+			List<Byte> status = criteria.getStatus();
 			if (status != null && !status.isEmpty()) {
 				strSQL += addOperator(existsCriteria);
 				
 				boolean existsStatusCriteria = false;
-				for (Status st : status) {
+				for (Byte st : status) {
 					if (!existsStatusCriteria) {
 						strSQL += " status = ?";
 					} else {
 						strSQL += " or status = ?";
 					}
 					
-					params.add(st.value());
+					params.add(st);
 					existsStatusCriteria = true;
 					
 					existsCriteria = true;
@@ -310,16 +298,6 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 				
 				strSQL += " destination = ?";
 				params.add(criteria.getDestination());
-				
-				existsCriteria = true;
-			}
-			
-			// destination type
-			if (criteria.getDestinationType() != null) {
-				strSQL += addOperator(existsCriteria);
-				
-				strSQL += " destinationtype = ?";
-				params.add(criteria.getDestinationType().value());
 				
 				existsCriteria = true;
 			}
@@ -380,13 +358,10 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 			message.setDirection(getMessageDirection());
 			
 			message.setId(rs.getLong("id"));
-			message.setAccountId(rs.getString("account"));
 			message.setReference(rs.getString("reference"));
 			message.setSource(rs.getString("source"));
-			message.setSourceType(SourceType.getSourceType(rs.getByte("sourcetype")));
 			message.setDestination(rs.getString("destination"));
-			message.setDestinationType(DestinationType.getDestinationType(rs.getByte("destinationtype")));
-			message.setStatus(Status.getSatus(rs.getByte("status")));
+			message.setStatus(rs.getByte("status"));
 			
 			message.setProperty("to", rs.getString("smsc_to"));
 			message.setProperty("from", rs.getString("smsc_from"));

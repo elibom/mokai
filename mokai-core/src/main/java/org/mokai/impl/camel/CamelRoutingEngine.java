@@ -27,7 +27,6 @@ import org.mokai.ConnectorService;
 import org.mokai.ExecutionException;
 import org.mokai.Message;
 import org.mokai.Message.Direction;
-import org.mokai.Message.Status;
 import org.mokai.ObjectAlreadyExistsException;
 import org.mokai.ObjectNotFoundException;
 import org.mokai.RoutingEngine;
@@ -419,7 +418,7 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 		ProducerTemplate producer = camelContext.createProducerTemplate();
 		
 		MessageCriteria criteria = new MessageCriteria()
-			.addStatus(Message.Status.FAILED)
+			.addStatus(Message.STATUS_FAILED)
 			.orderBy("creation_time")
 			.orderType(OrderType.UPWARDS);
 
@@ -428,7 +427,7 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 		for (Message message : messages) {
 			
 			// update the message and send it
-			message.setStatus(Status.RETRYING);
+			message.setStatus(Message.STATUS_RETRYING);
 			message.setModificationTime(new Date());
 			messageStore.saveOrUpdate(message);
 			

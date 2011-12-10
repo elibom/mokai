@@ -13,6 +13,7 @@ import org.mokai.Acceptor;
 import org.mokai.Action;
 import org.mokai.Configurable;
 import org.mokai.Connector;
+import org.mokai.ConnectorContext;
 import org.mokai.ConnectorService;
 import org.mokai.ExecutionException;
 import org.mokai.Message;
@@ -21,7 +22,6 @@ import org.mokai.MessageProducer;
 import org.mokai.Monitorable;
 import org.mokai.Monitorable.Status;
 import org.mokai.Processor;
-import org.mokai.ConnectorContext;
 import org.mokai.Service;
 import org.mokai.Service.State;
 import org.mokai.Serviceable;
@@ -69,7 +69,6 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 		Message message = (Message) processor.getMessage(0);
 		Assert.assertNotNull(message);
 		Assert.assertEquals("test", message.getDestination());
-		Assert.assertEquals(Message.DestinationType.PROCESSOR, message.getDestinationType());
 	}
 	
 	@Test
@@ -247,7 +246,6 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 		
 		Assert.assertNotNull(message.getReference());
 		Assert.assertEquals("test", message.getSource());
-		Assert.assertEquals(Message.SourceType.PROCESSOR, message.getSourceType());
 		Assert.assertEquals(Message.Direction.UNKNOWN, message.getDirection());
 	}
 	
@@ -328,7 +326,7 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 
 			@Override
 			public void execute(Message message) throws Exception {
-				message.setAccountId("germanescobar");
+				message.setReference("germanescobar");
 			}
 			
 		});
@@ -342,7 +340,8 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 		
 		Exchange exchange = inboundEndpoint.getReceivedExchanges().iterator().next();
 		Message message = exchange.getIn().getBody(Message.class);
-		Assert.assertEquals("germanescobar", message.getAccountId());
+		
+		Assert.assertEquals("germanescobar", message.getReference());
 	}
 	
 	@Test(expectedExceptions=IllegalArgumentException.class)
@@ -438,9 +437,8 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 		Exchange exchange = failedEndpoint.getReceivedExchanges().iterator().next();
 		Message smsMessage = exchange.getIn().getBody(Message.class);
 
-		Assert.assertEquals(Message.DestinationType.PROCESSOR, smsMessage.getDestinationType());
 		Assert.assertEquals("test", smsMessage.getDestination());
-		Assert.assertEquals(Message.Status.FAILED, smsMessage.getStatus());
+		Assert.assertEquals(Message.STATUS_FAILED, smsMessage.getStatus());
 	}
 	
 	@Test
@@ -668,9 +666,8 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 		Exchange exchange = failedEndpoint.getReceivedExchanges().iterator().next();
 		Message smsMessage = exchange.getIn().getBody(Message.class);
 
-		Assert.assertEquals(Message.DestinationType.PROCESSOR, smsMessage.getDestinationType());
 		Assert.assertEquals("test", smsMessage.getDestination());
-		Assert.assertEquals(Message.Status.FAILED, smsMessage.getStatus());
+		Assert.assertEquals(Message.STATUS_FAILED, smsMessage.getStatus());
 	}
 	
 	@Test
@@ -697,9 +694,8 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 		Exchange exchange = failedEndpoint.getReceivedExchanges().iterator().next();
 		Message smsMessage = exchange.getIn().getBody(Message.class);
 
-		Assert.assertEquals(Message.DestinationType.PROCESSOR, smsMessage.getDestinationType());
 		Assert.assertEquals("test", smsMessage.getDestination());
-		Assert.assertEquals(Message.Status.FAILED, smsMessage.getStatus());
+		Assert.assertEquals(Message.STATUS_FAILED, smsMessage.getStatus());
 		
 		System.out.println("testPreProcessingActionException finished ...");
 	}

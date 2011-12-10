@@ -39,7 +39,7 @@ public class CopyAction implements Action, ExposableConfiguration<CopyAction> {
 			message.setProperty(to, message.getProperty(from));
 			
 			if (deleteFrom) {
-				message.getProperties().remove(from);
+				message.removeProperty(from);
 			}
 		}
 		

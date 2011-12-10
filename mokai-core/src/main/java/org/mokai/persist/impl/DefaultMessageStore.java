@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.Collections;
 
 import org.mokai.Message;
-import org.mokai.Message.Status;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.MessageStore;
 
@@ -27,7 +26,7 @@ public class DefaultMessageStore implements MessageStore {
 	}
 
 	@Override
-	public void updateStatus(MessageCriteria criteria, Status newStatus) {
+	public void updateStatus(MessageCriteria criteria, byte newStatus) {
 		
 	}
 

@@ -61,7 +61,7 @@ public abstract class AbstractRouter {
 		}
 		
 		// unroutable
-		message.setStatus(Message.Status.UNROUTABLE);
+		message.setStatus(Message.STATUS_UNROUTABLE);
 		return getUnroutableMessagesUri();
 	}
 	

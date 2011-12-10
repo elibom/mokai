@@ -6,9 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.mokai.Message.DestinationType;
 import org.mokai.Message.Direction;
-import org.mokai.Message.Status;
 
 /**
  * Class used to filter messages from the {@link MessageStore}.
@@ -31,11 +29,9 @@ public class MessageCriteria implements Serializable {
 	
 	private Direction direction;
 	
-	private List<Status> status;
+	private List<Byte> status;
 	
 	private String destination;
-	
-	private DestinationType destinationType;
 	
 	private Map<String,Object> properties = new HashMap<String,Object>();
 	
@@ -60,7 +56,7 @@ public class MessageCriteria implements Serializable {
 	protected int numRecords;
 	
 	public MessageCriteria() {
-		this.status = new ArrayList<Status>();
+		this.status = new ArrayList<Byte>();
 	}
 
 	public final String getOrderBy() {
@@ -119,15 +115,15 @@ public class MessageCriteria implements Serializable {
 		return this;
 	}
 
-	public final List<Status> getStatus() {
+	public final List<Byte> getStatus() {
 		return status;
 	}
 
-	public final void setStatus(List<Status> status) {
+	public final void setStatus(List<Byte> status) {
 		this.status = status;
 	}
 	
-	public final MessageCriteria addStatus(Status status) {
+	public final MessageCriteria addStatus(byte status) {
 		this.status.add(status);
 		
 		return this;
@@ -143,20 +139,6 @@ public class MessageCriteria implements Serializable {
 	
 	public final MessageCriteria destination(String destination) {
 		setDestination(destination);
-		
-		return this;
-	}
-	
-	public final DestinationType getDestinationType() {
-		return destinationType;
-	}
-
-	public final void setDestinationType(DestinationType destinationType) {
-		this.destinationType = destinationType;
-	}
-
-	public final MessageCriteria destinationType(DestinationType destinationType) {
-		setDestinationType(destinationType);
 		
 		return this;
 	}

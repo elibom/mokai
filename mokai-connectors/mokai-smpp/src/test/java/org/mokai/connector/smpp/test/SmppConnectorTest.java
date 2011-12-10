@@ -678,8 +678,7 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 		}
 
 		@Override
-		public void updateStatus(MessageCriteria criteria,
-			org.mokai.Message.Status newStatus) throws StoreException {
+		public void updateStatus(MessageCriteria criteria, byte newStatus) throws StoreException {
 			
 		}
 

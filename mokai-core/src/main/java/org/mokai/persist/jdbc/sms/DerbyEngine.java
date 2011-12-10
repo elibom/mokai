@@ -47,12 +47,9 @@ public class DerbyEngine implements SqlEngine {
 	protected String getConnectionsCreateScript() {
 		return "CREATE TABLE " + ConnectionsSmsHandler.DEFAULT_TABLENAME + " (" +
 					"id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1), " +
-					"account VARCHAR(30), " +
 					"reference VARCHAR(100), " +
 					"source VARCHAR(30) NOT NULL, " +
-					"sourcetype SMALLINT NOT NULL, " +
 					"destination VARCHAR(30), " +
-					"destinationtype SMALLINT, " +
 					"status SMALLINT NOT NULL, " +
 					"smsc_to VARCHAR(30), " +
 					"smsc_from VARCHAR(30), " +
@@ -70,12 +67,9 @@ public class DerbyEngine implements SqlEngine {
 	protected String getApplicationsCreateScript() {
 		return "CREATE TABLE " + ApplicationsSmsHandler.DEFAULT_TABLENAME + " (" +
 					"id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1), " +
-					"account VARCHAR(30), " +
 					"reference VARCHAR(100), " +
 					"source VARCHAR(30) NOT NULL, " +
-					"sourcetype SMALLINT NOT NULL, " +
 					"destination VARCHAR(30), " +
-					"destinationtype SMALLINT, " +
 					"status SMALLINT NOT NULL, " +
 					"smsc_to VARCHAR(30), " +
 					"smsc_from VARCHAR(30), " +

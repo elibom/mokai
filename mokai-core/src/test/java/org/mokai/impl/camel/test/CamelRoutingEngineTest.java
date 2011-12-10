@@ -24,7 +24,6 @@ import org.mokai.Connector;
 import org.mokai.ConnectorService;
 import org.mokai.Message;
 import org.mokai.Message.Direction;
-import org.mokai.Message.Status;
 import org.mokai.ObjectAlreadyExistsException;
 import org.mokai.ObjectNotFoundException;
 import org.mokai.Processor;
@@ -351,7 +350,7 @@ public class CamelRoutingEngineTest {
 		final CyclicBarrier barrier = new CyclicBarrier(2);
 		
 		// a custom message store
-		MessageStore messageStore = new MockMessageStore(barrier, Status.PROCESSED);
+		MessageStore messageStore = new MockMessageStore(barrier, Message.STATUS_PROCESSED);
 		
 		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
 		routingEngine.setMessageStore(messageStore);
@@ -384,7 +383,7 @@ public class CamelRoutingEngineTest {
 		final CyclicBarrier barrier = new CyclicBarrier(2);
 		
 		// a custom message store
-		MessageStore messageStore = new MockMessageStore(barrier, Status.PROCESSED);
+		MessageStore messageStore = new MockMessageStore(barrier, Message.STATUS_PROCESSED);
 		
 		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
 		routingEngine.setMessageStore(messageStore);
@@ -417,7 +416,7 @@ public class CamelRoutingEngineTest {
 		final CyclicBarrier barrier = new CyclicBarrier(2);
 		
 		// a custom message store
-		MessageStore messageStore = new MockMessageStore(barrier, Status.UNROUTABLE);
+		MessageStore messageStore = new MockMessageStore(barrier, Message.STATUS_UNROUTABLE);
 		
 		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
 		routingEngine.setMessageStore(messageStore);
@@ -453,7 +452,7 @@ public class CamelRoutingEngineTest {
 		final CyclicBarrier barrier = new CyclicBarrier(2);
 		
 		// a custom message store
-		MessageStore messageStore = new MockMessageStore(barrier, Status.UNROUTABLE);
+		MessageStore messageStore = new MockMessageStore(barrier, Message.STATUS_UNROUTABLE);
 		
 		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
 		routingEngine.setMessageStore(messageStore);
@@ -490,12 +489,12 @@ public class CamelRoutingEngineTest {
 		Collection<Message> failedMessages = new ArrayList<Message>();
 		
 		Message m1 = new Message();
-		m1.setStatus(Status.FAILED);
+		m1.setStatus(Message.STATUS_FAILED);
 		m1.setDirection(Direction.TO_CONNECTIONS);
 		failedMessages.add(m1);
 		
 		Message m2 = new Message();
-		m2.setStatus(Status.FAILED);
+		m2.setStatus(Message.STATUS_FAILED);
 		m2.setDirection(Direction.TO_APPLICATIONS);
 		failedMessages.add(m2);
 		
@@ -583,9 +582,9 @@ public class CamelRoutingEngineTest {
 	protected class MockMessageStore implements MessageStore {
 		
 		private CyclicBarrier barrier;
-		private Status status;
+		private byte status;
 		
-		public MockMessageStore(CyclicBarrier barrier, Status status) {
+		public MockMessageStore(CyclicBarrier barrier, byte status) {
 			this.barrier = barrier;
 			this.status = status;
 		}
@@ -598,7 +597,7 @@ public class CamelRoutingEngineTest {
 
 		@Override
 		public void saveOrUpdate(Message message) throws StoreException {
-			if (!message.getStatus().equals(status)) {
+			if (message.getStatus() != status) {
 				Assert.fail();
 			}
 			
@@ -606,7 +605,7 @@ public class CamelRoutingEngineTest {
 		}
 
 		@Override
-		public void updateStatus(MessageCriteria criteria, Status newStatus)
+		public void updateStatus(MessageCriteria criteria, byte newStatus)
 				throws StoreException {}
 		
 	}

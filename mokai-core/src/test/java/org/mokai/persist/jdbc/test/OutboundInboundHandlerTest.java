@@ -1,6 +1,7 @@
 package org.mokai.persist.jdbc.test;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyByte;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -14,7 +15,6 @@ import junit.framework.Assert;
 
 import org.mokai.Message;
 import org.mokai.Message.Direction;
-import org.mokai.Message.Status;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.RejectedException;
 import org.mokai.persist.jdbc.MessageHandler;
@@ -159,12 +159,12 @@ public class OutboundInboundHandlerTest {
 		
 		MessageCriteria criteria = new MessageCriteria()
 			.direction(Direction.TO_CONNECTIONS);
-		handler.updateMessagesStatus(conn, criteria, Status.RETRYING);	
+		handler.updateMessagesStatus(conn, criteria, Message.STATUS_RETRYING);	
 		
 		verify(outHandler).updateMessagesStatus(any(Connection.class), 
-				any(MessageCriteria.class), any(Status.class));
+				any(MessageCriteria.class), anyByte());
 		verify(inHandler, never()).updateMessagesStatus(any(Connection.class),  
-				any(MessageCriteria.class), any(Status.class));
+				any(MessageCriteria.class), anyByte());
 	}
 	
 	@Test
@@ -178,12 +178,12 @@ public class OutboundInboundHandlerTest {
 		
 		MessageCriteria criteria = new MessageCriteria()
 			.direction(Direction.TO_APPLICATIONS);
-		handler.updateMessagesStatus(conn, criteria, Status.RETRYING);	
+		handler.updateMessagesStatus(conn, criteria, Message.STATUS_RETRYING);	
 		
 		verify(inHandler).updateMessagesStatus(any(Connection.class),  
-				any(MessageCriteria.class), any(Status.class));
+				any(MessageCriteria.class), anyByte());
 		verify(outHandler, never()).updateMessagesStatus(any(Connection.class),  
-				any(MessageCriteria.class), any(Status.class));
+				any(MessageCriteria.class), anyByte());
 	}
 	
 	@Test
@@ -195,12 +195,12 @@ public class OutboundInboundHandlerTest {
 		Connection conn = mock(Connection.class);
 		MessageHandler handler = createMessageHandler(outHandler, inHandler);
 	
-		handler.updateMessagesStatus(conn, new MessageCriteria(), Status.RETRYING);
+		handler.updateMessagesStatus(conn, new MessageCriteria(), Message.STATUS_RETRYING);
 		
 		verify(inHandler).updateMessagesStatus(any(Connection.class), 
-				any(MessageCriteria.class), any(Status.class));
+				any(MessageCriteria.class), anyByte());
 		verify(outHandler).updateMessagesStatus(any(Connection.class),
-				any(MessageCriteria.class), any(Status.class));
+				any(MessageCriteria.class), anyByte());
 	}
 	
 	@Test
@@ -213,12 +213,12 @@ public class OutboundInboundHandlerTest {
 		MessageHandler handler = createMessageHandler(outHandler, inHandler);
 	
 		handler.updateMessagesStatus(conn, new MessageCriteria().direction(Direction.UNKNOWN), 
-				Status.RETRYING);
+				Message.STATUS_RETRYING);
 		
 		verify(inHandler, never()).updateMessagesStatus(any(Connection.class), 
-				any(MessageCriteria.class), any(Status.class));
+				any(MessageCriteria.class), anyByte());
 		verify(outHandler, never()).updateMessagesStatus(any(Connection.class),
-				any(MessageCriteria.class), any(Status.class));
+				any(MessageCriteria.class), anyByte());
 	}
 	
 	@Test

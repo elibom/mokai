@@ -98,6 +98,19 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 	}
 	
 	@Test
+	public void testSupport() throws Exception {
+		SmppConnector connector = new SmppConnector();
+		
+		Assert.assertFalse(connector.supports(new Message()));
+		Assert.assertFalse(connector.supports(new Message().setProperty("to", "")));
+		Assert.assertTrue(connector.supports(new Message().setProperty("to", "3")));
+		Assert.assertTrue(connector.supports(new Message().setProperty("to", "5730021111111111")));
+		Assert.assertFalse(connector.supports(new Message().setProperty("to", "5730021111111111a")));
+		Assert.assertFalse(connector.supports(new Message().setProperty("to", "5730021111111111.")));
+		Assert.assertFalse(connector.supports(new Message().setProperty("to", "5730021111111111,")));
+	}
+	
+	@Test
 	public void testStatus() throws Exception {
 		log.info("starting testStatus ... ");
 		
@@ -290,7 +303,6 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 		}
 		
 		Message message = (Message) messageProducer.getMessage(0);
-		Assert.assertEquals(Message.SMS_TYPE, message.getType());
 		Assert.assertEquals(to, message.getProperty("to", String.class));
 		Assert.assertEquals(from, message.getProperty("from", String.class));
 		Assert.assertEquals(text, message.getProperty("text", String.class));
@@ -309,7 +321,6 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 		configuration.setPort(SERVER_PORT);
 		configuration.setSystemId("test");
 		configuration.setPassword("test");
-		configuration.setRouteDeliveryReceipts(true);
 		
 		MockMessageStore messageStore = new MockMessageStore();
 		MockMessageProducer messageProducer = new MockMessageProducer();
@@ -323,6 +334,7 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 		message.setProperty("to", to);
 		message.setProperty("from", from);
 		message.setProperty("text", "This is the test");
+		message.setProperty("receiptDestination", "test");
 		sendMessage(connector, messageStore, message);
 		
 		// retrieve the session
@@ -344,7 +356,6 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 		}
 		
 		Message receivedMessage = (Message) messageProducer.getMessage(0);
-		Assert.assertEquals(receivedMessage.getType(), Message.DELIVERY_RECEIPT_TYPE);
 		Assert.assertEquals(from, receivedMessage.getProperty("to", String.class));
 		Assert.assertEquals(to, receivedMessage.getProperty("from", String.class));
 		Assert.assertEquals(receivedMessage.getProperty("messageId", String.class), 12000 + "");
@@ -365,7 +376,6 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 		configuration.setPort(SERVER_PORT);
 		configuration.setSystemId("test");
 		configuration.setPassword("test");
-		configuration.setRouteDeliveryReceipts(true);
 		configuration.setDlrIdConversion(DlrIdConversion.HEXA_TO_DEC);
 		
 		MockMessageStore messageStore = new MockMessageStore();
@@ -377,6 +387,7 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 		message.setProperty("to", "3542");
 		message.setProperty("from", "3002175604");
 		message.setProperty("text", "This is the test");
+		message.setProperty("receiptDestination", "test");
 		sendMessage(connector, messageStore, message);
 		
 		// retrieve the session
@@ -398,7 +409,7 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 		}
 		
 		Message receivedMessage = (Message) messageProducer.getMessage(0);
-		Assert.assertEquals(receivedMessage.getType(), Message.DELIVERY_RECEIPT_TYPE);
+		Assert.assertNotNull(receivedMessage);
 		
 		connector.doStop();
 		
@@ -415,7 +426,6 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 		configuration.setPort(SERVER_PORT);
 		configuration.setSystemId("test");
 		configuration.setPassword("test");
-		configuration.setRouteDeliveryReceipts(true);
 		configuration.setDlrIdConversion(DlrIdConversion.DEC_TO_HEXA);
 		
 		MockMessageStore messageStore = new MockMessageStore();
@@ -427,6 +437,7 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 		message.setProperty("to", "3542");
 		message.setProperty("from", "3002175604");
 		message.setProperty("text", "This is the test");
+		message.setProperty("receiptDestination", "test");
 		sendMessage(connector, messageStore, message);
 		
 		// retrieve the session
@@ -448,7 +459,7 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 		}
 		
 		Message receivedMessage = (Message) messageProducer.getMessage(0);
-		Assert.assertEquals(receivedMessage.getType(), Message.DELIVERY_RECEIPT_TYPE);
+		Assert.assertNotNull(receivedMessage);
 		
 		connector.doStop();
 		

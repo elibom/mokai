@@ -15,6 +15,11 @@ public class ApplicationsRouter extends AbstractRouter {
 	protected List<ConnectorService> getConnectorServices() {
 		return routingEngine.getApplications();
 	}
+	
+	@Override
+	protected ConnectorService getConnectorService(String id) {
+		return routingEngine.getApplication(id);
+	}
 
 	@Override
 	protected String getUriPrefix() {

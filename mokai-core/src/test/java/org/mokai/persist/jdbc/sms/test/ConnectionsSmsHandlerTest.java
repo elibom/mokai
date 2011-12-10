@@ -87,14 +87,6 @@ public class ConnectionsSmsHandlerTest {
 		} catch (Exception e) {}
 	}
 	
-	@Test
-	public void testSupportsSmsType() throws Exception {
-		ConnectionsSmsHandler handler = new ConnectionsSmsHandler();
-		Assert.assertTrue(handler.supportsType(Message.SMS_TYPE));
-		Assert.assertFalse(handler.supportsType("other"));
-		Assert.assertFalse(handler.supportsType("null"));
-	}
-	
 	public void testSupportsOutboundDirection() throws Exception {
 		ConnectionsSmsHandler handler = new ConnectionsSmsHandler();
 		Assert.assertTrue(handler.supportsDirection(Direction.TO_CONNECTIONS));
@@ -106,7 +98,7 @@ public class ConnectionsSmsHandlerTest {
 	@Test
 	public void testInsertMessage() throws Exception {
 
-		final Message message = new Message(Message.SMS_TYPE);
+		final Message message = new Message();
 		message.setDirection(Direction.TO_CONNECTIONS);
 		message.setSource("test");
 		message.setStatus(Message.STATUS_CREATED);
@@ -141,7 +133,7 @@ public class ConnectionsSmsHandlerTest {
 	public void testUpdateMessage() throws Exception {
 		long id = generateRecordToUpdate();
 		
-		final Message message = new Message(Message.SMS_TYPE);
+		final Message message = new Message();
 		message.setId(id);
 		message.setStatus(Message.STATUS_RETRYING);
 		message.setDestination("test");
@@ -175,7 +167,7 @@ public class ConnectionsSmsHandlerTest {
 	@Test
 	public void testUpdateNotFoundMessage() throws Exception {
 
-		final Message message = new Message(Message.SMS_TYPE);
+		final Message message = new Message();
 		message.setId(1);
 		message.setStatus(Message.STATUS_RETRYING);
 		message.setDestination("test");

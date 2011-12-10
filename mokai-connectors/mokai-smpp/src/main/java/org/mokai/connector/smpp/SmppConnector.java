@@ -347,21 +347,15 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	
 	@Override
 	public boolean supports(Message message) {
-		if (message.isType(Message.SMS_TYPE)) {
-			return true;
+		
+		String to = message.getProperty("to", String.class);
+		
+		if (to == null || "".equals(to)) {
+			return false;
 		}
 		
-		return supportsMessage(message);
-	}
-	
-	/**
-	 * Helper method that subclases can override to support additional type of messages
-	 * 
-	 * @param message the Message object to be tested for support
-	 * @return true if supports the message, false otherwise
-	 */
-	protected boolean supportsMessage(Message message) {
-		return false;
+		return to.matches("[0-9]*");
+		
 	}
 
 	@Override
@@ -813,9 +807,13 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 				// update the reference of the delivery receipt
 				drMessage.setProperty("originalReference", originalMessage.getReference());
 				
-				// only route delivery receipt if configuration says so
-				if (configuration.isRouteDeliveryReceipts()) {
+				// only route delivery receipt if original message contains a receiptDestination
+				String receiptDestination = originalMessage.getProperty("receiptDestination", String.class);
+				if (receiptDestination != null && !"".equals(receiptDestination)) {
+					
+					drMessage.setDestination(receiptDestination); // this skips the routing mechanism
 					messageProducer.produce(drMessage);
+					
 				}
 					
 			} else {
@@ -1012,7 +1010,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 				String to = deliverSm.getDestination().getAddress();
 				String text = new String(deliverSm.getMessageText());
 				
-				Message message = new Message(Message.SMS_TYPE);
+				Message message = new Message();
 				message.setProperty("to", to);
 				message.setProperty("from", from);
 				message.setProperty("text", text);
@@ -1050,7 +1048,9 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			//String error = getDeliveryReceiptValue("err", shortMessage);
 			
 			// create the message
-			Message message = new Message(Message.DELIVERY_RECEIPT_TYPE);
+			Message message = new Message();
+			
+			message.setProperty("isDLR", true);
 			
 			String to = deliverSm.getDestination().getAddress();
 			String from = deliverSm.getSource().getAddress();

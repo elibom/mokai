@@ -25,8 +25,6 @@ public class MessageCriteria implements Serializable {
 		UPWARDS, DOWNWARDS;
 	}
 	
-	private String type;
-	
 	private Direction direction;
 	
 	private List<Byte> status;
@@ -83,20 +81,6 @@ public class MessageCriteria implements Serializable {
 	
 	public final MessageCriteria orderType(OrderType orderType) {
 		setOrderType(orderType);
-		
-		return this;
-	}
-
-	public final String getType() {
-		return type;
-	}
-
-	public final void setType(String type) {
-		this.type = type;
-	}
-	
-	public final MessageCriteria type(String type) {
-		setType(type);
 		
 		return this;
 	}

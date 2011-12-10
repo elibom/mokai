@@ -84,19 +84,17 @@ public class JdbcMessageStore implements MessageStore {
 		try {
 			conn = dataSource.getConnection();
 			
-			String type = message.getType();
 			Direction direction = message.getDirection();
 			
 			// check if the handler supports the message
-			if (handler.supportsType(type) && handler.supportsDirection(direction)) {
+			if (handler.supportsDirection(direction)) {
 				
 				long id = handler.insertMessage(conn, message);				
 				message.setId(id);
 
 			} else {
 				
-				throw new RejectedException("this message store doesn't supports type '" 
-						+ type + "' and direction '" + direction + "'");
+				throw new RejectedException("this message store doesn't supports direction '" + direction + "'");
 			}
 			
 		} catch (SQLException e) {
@@ -124,11 +122,10 @@ public class JdbcMessageStore implements MessageStore {
 		try {
 			conn = dataSource.getConnection();
 			
-			String type = message.getType();
 			Direction direction = message.getDirection();
 			
 			// check if the handler supports the message
-			if (handler.supportsType(type) && handler.supportsDirection(direction)) {
+			if (handler.supportsDirection(direction)) {
 			
 				boolean found = handler.updateMessage(conn, message);
 				if (!found) {
@@ -137,8 +134,7 @@ public class JdbcMessageStore implements MessageStore {
 				
 			} else {
 				
-				throw new RejectedException("this message store doesn't supports type '" 
-						+ type + "' and direction '" + direction + "'");
+				throw new RejectedException("this message store doesn't supports direction '" + direction + "'");
 			}
 			
 		} catch (SQLException e) {
@@ -229,10 +225,6 @@ public class JdbcMessageStore implements MessageStore {
 	private boolean supports(MessageHandler handler, MessageCriteria criteria) {
 		
 		boolean supports = true;
-		
-		if (criteria != null && criteria.getType() != null) {
-			supports = handler.supportsType(criteria.getType());
-		}
 		
 		if (criteria != null && criteria.getDirection() != null) {
 			supports = handler.supportsDirection(criteria.getDirection());

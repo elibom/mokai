@@ -53,7 +53,6 @@ public class JettyConnectorTest {
 			Assert.assertEquals(1, messageProducer.messageCount());
 			
 			Message message = messageProducer.getMessage(0);
-			Assert.assertEquals(message.getType(), Message.SMS_TYPE);
 			Assert.assertNotNull(message.getReference());
 			Assert.assertEquals(message.getProperty("to", String.class), to);
 			Assert.assertEquals(message.getProperty("from", String.class), from);
@@ -109,7 +108,6 @@ public class JettyConnectorTest {
 			Assert.assertEquals(1, messageProducer.messageCount());
 			
 			Message message = messageProducer.getMessage(0);
-			Assert.assertEquals(message.getType(), Message.SMS_TYPE);
 			Assert.assertNotNull(message.getReference());
 			Assert.assertEquals(message.getProperty("to", String.class), to);
 			Assert.assertEquals(message.getProperty("from", String.class), from);
@@ -252,7 +250,6 @@ public class JettyConnectorTest {
 			Assert.assertEquals(1, messageProducer.messageCount());
 			
 			Message message = (Message) messageProducer.getMessage(0);
-			Assert.assertEquals(Message.SMS_TYPE, message.getType());
 			Assert.assertEquals(to, message.getProperty("to1", String.class));
 			Assert.assertEquals(from, message.getProperty("from1", String.class));
 			Assert.assertEquals(text, message.getProperty("text1", String.class));

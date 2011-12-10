@@ -236,7 +236,7 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 		new MockConnectorService("test", processor, resourceRegistry).start();
 		
 		// simulate receiving message
-		processor.receiveMessage(new Message(Message.SMS_TYPE));
+		processor.receiveMessage(new Message());
 		
 		// validate results
 		inboundEndpoint.assertIsSatisfied();

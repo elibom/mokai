@@ -51,12 +51,9 @@ public class MySqlEngine implements SqlEngine {
 	protected String getConnectionsCreateScript() {
 		return "CREATE TABLE " + ConnectionsSmsHandler.DEFAULT_TABLENAME + " (" +
 					"id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY, " +
-					"account VARCHAR(30), " +
 					"reference VARCHAR(100), " +
 					"source VARCHAR(30) NOT NULL, " +
-					"sourcetype TINYINT NOT NULL, " +
 					"destination VARCHAR(30), " +
-					"destinationtype TINYINT, " +
 					"status TINYINT NOT NULL, " +
 					"smsc_to VARCHAR(30), " +
 					"smsc_from VARCHAR(30), " +

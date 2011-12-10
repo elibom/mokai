@@ -20,74 +20,39 @@ public class Message implements Serializable {
 	
 	public static final long NOT_PERSISTED = -1;
 	
-	public static final String ANONYMOUS_ACCOUNT_ID = "anonymous";
+	private static final String TYPE = "MK_TYPE";
+	private static final String DIRECTION = "MK_DIRECTION";
+	private static final String SOURCE = "MK_SOURCE";
+	private static final String DESTINATION = "MK_DESTINATION";
+	private static final String REFERENCE = "MK_REFERENCE";
 	
 	public static final String SMS_TYPE = "sms";
 	public static final String DELIVERY_RECEIPT_TYPE = "delivery-receipt";
 	
 	/**
-	 * The source type of the message. With the {@link Message#source} attribute, 
-	 * it answers the question: Who produced the message?
-	 * 
-	 * @author German Escobar
+	 * The message was created. This is the default status.
 	 */
-	public enum SourceType {
-		
-		RECEIVER(1), PROCESSOR(2), UNKNOWN(-1);
-		
-		private byte id;
-		
-		private SourceType(int id) {
-			this.id = (byte) id;
-		}
-		
-		public byte value() {
-			return id;
-		}
-		
-		public static SourceType getSourceType(byte b) {
-			if (b == 1) {
-				return RECEIVER;
-			} else if (b == 2) {
-				return PROCESSOR;
-			} else if (b == -1) {
-				return UNKNOWN;
-			}
-			
-			throw new IllegalArgumentException("Source type with id " + b + " not supported");
-		}
-	}
+	public static final byte STATUS_CREATED = 1;
 	
 	/**
-	 * The destination type of the message. With the {@link Message#destination} attribute, 
-	 * it answers the question: Who processed the message?
-	 * 
-	 * @author German Escobar
+	 * The message was processed by a processor. 
 	 */
-	public enum DestinationType {
-		
-		PROCESSOR(1), UNKNOWN(-1);
-		
-		private byte id;
-		
-		private DestinationType(int id) {
-			this.id = (byte) id;
-		}
-		
-		public byte value() {
-			return id;
-		}
-		
-		public static DestinationType getDestinationType(byte b) {
-			for (DestinationType t : values()) {
-				if (t.value() == b) {
-					return t;
-				}
-			}
-			
-			throw new IllegalArgumentException("Destination type with id " + b + " not supported");
-		}
-	}
+	public static final byte STATUS_PROCESSED = 2;
+	
+	/**
+	 * The message couldn't be processed by the selected processor.
+	 */
+	public static final byte STATUS_FAILED = 3;
+	
+	/**
+	 * The message couldn't be routed (no processor accepted it)
+	 */
+	public static final byte STATUS_UNROUTABLE = 4;
+	
+	/**
+	 * The message failed, but now it is being retried.
+	 */
+	public static final byte STATUS_RETRYING = 5;
 	
 	/**
 	 * Tells whether the message is outbound (from applications to connections) or 
@@ -122,130 +87,19 @@ public class Message implements Serializable {
 	}
 	
 	/**
-	 * Describes the status of the message.
-	 * 
-	 * @author German Escobar
-	 */
-	public enum Status {
-		
-		/**
-		 * The message was created. This is the default status.
-		 */
-		CREATED(1),
-		
-		/**
-		 * The message was processed by a processor. 
-		 */
-		PROCESSED(2), 
-		
-		/**
-		 * The message couldn't be processed by the selected processor.
-		 */
-		FAILED(3), 
-		
-		/**
-		 * The message couldn't be routed (no processor accepted it)
-		 */
-		UNROUTABLE(4),
-		
-		/**
-		 * The message failed, but now it is being retried.
-		 */
-		RETRYING(5), 
-		
-		/**
-		 * The message is being re-routed
-		 */
-		REROUTED(6);
-		
-		private byte id;
-		
-		private Status(int id) {
-			this.id = (byte) id;
-		}
-		
-		public byte value() {
-			return id;
-		}
-		
-		public static Status getSatus(byte b) {
-			
-			for (Status status : values()) {
-				if (b == status.value()) {
-					return status;
-				}
-			}
-			
-			throw new IllegalArgumentException("Status with id " + b + " not supported");
-		}
-	}
-	
-	/**
 	 * Set and used by persistence mechanisms.
 	 */
 	private long id = NOT_PERSISTED;
 	
 	/**
-	 * The account to which the message belongs.
+	 * The status of the message. It can be any byte.
 	 */
-	private String accountId = ANONYMOUS_ACCOUNT_ID;
-	
-	/**
-	 * Transient. Should not be persisted. Should be set to null once validated.
-	 * Mandatory if accountId is not Message.ANONYMOUS_ACCOUNT_ID and type is
-	 * Message.Type.OUTBOUND.
-	 */
-	private transient String password;
-	
-	/**
-	 * A reference string that applications can use to query the messages.
-	 */
-	private String reference = UUID.randomUUID().toString();
-	
-	/**
-	 * An String used to identify the message (e.g. sms, email, etc.)
-	 */
-	private String type;
-	
-	/**
-	 * @see Direction
-	 */
-	private Direction direction = Direction.UNKNOWN;
-	
-	/**
-	 * The id of the source of the message.
-	 */
-	private String source;
-	
-	/**
-	 * @see SourceType
-	 */
-	private SourceType sourceType = SourceType.UNKNOWN;
-	
-	/**
-	 * The id of the destination of the message
-	 */
-	private String destination;
-	
-	/**
-	 * @see DestinationType
-	 */
-	private DestinationType destinationType = DestinationType.UNKNOWN;
-	
-	/**
-	 * @see Status
-	 */
-	private Status status = Status.CREATED;
+	private byte status = STATUS_CREATED;
 	
 	/**
 	 * The properties of the message
 	 */
 	private Map<String,Object> properties = new HashMap<String,Object>();
-	
-	/**
-	 * The body of the message.
-	 */
-	private Object body;
 	
 	/**
 	 * The creation time of the message.
@@ -258,11 +112,13 @@ public class Message implements Serializable {
 	private Date modificationTime = new Date();
 	
 	public Message() {
-		
+		this(SMS_TYPE);
 	}
 	
 	public Message(String type) {
-		this.type = type;
+		properties.put(TYPE, type);
+		properties.put(DIRECTION, Direction.UNKNOWN);
+		properties.put(REFERENCE, UUID.randomUUID().toString());
 	}
 	
 	/**
@@ -277,7 +133,7 @@ public class Message implements Serializable {
 			throw new IllegalArgumentException("Type not provided");
 		}
 		
-		if (this.type != null && this.type.equals(t)) {
+		if (getType() != null && getType().equals(t)) {
 			return true;
 		}
 		
@@ -292,92 +148,64 @@ public class Message implements Serializable {
 		this.id = id;
 	}
 
-	public final String getReference() {
-		return reference;
-	}
-
-	public final void setReference(String reference) {
-		this.reference = reference;
-	}
-
-	public final String getAccountId() {
-		return accountId;
-	}
-
-	public final void setAccountId(String accountId) {
-		this.accountId = accountId;
-	}
-
-	public final String getPassword() {
-		return password;
-	}
-
-	public final void setPassword(String password) {
-		this.password = password;
-	}
-
 	public final String getSource() {
-		return source;
+		return getProperty(SOURCE, String.class);
 	}
 
 	public final void setSource(String source) {
-		this.source = source;
-	}
-
-	public final SourceType getSourceType() {
-		return sourceType;
-	}
-
-	public final void setSourceType(SourceType sourceType) {
-		this.sourceType = sourceType;
+		setProperty(SOURCE, source);
 	}
 
 	public final String getDestination() {
-		return destination;
+		return getProperty(DESTINATION, String.class);
 	}
 
 	public final void setDestination(String destination) {
-		this.destination = destination;
-	}
-
-	public final DestinationType getDestinationType() {
-		return destinationType;
-	}
-
-	public final void setDestinationType(DestinationType destinationType) {
-		this.destinationType = destinationType;
+		setProperty(DESTINATION, destination);
 	}
 
 	public final String getType() {
-		return type;
+		return getProperty(TYPE, String.class);
 	}
 
 	public final void setType(String type) {
-		this.type = type;
+		setProperty(TYPE, type);
 	}
 
 	public final Direction getDirection() {
-		return direction;
+		return getProperty(DIRECTION, Direction.class);
 	}
 
 	public final void setDirection(Direction direction) {
-		this.direction = direction;
+		setProperty(DIRECTION, direction);
+	}
+	
+	public final String getReference() {
+		return getProperty(REFERENCE, String.class);
+	}
+	
+	public final void setReference(String reference) {
+		setProperty(REFERENCE, reference);
 	}
 
-	public final Status getStatus() {
+	public final byte getStatus() {
 		return status;
 	}
 
-	public final void setStatus(Status status) {
+	public final void setStatus(byte status) {
 		this.status = status;
 	}
 
-	public final Object getBody() {
-		return body;
-	}
-	
 	public final Map<String, Object> getProperties() {
-		return properties;
+		Map<String, Object> ret = new HashMap<String, Object>();
+		
+		for (Map.Entry<String, Object> entry : properties.entrySet()) {
+			if (!entry.getKey().startsWith("MK")) {
+				ret.put(entry.getKey(), entry.getValue());
+			}
+		}
+		
+		return ret;
 	}
 	
 	public final Object getProperty(String key) {
@@ -392,14 +220,9 @@ public class Message implements Serializable {
 	public final void setProperty(String key, Object value) {
 		properties.put(key, value);
 	}
-
-	@SuppressWarnings("unchecked")
-	public final <T> T getBody(Class<T> clazz) {
-		return (T) body;
-	}
-
-	public final void setBody(Object body) {
-		this.body = body;
+	
+	public final void removeProperty(String key) {
+		properties.remove(key);
 	}
 
 	public final Date getCreationTime() {

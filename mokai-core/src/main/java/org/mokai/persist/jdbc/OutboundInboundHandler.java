@@ -8,7 +8,6 @@ import java.util.Collection;
 import org.apache.commons.lang.Validate;
 import org.mokai.Message;
 import org.mokai.Message.Direction;
-import org.mokai.Message.Status;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.RejectedException;
 
@@ -156,7 +155,7 @@ public class OutboundInboundHandler implements MessageHandler {
 	 * @throws IllegalStateException if at least one of the handlers is null.
 	 */
 	@Override
-	public final void updateMessagesStatus(Connection conn, MessageCriteria criteria, Status newStatus) 
+	public final void updateMessagesStatus(Connection conn, MessageCriteria criteria, byte newStatus) 
 			throws SQLException, IllegalStateException {
 		
 		checkHandlersNotNull();

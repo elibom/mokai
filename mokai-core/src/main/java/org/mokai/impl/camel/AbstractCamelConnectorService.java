@@ -21,7 +21,6 @@ import org.mokai.ConnectorContext;
 import org.mokai.ConnectorService;
 import org.mokai.ExecutionException;
 import org.mokai.Message;
-import org.mokai.Message.DestinationType;
 import org.mokai.Message.Direction;
 import org.mokai.MessageProducer;
 import org.mokai.MonitorStatusBuilder;
@@ -185,7 +184,7 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 					@Override
 					public void process(Exchange exchange) throws Exception {
 						Message message = exchange.getIn().getBody(Message.class);
-						message.setStatus(Message.Status.FAILED);
+						message.setStatus(Message.STATUS_FAILED);
 					}
 					
 				}).to(getFailedMessagesUri());
@@ -700,7 +699,7 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 				// try to process the message
 				Processor processor = (Processor) connector;
 				processor.process(message);
-				message.setStatus(Message.Status.PROCESSED);
+				message.setStatus(Message.STATUS_PROCESSED);
 				
 				status = Monitorable.class.isInstance(processor) ? MonitorStatusBuilder.ok() : MonitorStatusBuilder.unknown();
 				failedMessages = 0;
@@ -738,7 +737,7 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 					status = MonitorStatusBuilder.failed(failMessage, e);
 					
 					// send to failed messages
-					message.setStatus(Message.Status.FAILED);
+					message.setStatus(Message.STATUS_FAILED);
 					camelProducer.sendBody(getFailedMessagesUri(), message);
 					
 				}
@@ -773,7 +772,6 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 			Message message = exchange.getIn().getBody(Message.class);
 			
 			message.setDestination(id);
-			message.setDestinationType(DestinationType.PROCESSOR);
 		}
 	}
 	
@@ -790,11 +788,6 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 			Message message = exchange.getIn().getBody(Message.class);
 			
 			message.setSource(id);
-			if (Processor.class.isInstance(connector)) {
-				message.setSourceType(Message.SourceType.PROCESSOR);
-			} else {
-				message.setSourceType(Message.SourceType.RECEIVER);
-			}
 			
 			// set the direction of the message
 			if (getDirection().equals(Direction.TO_APPLICATIONS)) {

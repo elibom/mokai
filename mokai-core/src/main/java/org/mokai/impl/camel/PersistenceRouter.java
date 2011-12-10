@@ -15,7 +15,7 @@ public class PersistenceRouter {
 	public final String route(Exchange exchange) {
 		Message message = exchange.getIn().getBody(Message.class);
 		
-		if (message.getStatus().equals(Message.Status.PROCESSED)) {
+		if (message.getStatus() == Message.STATUS_PROCESSED) {
 			return "direct:processedmessages";
 		}
 		

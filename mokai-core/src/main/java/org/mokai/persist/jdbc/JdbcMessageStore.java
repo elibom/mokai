@@ -9,9 +9,8 @@ import javax.sql.DataSource;
 
 import org.apache.commons.lang.Validate;
 import org.mokai.Message;
-import org.mokai.ObjectNotFoundException;
 import org.mokai.Message.Direction;
-import org.mokai.Message.Status;
+import org.mokai.ObjectNotFoundException;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.MessageStore;
 import org.mokai.persist.RejectedException;
@@ -152,7 +151,7 @@ public class JdbcMessageStore implements MessageStore {
 	}
 	
 	@Override
-	public final void updateStatus(MessageCriteria criteria, Status newStatus) throws StoreException, 
+	public final void updateStatus(MessageCriteria criteria, byte newStatus) throws StoreException, 
 			IllegalStateException {
 		
 		checkDataSourceNotNull();

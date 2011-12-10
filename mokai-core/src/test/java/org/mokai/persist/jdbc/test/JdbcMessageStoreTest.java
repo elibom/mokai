@@ -1,6 +1,7 @@
 package org.mokai.persist.jdbc.test;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyByte;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -19,7 +20,6 @@ import junit.framework.Assert;
 import org.mokai.Message;
 import org.mokai.ObjectNotFoundException;
 import org.mokai.Message.Direction;
-import org.mokai.Message.Status;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.RejectedException;
 import org.mokai.persist.jdbc.JdbcMessageStore;
@@ -131,10 +131,10 @@ public class JdbcMessageStoreTest {
 		DataSource dataSource = mockDataSource();
 		JdbcMessageStore messageStore = createMessageStore(dataSource, handler);
 		
-		messageStore.updateStatus(new MessageCriteria(), Status.RETRYING);
+		messageStore.updateStatus(new MessageCriteria(), Message.STATUS_RETRYING);
 		
 		verify(handler)
-			.updateMessagesStatus(any(Connection.class), any(MessageCriteria.class), any(Status.class));
+			.updateMessagesStatus(any(Connection.class), any(MessageCriteria.class), anyByte());
 		
 	}
 	
@@ -145,10 +145,10 @@ public class JdbcMessageStoreTest {
 		DataSource dataSource = mockDataSource();
 		JdbcMessageStore messageStore = createMessageStore(dataSource, handler);
 		
-		messageStore.updateStatus(null, Status.RETRYING);
+		messageStore.updateStatus(null, Message.STATUS_RETRYING);
 		
 		verify(handler)
-			.updateMessagesStatus(any(Connection.class), any(MessageCriteria.class), any(Status.class));
+			.updateMessagesStatus(any(Connection.class), any(MessageCriteria.class), anyByte());
 	}
 	
 	@Test
@@ -164,10 +164,10 @@ public class JdbcMessageStoreTest {
 		MessageCriteria criteria = new MessageCriteria()
 			.type("test")
 			.direction(Direction.TO_APPLICATIONS);
-		messageStore.updateStatus(criteria, Status.RETRYING);
+		messageStore.updateStatus(criteria, Message.STATUS_RETRYING);
 		
 		verify(handler)
-			.updateMessagesStatus(any(Connection.class), any(MessageCriteria.class), any(Status.class));
+			.updateMessagesStatus(any(Connection.class), any(MessageCriteria.class), anyByte());
 		
 	}
 	
@@ -182,10 +182,10 @@ public class JdbcMessageStoreTest {
 		
 		MessageCriteria criteria = new MessageCriteria()
 			.type("test");
-		messageStore.updateStatus(criteria, Status.RETRYING);
+		messageStore.updateStatus(criteria, Message.STATUS_RETRYING);
 		
 		verify(handler, never())
-			.updateMessagesStatus(any(Connection.class), any(MessageCriteria.class), any(Status.class));
+			.updateMessagesStatus(any(Connection.class), any(MessageCriteria.class), anyByte());
 		
 	}
 	
@@ -200,20 +200,11 @@ public class JdbcMessageStoreTest {
 		
 		MessageCriteria criteria = new MessageCriteria()
 			.direction(Direction.TO_APPLICATIONS);
-		messageStore.updateStatus(criteria, Status.RETRYING);
+		messageStore.updateStatus(criteria, Message.STATUS_RETRYING);
 		
 		verify(handler, never())
-			.updateMessagesStatus(any(Connection.class), any(MessageCriteria.class), any(Status.class));
+			.updateMessagesStatus(any(Connection.class), any(MessageCriteria.class), anyByte());
 		
-	}
-	
-	@Test(expectedExceptions=IllegalArgumentException.class)
-	public void shouldFailUpdateStatusNullStatus() throws Exception {
-		MessageHandler handler = mock(MessageHandler.class);
-		DataSource dataSource = mockDataSource();
-		JdbcMessageStore messageStore = createMessageStore(dataSource, handler);
-		
-		messageStore.updateStatus(new MessageCriteria(), null);
 	}
 	
 	@Test
@@ -333,7 +324,7 @@ public class JdbcMessageStoreTest {
 	public void shouldFailUpdateStatusWithNullDataSource() throws Exception {
 		
 		JdbcMessageStore messageStore = createMessageStoreNoDataSource();
-		messageStore.updateStatus(new MessageCriteria(), Status.CREATED);
+		messageStore.updateStatus(new MessageCriteria(), Message.STATUS_CREATED);
 	}
 	
 	@Test(expectedExceptions=IllegalStateException.class)

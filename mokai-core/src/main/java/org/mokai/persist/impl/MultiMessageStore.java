@@ -7,7 +7,6 @@ import java.util.Map;
 
 import org.apache.commons.lang.Validate;
 import org.mokai.Message;
-import org.mokai.Message.Status;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.MessageStore;
 import org.mokai.persist.StoreException;
@@ -55,12 +54,12 @@ public class MultiMessageStore implements MessageStore {
 	/**
 	 * If the {@link MessageCriteria} argument specifies a type, it tries to find
 	 * the corresponding {@link MessageStore} and calls the 
-	 * {@link MessageStore#updateStatus(MessageCriteria, Status)} method. Otherwise,
+	 * {@link MessageStore#updateStatus(MessageCriteria, byte)} method. Otherwise,
 	 * it will call the method on all the registered {@link MessageStore}s, 
 	 * including the defaultMessageStore.
 	 */
 	@Override
-	public final void updateStatus(MessageCriteria criteria, Status newStatus) 
+	public final void updateStatus(MessageCriteria criteria, byte newStatus) 
 			throws StoreException, IllegalArgumentException {
 		
 		Validate.notNull(criteria, "no MessageCriteria provided");

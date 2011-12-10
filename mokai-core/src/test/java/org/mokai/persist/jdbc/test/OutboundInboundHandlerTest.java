@@ -293,42 +293,6 @@ public class OutboundInboundHandlerTest {
 	}
 	
 	@Test
-	public void testOutboundHandlerSupportsType() throws Exception {
-		
-		MessageHandler outHandler = mock(MessageHandler.class);
-		when(outHandler.supportsType("test")).thenReturn(true);
-		MessageHandler inHandler = mock(MessageHandler.class);
-
-		MessageHandler handler = createMessageHandler(outHandler, inHandler);
-		
-		Assert.assertTrue(handler.supportsType("test"));
-		Assert.assertFalse(handler.supportsType("other"));
-	}
-	
-	@Test
-	public void testInboundHandlerSupportsType() throws Exception {
-		MessageHandler outHandler = mock(MessageHandler.class);
-		MessageHandler inHandler = mock(MessageHandler.class);
-		when(inHandler.supportsType("test")).thenReturn(true);
-
-		MessageHandler handler = createMessageHandler(outHandler, inHandler);
-		
-		Assert.assertTrue(handler.supportsType("test"));
-		Assert.assertFalse(handler.supportsType("other"));
-	}
-	
-	@Test
-	public void testNoHandlerSupportsType() throws Exception {
-		MessageHandler outHandler = mock(MessageHandler.class);
-		MessageHandler inHandler = mock(MessageHandler.class);
-
-		MessageHandler handler = createMessageHandler(outHandler, inHandler);
-		
-		Assert.assertFalse(handler.supportsType("test"));
-		Assert.assertFalse(handler.supportsType("other"));
-	}
-	
-	@Test
 	public void testSupportsOutboundInboundDirection() throws Exception {
 		MessageHandler outHandler = mock(MessageHandler.class);
 		MessageHandler inHandler = mock(MessageHandler.class);

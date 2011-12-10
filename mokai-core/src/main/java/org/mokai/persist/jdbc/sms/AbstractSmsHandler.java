@@ -353,7 +353,7 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 		Collection<Message> messages = new ArrayList<Message>();
 		
 		while (rs.next()) {
-			Message message = new Message(Message.SMS_TYPE);
+			Message message = new Message();
 			
 			message.setDirection(getMessageDirection());
 			

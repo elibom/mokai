@@ -2,7 +2,6 @@ package org.mokai.persist.jdbc.test;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyByte;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -18,8 +17,8 @@ import javax.sql.DataSource;
 import junit.framework.Assert;
 
 import org.mokai.Message;
-import org.mokai.ObjectNotFoundException;
 import org.mokai.Message.Direction;
+import org.mokai.ObjectNotFoundException;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.RejectedException;
 import org.mokai.persist.jdbc.JdbcMessageStore;
@@ -36,7 +35,6 @@ public class JdbcMessageStoreTest {
 	public void testSaveMessage() throws Exception {
 		
 		MessageHandler handler = mock(MessageHandler.class);
-		when(handler.supportsType(anyString())).thenReturn(true);
 		when(handler.supportsDirection(any(Direction.class))).thenReturn(true);
 		when(handler.insertMessage(any(Connection.class), any(Message.class)))
 			.thenReturn(10L);
@@ -69,7 +67,6 @@ public class JdbcMessageStoreTest {
 	public void testUpdateMessage() throws Exception {
 		
 		MessageHandler handler = mock(MessageHandler.class);
-		when(handler.supportsType(anyString())).thenReturn(true);
 		when(handler.supportsDirection(any(Direction.class))).thenReturn(true);
 		when(handler.updateMessage(any(Connection.class), any(Message.class)))
 			.thenReturn(true);
@@ -89,7 +86,6 @@ public class JdbcMessageStoreTest {
 	public void shouldFailToUpdateNonExistentId() throws Exception {
 		
 		MessageHandler handler = mock(MessageHandler.class);
-		when(handler.supportsType(anyString())).thenReturn(true);
 		when(handler.supportsDirection(any(Direction.class))).thenReturn(true);
 		when(handler.updateMessage(any(Connection.class), any(Message.class)))
 			.thenReturn(false);
@@ -155,14 +151,12 @@ public class JdbcMessageStoreTest {
 	public void testUpdateStatusWithTypeAndDirectionCriteria() throws Exception {
 		
 		MessageHandler handler = mock(MessageHandler.class);
-		when(handler.supportsType(anyString())).thenReturn(true);
 		when(handler.supportsDirection(any(Direction.class))).thenReturn(true);
 		
 		DataSource dataSource = mockDataSource();
 		JdbcMessageStore messageStore = createMessageStore(dataSource, handler);
 		
 		MessageCriteria criteria = new MessageCriteria()
-			.type("test")
 			.direction(Direction.TO_APPLICATIONS);
 		messageStore.updateStatus(criteria, Message.STATUS_RETRYING);
 		
@@ -170,25 +164,7 @@ public class JdbcMessageStoreTest {
 			.updateMessagesStatus(any(Connection.class), any(MessageCriteria.class), anyByte());
 		
 	}
-	
-	@Test
-	public void testUpdateStatusWithNotSupportedTypeCriteria() throws Exception {
-		
-		MessageHandler handler = mock(MessageHandler.class);
-		when(handler.supportsType(anyString())).thenReturn(false);
-		
-		DataSource dataSource = mockDataSource();
-		JdbcMessageStore messageStore = createMessageStore(dataSource, handler);
-		
-		MessageCriteria criteria = new MessageCriteria()
-			.type("test");
-		messageStore.updateStatus(criteria, Message.STATUS_RETRYING);
-		
-		verify(handler, never())
-			.updateMessagesStatus(any(Connection.class), any(MessageCriteria.class), anyByte());
-		
-	}
-	
+
 	@Test
 	public void testUpdateStatusWithNotSupportedDirectionCriteria() throws Exception {
 		
@@ -241,7 +217,6 @@ public class JdbcMessageStoreTest {
 	public void testListWithTypeAndDirectionCriteria() throws Exception {
 		
 		MessageHandler handler = mock(MessageHandler.class);
-		when(handler.supportsType(anyString())).thenReturn(true);
 		when(handler.supportsDirection(any(Direction.class))).thenReturn(true);
 		when(handler.listMessages(any(Connection.class), any(MessageCriteria.class)))
 			.thenReturn(Collections.singleton(new Message()));
@@ -250,7 +225,6 @@ public class JdbcMessageStoreTest {
 		JdbcMessageStore messageStore = createMessageStore(dataSource, handler);
 		
 		MessageCriteria criteria = new MessageCriteria()
-			.type("test")
 			.direction(Direction.TO_APPLICATIONS);
 		Collection<Message> messages = messageStore.list(criteria);
 		
@@ -273,25 +247,6 @@ public class JdbcMessageStoreTest {
 		Assert.assertEquals(0, messages.size());
 		
 		verify(handler).listMessages(any(Connection.class), any(MessageCriteria.class));
-	}
-	
-	@Test
-	public void testListWithNotSupportedTypeCriteria() throws Exception {
-		
-		MessageHandler handler = mock(MessageHandler.class);
-		when(handler.supportsType(anyString())).thenReturn(false);
-		
-		DataSource dataSource = mockDataSource();
-		JdbcMessageStore messageStore = createMessageStore(dataSource, handler);
-		
-		MessageCriteria criteria = new MessageCriteria()
-			.type("test");
-		Collection<Message> messages = messageStore.list(criteria);
-		Assert.assertNotNull(messages);
-		Assert.assertEquals(0, messages.size());
-		
-		verify(handler, never()).listMessages(any(Connection.class), any(MessageCriteria.class));
-		
 	}
 	
 	@Test

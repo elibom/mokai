@@ -50,11 +50,26 @@ public abstract class AbstractRouter {
 	 * @return
 	 */
 	public String route(Message message) {
+		
+		// check if the message already has a destination
+		if (message.getDestination() != null) {
+			
+			ConnectorService connectorService = getConnectorService(message.getDestination());
+			
+			if (connectorService != null && acceptsMessage(connectorService, message, false)) {
+				return getUriPrefix() + connectorService.getId();
+			}
+			
+			// unroutable
+			message.setStatus(Message.STATUS_UNROUTABLE);
+			return getUnroutableMessagesUri();
+		}
+		
 		// try to route the message
 		List<ConnectorService> connectorServices = getConnectorServices();
 		for (ConnectorService connectorService : connectorServices) {
 			
-			if (acceptsMessage(connectorService, message)) {
+			if (acceptsMessage(connectorService, message, true)) {
 				return getUriPrefix() + connectorService.getId();
 			}
 			
@@ -70,9 +85,10 @@ public abstract class AbstractRouter {
 	 * 
 	 * @param connectorService
 	 * @param message
+	 * @param checkAcceptors if we have to check the acceptors
 	 * @return true if the connector service accepts a message, false otherwise.
 	 */
-	private boolean acceptsMessage(ConnectorService connectorService, Message message) {
+	private boolean acceptsMessage(ConnectorService connectorService, Message message, boolean checkAcceptors) {
 		
 		// return if not a Processor instance
 		if (!Processor.class.isInstance(connectorService.getConnector())) {
@@ -88,7 +104,7 @@ public abstract class AbstractRouter {
 		}
 		
 		// check the acceptors only if the message is supported 
-		if (supported) {
+		if (supported && checkAcceptors) {
 			List<Acceptor> acceptors = connectorService.getAcceptors();
 			for (Acceptor acceptor : acceptors) {
 				try {
@@ -99,9 +115,11 @@ public abstract class AbstractRouter {
 					log.error("Exception while calling Acceptor " + acceptor + ": " + e.getMessage(), e);						
 				}
 			}
+			
+			return false;
 		}
 		
-		return false;
+		return supported;
 	}
 
 	public final void setRoutingEngine(RoutingEngine routingContext) {
@@ -114,6 +132,14 @@ public abstract class AbstractRouter {
 	 * @return a List of {@link ConnectorService} objects.
 	 */
 	protected abstract List<ConnectorService> getConnectorServices();
+	
+	/**
+	 * Retrieves the connector service given an id.
+	 * 
+	 * @param id the id of the connector service to retrieve.
+	 * @return the {@link ConnectorService} object with the given id or null if not found.
+	 */
+	protected abstract ConnectorService getConnectorService(String id);
 	
 	/**
 	 * @return the URI endpoint prefix where the message should me sent if the connector service accepts the

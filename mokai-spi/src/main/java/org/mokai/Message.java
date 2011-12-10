@@ -1,6 +1,7 @@
 package org.mokai;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,14 +21,10 @@ public class Message implements Serializable {
 	
 	public static final long NOT_PERSISTED = -1;
 	
-	private static final String TYPE = "MK_TYPE";
-	private static final String DIRECTION = "MK_DIRECTION";
-	private static final String SOURCE = "MK_SOURCE";
-	private static final String DESTINATION = "MK_DESTINATION";
-	private static final String REFERENCE = "MK_REFERENCE";
-	
-	public static final String SMS_TYPE = "sms";
-	public static final String DELIVERY_RECEIPT_TYPE = "delivery-receipt";
+	public static final String DIRECTION_PROPERTY = "MK_DIRECTION";
+	public static final String SOURCE_PROPERTY = "MK_SOURCE";
+	public static final String DESTINATION_PROPERTY = "MK_DESTINATION";
+	public static final String REFERENCE_PROPERTY = "MK_REFERENCE";
 	
 	/**
 	 * The message was created. This is the default status.
@@ -112,32 +109,8 @@ public class Message implements Serializable {
 	private Date modificationTime = new Date();
 	
 	public Message() {
-		this(SMS_TYPE);
-	}
-	
-	public Message(String type) {
-		properties.put(TYPE, type);
-		properties.put(DIRECTION, Direction.UNKNOWN);
-		properties.put(REFERENCE, UUID.randomUUID().toString());
-	}
-	
-	/**
-	 * Helper method to determine if a message is from a specified type.
-	 * 
-	 * @param t the type to be checked.
-	 * @return true if the message is of the expected type, false
-	 * otherwise.
-	 */
-	public final boolean isType(String t) {
-		if (t == null) {
-			throw new IllegalArgumentException("Type not provided");
-		}
-		
-		if (getType() != null && getType().equals(t)) {
-			return true;
-		}
-		
-		return false;
+		properties.put(DIRECTION_PROPERTY, Direction.UNKNOWN);
+		properties.put(REFERENCE_PROPERTY, UUID.randomUUID().toString());
 	}
 
 	public final long getId() {
@@ -149,43 +122,41 @@ public class Message implements Serializable {
 	}
 
 	public final String getSource() {
-		return getProperty(SOURCE, String.class);
+		return getProperty(SOURCE_PROPERTY, String.class);
 	}
 
 	public final void setSource(String source) {
-		setProperty(SOURCE, source);
+		setProperty(SOURCE_PROPERTY, source);
 	}
 
 	public final String getDestination() {
-		return getProperty(DESTINATION, String.class);
+		return getProperty(DESTINATION_PROPERTY, String.class);
 	}
 
 	public final void setDestination(String destination) {
-		setProperty(DESTINATION, destination);
+		setProperty(DESTINATION_PROPERTY, destination);
 	}
-
-	public final String getType() {
-		return getProperty(TYPE, String.class);
-	}
-
-	public final void setType(String type) {
-		setProperty(TYPE, type);
+	
+	public final Message withDestination(String destination) {
+		setDestination(destination);
+		
+		return this;
 	}
 
 	public final Direction getDirection() {
-		return getProperty(DIRECTION, Direction.class);
+		return getProperty(DIRECTION_PROPERTY, Direction.class);
 	}
 
 	public final void setDirection(Direction direction) {
-		setProperty(DIRECTION, direction);
+		setProperty(DIRECTION_PROPERTY, direction);
 	}
 	
 	public final String getReference() {
-		return getProperty(REFERENCE, String.class);
+		return getProperty(REFERENCE_PROPERTY, String.class);
 	}
 	
 	public final void setReference(String reference) {
-		setProperty(REFERENCE, reference);
+		setProperty(REFERENCE_PROPERTY, reference);
 	}
 
 	public final byte getStatus() {
@@ -196,31 +167,65 @@ public class Message implements Serializable {
 		this.status = status;
 	}
 
+	/**
+	 * Returns the user properties (i.e. it excludes the Mokai properties, those that start with MK_).
+	 * 
+	 * @return a map of string-object tuples.
+	 */
 	public final Map<String, Object> getProperties() {
 		Map<String, Object> ret = new HashMap<String, Object>();
 		
 		for (Map.Entry<String, Object> entry : properties.entrySet()) {
-			if (!entry.getKey().startsWith("MK")) {
+			if (!entry.getKey().startsWith("MK_")) {
 				ret.put(entry.getKey(), entry.getValue());
 			}
 		}
 		
-		return ret;
+		return Collections.unmodifiableMap(ret);
 	}
 	
+	/**
+	 * Returns the value of a property as an object.
+	 * 
+	 * @param key the key of the property wose value we are searching.
+	 * @return the value of the property if it exists or null otherwise.
+	 */
 	public final Object getProperty(String key) {
 		return properties.get(key);
 	}
 	
+	/**
+	 * Returns the value of a property when the type is known.
+	 * 
+	 * @param <T> the type of the property.
+	 * 
+	 * @param key the key of the property whose value we are searching.
+	 * @param clazz the class of the property
+	 * @return the value of the property if it exists or null otherwise.
+	 */
 	@SuppressWarnings("unchecked")
 	public final <T> T getProperty(String key, Class<T> clazz) {
 		return (T) properties.get(key);
 	}
 	
-	public final void setProperty(String key, Object value) {
+	/**
+	 * Sets a property in the map. If the property exists, it will be modified.
+	 * 
+	 * @param key the key of the property to be added or modified.
+	 * @param value the value of the property to be added or modified.
+	 * @return the Message instance for chaining.
+	 */
+	public final Message setProperty(String key, Object value) {
 		properties.put(key, value);
+		
+		return this;
 	}
 	
+	/**
+	 * Removes a property from the map if it exists. Notice that is possible to remove Mokai properties, although not recommended.
+	 * 
+	 * @param key the key of the property to be removed.
+	 */
 	public final void removeProperty(String key) {
 		properties.remove(key);
 	}

@@ -127,19 +127,10 @@ public class JettyConnector implements Connector, Configurable, Serviceable, Exp
 		private void produceMessage(HttpServletRequest request, boolean decodeParams) throws IOException {
 			
 			Message message = new Message();
-			message.setType(Message.SMS_TYPE);
 			
 			Enumeration paramNames = request.getParameterNames();
 			while (paramNames.hasMoreElements()) {
 				String paramName = (String) paramNames.nextElement();
-				
-				if ("type".equals(paramName)) {
-					message.setType(request.getParameter(paramName));
-				}
-				
-				if ("reference".equals(paramName)) {
-					message.setReference(request.getParameter(paramName));
-				}
 				
 				// check if there is a mapping for the key
 				String key = paramName;

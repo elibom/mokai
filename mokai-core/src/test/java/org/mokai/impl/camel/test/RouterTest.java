@@ -115,6 +115,50 @@ public class RouterTest {
 		Assert.assertEquals(endpointUri, "endpoint-test2");
 	}
 	
+	@Test
+	public void shouldReturnUriUsingMessageDestination() throws Exception {
+		
+		Processor p1 = mock(Processor.class);
+		when(p1.supports(any(Message.class))).thenReturn(true);
+		
+		ConnectorService cs1 = buildConnectorService("test1", p1);
+		ConnectorService cs2 = buildConnectorService("test2", p1);
+		
+		List<ConnectorService> connectorServices = new ArrayList<ConnectorService>();
+		connectorServices.add(cs1);
+		connectorServices.add(cs2);
+		
+		TestRouter router = new TestRouter(connectorServices);
+		
+		String endpointUri = router.route(new Message().withDestination("test2"));
+		Assert.assertEquals(endpointUri, "endpoint-test2");
+	}
+	
+	@Test
+	public void shouldReturnUnroutableIfMsgDestinationNotFound() throws Exception {
+		
+		TestRouter router = new TestRouter(new ArrayList<ConnectorService>());
+		
+		String endpointUri = router.route(new Message().withDestination("test2"));
+		Assert.assertEquals(endpointUri, "unroutable");
+	}
+	
+	@Test
+	public void shouldReturnUnroutableIfMsgDestinationFoundButNoSupport() throws Exception {
+		
+		Processor p1 = mock(Processor.class);
+		when(p1.supports(any(Message.class))).thenReturn(false);
+		
+		List<ConnectorService> connectorServices = new ArrayList<ConnectorService>();
+		ConnectorService cs1 = buildConnectorService("test1", p1);
+		connectorServices.add(cs1);
+		
+		TestRouter router = new TestRouter(connectorServices);
+		
+		String endpointUri = router.route(new Message().withDestination("test1"));
+		Assert.assertEquals(endpointUri, "unroutable");
+	}
+		
 	public ConnectorService buildConnectorService(String id, Connector connector, Acceptor...acceptors) {
 		
 		List<Acceptor> lstAcceptors = new ArrayList<Acceptor>();
@@ -149,6 +193,17 @@ public class RouterTest {
 		protected List<ConnectorService> getConnectorServices() {
 			return connectorServices;
 		}
+		
+		@Override
+		protected ConnectorService getConnectorService(String id) {
+			for (ConnectorService cs : connectorServices) {
+				if (cs.getId().equals(id)) {
+					return cs;
+				}
+			}
+			
+			return null;
+		}
 
 		@Override
 		protected String getUriPrefix() {
@@ -159,6 +214,7 @@ public class RouterTest {
 		protected String getUnroutableMessagesUri() {
 			return "unroutable";
 		}
+
 		
 	}
 }

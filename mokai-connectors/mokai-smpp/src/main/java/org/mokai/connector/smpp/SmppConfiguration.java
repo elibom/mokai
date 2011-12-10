@@ -137,12 +137,6 @@ public class SmppConfiguration {
 	@Label("Data Coding")
 	private int dataCoding = DEFAULT_DATA_CODING;
 	
-	/**
-	 * If true, it will generate
-	 */
-	@Label("Route Delivery Receipts")
-	private boolean routeDeliveryReceipts = false;
-	
 	@Label("Discard Incoming Msgs")
 	private boolean discardIncomingMsgs = false;
 	
@@ -288,14 +282,6 @@ public class SmppConfiguration {
 
 	public void setDataCoding(int dataCoding) {
 		this.dataCoding = dataCoding;
-	}
-
-	public boolean isRouteDeliveryReceipts() {
-		return routeDeliveryReceipts;
-	}
-
-	public void setRouteDeliveryReceipts(boolean routeDeliveryReceipts) {
-		this.routeDeliveryReceipts = routeDeliveryReceipts;
 	}
 
 	public boolean isDiscardIncomingMsgs() {

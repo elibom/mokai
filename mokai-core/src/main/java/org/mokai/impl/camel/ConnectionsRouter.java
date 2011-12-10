@@ -17,6 +17,11 @@ public class ConnectionsRouter extends AbstractRouter {
 	}
 
 	@Override
+	protected ConnectorService getConnectorService(String id) {
+		return routingEngine.getConnection(id);
+	}
+
+	@Override
 	protected String getUriPrefix() {
 		return "activemq:connection-";
 	}

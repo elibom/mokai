@@ -20,16 +20,6 @@ import org.mokai.persist.MessageCriteria;
 public interface MessageHandler {
 	
 	/**
-	 * Tells whether this handler supports a specific type of 
-	 * {@link Message} or not.
-	 * 
-	 * @param type the type of message to be tested.
-	 * @return true if it supports this type of message, false
-	 * otherwise.
-	 */
-	boolean supportsType(String type);
-	
-	/**
 	 * Tells whether this handler supports a specific direction of a
 	 * {@link Message} or not.
 	 * 

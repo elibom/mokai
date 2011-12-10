@@ -83,7 +83,7 @@ public interface RoutingEngine {
 	 * Returns the list of connections ordered by priority in ascendent order.
 	 * 
 	 * @param id the id of the connection that is going to be retrieved.
-	 * @return a {@link ConnectorService} implementation representing the connection.
+	 * @return a {@link ConnectorService} implementation representing the connection or null if not found.
 	 * @throws IllegalArgumentException if the id is null or empty.
 	 */
 	ConnectorService getConnection(String id) throws IllegalArgumentException;

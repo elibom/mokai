@@ -13,16 +13,6 @@ import org.mokai.persist.jdbc.MessageHandler;
 public class ConnectionsSmsHandler extends AbstractSmsHandler {
 	
 	public static final String DEFAULT_TABLENAME = "CONNECTIONS_MSGS";
-	
-	@Override
-	public final boolean supportsType(String type) {
-		
-		if (type != null && type.equals(Message.SMS_TYPE)) {
-			return true;
-		}
-		
-		return false;
-	}
 
 	@Override
 	public final boolean supportsDirection(Direction direction) {

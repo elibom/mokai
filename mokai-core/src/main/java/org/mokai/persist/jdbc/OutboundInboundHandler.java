@@ -35,30 +35,6 @@ public class OutboundInboundHandler implements MessageHandler {
 	protected MessageHandler inboundHandler;
 	
 	/**
-	 * Checks if the outbound or inbound handlers supports the type.
-	 * 
-	 * @throws IllegalStateException if at least one of the handlers is null.
-	 */
-	@Override
-	public final boolean supportsType(String type) throws IllegalStateException {
-		
-		checkHandlersNotNull();
-	
-		// check if the outbound handler supports the type
-		if (outboundHandler != null && outboundHandler.supportsType(type)) {
-			return true;
-		}
-		
-		// check if the inbound handler supports the type
-		if (inboundHandler != null && inboundHandler.supportsType(type)) {
-			return true;
-		}
-		
-		return false;
-	}
-	
-	
-	/**
 	 * Returns true if the direction is {@link Direction#INBOUND} or 
 	 * {@link Direction#OUTBOUND}. False otherwise.
 	 * 

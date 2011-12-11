@@ -1,0 +1,86 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	
+	<parent>
+		<artifactId>mokai-connectors</artifactId>
+		<groupId>org.mokai</groupId>
+		<version>1.0.0-SNAPSHOT</version>
+	</parent>
+	
+	<artifactId>mokai-smpp-server</artifactId>
+	
+	<name>Mokai SMPP Server Connector</name>
+	<description>Mokai SMPP Server Connector Module</description>
+	
+	<dependencies>
+		<dependency>
+			<groupId>org.mokai</groupId>
+			<artifactId>mokai-spi</artifactId>
+			<version>${project.version}</version>
+			<scope>provided</scope>
+		</dependency>
+	
+		<dependency>
+			<groupId>net.gescobar</groupId>
+			<artifactId>smpp-server</artifactId>
+			<version>0.1.1</version>
+		</dependency>
+	</dependencies>
+	
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.2-beta-5</version>
+				<configuration>
+					<descriptors>
+						<descriptor>src/main/assembly/bin.xml</descriptor>
+					</descriptors>
+					<finalName>org.mokai.smpp-server-${project.version}</finalName>
+      				<appendAssemblyId>false</appendAssemblyId>
+				</configuration>
+				<executions>
+					<execution>
+						<id>make-assembly</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			
+			<!-- generate sources -->
+			<plugin>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.1.1</version>
+				<executions>
+					<execution>
+						<id>bundle-sources</id>
+						<phase>package</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			
+			<!-- generate javadoc -->
+			<plugin>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.7</version>
+				<executions>
+					<execution>
+						<id>javadoc-jar</id>
+						<phase>package</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<configuration />
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>

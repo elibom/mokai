@@ -17,5 +17,6 @@
 		<module>mokai-smpp</module>
 		<module>mokai-http</module>
 		<module>mokai-jetty</module>
+		<module>mokai-smpp-server</module>
 	</modules>
 </project>

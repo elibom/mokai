@@ -46,6 +46,14 @@
 		</fileSet>
 		
 		<fileSet>
+			<directory>../mokai-connectors/mokai-smpp-server/target</directory>
+			<outputDirectory>plugins</outputDirectory>
+			<includes>
+				<include>*.zip</include>
+			</includes>
+		</fileSet>
+		
+		<fileSet>
 			<directory>../mokai-connectors/mokai-jetty/target</directory>
 			<outputDirectory>plugins</outputDirectory>
 			<includes>

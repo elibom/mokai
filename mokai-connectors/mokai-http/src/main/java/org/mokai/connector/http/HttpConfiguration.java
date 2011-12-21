@@ -36,6 +36,12 @@ public class HttpConfiguration {
 	@Label("Mapper")
 	private Map<String,String> mapper = new HashMap<String,String>();
 	
+	@Label("Connection Timeout")
+	private int connectionTimeout = 30000;
+	
+	@Label("Socket Timeout")
+	private int socketTimeout = 30000;
+	
 	public String getUrl() {
 		return url;
 	}
@@ -106,6 +112,22 @@ public class HttpConfiguration {
 
 	public void setEncoding(String encoding) {
 		this.encoding = encoding;
+	}
+
+	public int getConnectionTimeout() {
+		return connectionTimeout;
+	}
+
+	public void setConnectionTimeout(int connectionTimeout) {
+		this.connectionTimeout = connectionTimeout;
+	}
+
+	public int getSocketTimeout() {
+		return socketTimeout;
+	}
+
+	public void setSocketTimeout(int socketTimeout) {
+		this.socketTimeout = socketTimeout;
 	}
 	
 }

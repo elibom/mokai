@@ -14,6 +14,9 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
 import org.mokai.Configurable;
 import org.mokai.ExposableConfiguration;
 import org.mokai.Message;
@@ -94,7 +97,11 @@ public class HttpConnector implements Processor, ExposableConfiguration<HttpConf
 		
 		validateConfiguration();
 		
-		HttpClient httpClient = new DefaultHttpClient();
+		HttpParams httpParams = new BasicHttpParams();
+		HttpConnectionParams.setConnectionTimeout(httpParams, configuration.getConnectionTimeout());
+		HttpConnectionParams.setSoTimeout(httpParams, configuration.getSocketTimeout());
+		
+		HttpClient httpClient = new DefaultHttpClient(httpParams);
 		HttpUriRequest request = buildRequest(message, configuration.getUrl());
 		if (request == null) {
 			throw new IllegalArgumentException("HTTP method '" + configuration.getMethod() + "' not supported");

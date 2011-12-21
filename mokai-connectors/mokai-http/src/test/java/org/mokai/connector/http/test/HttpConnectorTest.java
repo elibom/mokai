@@ -1,6 +1,7 @@
 package org.mokai.connector.http.test;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
@@ -18,6 +19,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.message.BasicHttpEntityEnclosingRequest;
 import org.apache.http.protocol.HttpContext;
@@ -292,6 +294,39 @@ public class HttpConnectorTest {
 		HttpConfiguration configuration = new HttpConfiguration();
 		configuration.setUrl("http://" + getHost() + ":" + getPort() + "/");
 		configuration.setThrowExceptionOnFailure(false);
+		
+		HttpConnector connector = new HttpConnector(configuration);
+		connector.process(new Message());
+	}
+	
+	@Test(expectedExceptions=SocketTimeoutException.class)
+	public void sholdThrowSocketTimeoutException() throws Exception {
+		testServer.register("/", new HttpRequestHandler() {
+
+			@Override
+			public void handle(HttpRequest request, HttpResponse response,
+					HttpContext context) throws HttpException, IOException {
+				try { Thread.sleep(5000); } catch (InterruptedException e) {}
+			}
+			
+		});
+		
+		HttpConfiguration configuration = new HttpConfiguration();
+		configuration.setUrl("http://" + getHost() + ":" + getPort() + "/");
+		configuration.setThrowExceptionOnFailure(false);
+		configuration.setSocketTimeout(3000);
+		
+		HttpConnector connector = new HttpConnector(configuration);
+		connector.process(new Message());
+	}
+	
+	@Test(expectedExceptions=ConnectTimeoutException.class)
+	public void shoudlThrowConnectionTimeoutException() throws Exception {
+		
+		HttpConfiguration configuration = new HttpConfiguration();
+		configuration.setUrl("http://www.google.com:81/");
+		configuration.setThrowExceptionOnFailure(false);
+		configuration.setConnectionTimeout(3000);
 		
 		HttpConnector connector = new HttpConnector(configuration);
 		connector.process(new Message());

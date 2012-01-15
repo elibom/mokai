@@ -10,8 +10,13 @@ public class JettyConfiguration {
 	@Label("Port")
 	private int port = 9080;
 	
+	@Label("Context")
+	private String context = "/";
+	
+	@Label("Use Basic Auth")
 	private boolean useBasicAuth = false;
 	
+	@Label("Users")
 	private Map<String,String> users = new HashMap<String,String>();
 	
 	@Label("Mapper")
@@ -23,6 +28,15 @@ public class JettyConfiguration {
 
 	public void setPort(int port) {
 		this.port = port;
+	}
+
+	public String getContext() {
+		return context;
+	}
+
+	public void setContext(String context) {
+		
+		this.context = context;
 	}
 
 	public boolean isUseBasicAuth() {

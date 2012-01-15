@@ -42,7 +42,7 @@ public class JettyConnectorTest {
 			String text = URLEncoder.encode(originalText, "UTF-8");
 			
 			HttpClient client = new HttpClient();
-			GetMethod getMethod = new GetMethod("http://localhost:9080/test?to=" 
+			GetMethod getMethod = new GetMethod("http://localhost:9080/?to=" 
 					+ to + "&from=" + from + "&text=" + text + "&account=" + account
 					+ "&password=" + password);
 			getMethod.setRequestHeader("Content-Type", "text/html; charset=ISO-8859-1");
@@ -68,11 +68,63 @@ public class JettyConnectorTest {
 	}
 	
 	@Test
+	public void shouldIgnoreWithInvalidContextUsingRoot() throws Exception {
+		MockMessageProducer messageProducer = new MockMessageProducer();
+		
+		JettyConfiguration configuration = new JettyConfiguration();
+		configuration.setPort(9080);
+		
+		JettyConnector connector = new JettyConnector(configuration);
+		addMessageProducer(messageProducer, connector);
+		connector.configure();
+		connector.doStart();
+		
+		try {
+			HttpClient client = new HttpClient();
+			GetMethod getMethod = new GetMethod("http://localhost:9080/test");
+			int responseCode = client.executeMethod(getMethod);
+			
+			Assert.assertEquals(responseCode, 404);
+			
+		} finally {
+			connector.doStop();
+			connector.destroy();
+		}
+	}
+	
+	@Test
+	public void shouldIgnoreWithInvalidContext() throws Exception {
+		MockMessageProducer messageProducer = new MockMessageProducer();
+		
+		JettyConfiguration configuration = new JettyConfiguration();
+		configuration.setPort(9080);
+		configuration.setContext("test");
+		
+		JettyConnector connector = new JettyConnector(configuration);
+		addMessageProducer(messageProducer, connector);
+		connector.configure();
+		connector.doStart();
+		
+		try {
+			HttpClient client = new HttpClient();
+			GetMethod getMethod = new GetMethod("http://localhost:9080/back");
+			int responseCode = client.executeMethod(getMethod);
+			
+			Assert.assertEquals(responseCode, 404);
+			
+		} finally {
+			connector.doStop();
+			connector.destroy();
+		}
+	}
+	
+	@Test
 	public void shouldProcessPostMessage() throws Exception {
 		MockMessageProducer messageProducer = new MockMessageProducer();
 		
 		JettyConfiguration configuration = new JettyConfiguration();
 		configuration.setPort(9080);
+		configuration.setContext("test");
 		
 		JettyConnector connector = new JettyConnector(configuration);
 		addMessageProducer(messageProducer, connector);
@@ -167,7 +219,6 @@ public class JettyConnectorTest {
 		JettyConfiguration configuration = new JettyConfiguration();
 		configuration.setPort(9080);
 		configuration.setUseBasicAuth(true);
-		//configuration.addUser("admin", "password");
 		
 		JettyConnector connector = new JettyConnector(configuration);
 		addMessageProducer(messageProducer, connector);
@@ -224,6 +275,7 @@ public class JettyConnectorTest {
 		
 		JettyConfiguration configuration = new JettyConfiguration();
 		configuration.setPort(9080);
+		configuration.setContext("test");
 		
 		Map<String,String> mapper = new HashMap<String,String>();
 		mapper.put("to", "to1");

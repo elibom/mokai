@@ -34,6 +34,8 @@ import org.mokai.Serviceable;
 import org.mokai.annotation.Description;
 import org.mokai.annotation.Name;
 import org.mokai.annotation.Resource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 
@@ -42,6 +44,8 @@ import org.mokai.annotation.Resource;
 @Name("Jetty")
 @Description("Receives messages through HTTP")
 public class JettyConnector implements Connector, Configurable, Serviceable, ExposableConfiguration<JettyConfiguration> {
+	
+	private Logger log = LoggerFactory.getLogger(JettyConnector.class);
 	
 	@Resource
 	private MessageProducer messageProducer;
@@ -67,8 +71,11 @@ public class JettyConnector implements Connector, Configurable, Serviceable, Exp
 	public void configure() throws Exception {
 		server = new Server(configuration.getPort());
 		
+		String contextPath = fixContextPath(configuration.getContext());
+		configuration.setContext(contextPath);
+		
 		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
-		context.addServlet(new ServletHolder(new JettyServlet()), "/");
+		context.addServlet(new ServletHolder(new JettyServlet()), contextPath);
 		
 		if (configuration.isUseBasicAuth()) { 
 			
@@ -79,6 +86,19 @@ public class JettyConnector implements Connector, Configurable, Serviceable, Exp
 		
         server.setHandler(context);
 
+	}
+	
+	private String fixContextPath(String contextPath) {
+		
+		if (contextPath == null || "".equals(contextPath)) {
+			contextPath = "/";
+		}
+		
+		if (!contextPath.startsWith("/")) {
+			contextPath = "/" + contextPath;
+		}
+		
+		return contextPath;
 	}
 	
 	private SecurityHandler buildSecurityHandler() {
@@ -111,16 +131,38 @@ public class JettyConnector implements Connector, Configurable, Serviceable, Exp
 		@Override
 		protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 			
+			if (!requestIsValid(request, response)) {
+				return;
+			}
+				
 			// GET parameters must be encoded in UTF-8 always
 			produceMessage(request, false);
+			
 		}
 
 		@Override
 		protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 			
+			if (!requestIsValid(request, response)) {
+				return;
+			}
 			
 			// POST parameters can be encoded using any charset
 			produceMessage(request, true);
+		}
+		
+		private boolean requestIsValid(HttpServletRequest request, HttpServletResponse response) throws IOException {
+			String uri = request.getRequestURI();
+			
+			if (configuration.getContext().equals("/") && !uri.equals("/")) {
+				log.warn("ignoring request, context is / but uri is: " + uri);
+				response.sendError(404);
+				
+				return false;
+				
+			}
+			
+			return true;
 		}
 		
 		@SuppressWarnings("rawtypes")

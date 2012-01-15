@@ -22,14 +22,24 @@
   		<property name="url">http://www.google.com/</property>
   	</configuration>
   	<acceptors>
-      	<and>
-      		<acceptor className="org.mokai.acceptor.AcceptAllAcceptor" />
-      		<acceptor className="org.mokai.acceptor.ExactMatchAcceptor">
-      			<property name="field">from</property>
-      			<property name="expression">3542</property>
-      		</acceptor>
-      	</and>
+      	<acceptor className="org.mokai.acceptor.AcceptAllAcceptor" />
     </acceptors>
   </connector>
+  
+  <!-- <connector className="org.mokai.connector.RoundRobinProcessor" id="test-1">
+  	<configuration>
+  		<listProperty name="processors">
+  			<item>
+  				<connector className="org.mokai.connector.http.HttpConnector">
+  					<property name="url">http://www.google.com/</property>
+  				</connector>
+  			</item>
+  		</listProperty>
+  	</configuration>
+  	
+  	<acceptors>
+  		<acceptor className="org.mokai.acceptor.AcceptAllAcceptor" />
+  	</acceptors>
+  </connector> -->
   
 </connectors>

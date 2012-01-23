@@ -7,10 +7,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.mokai.Message;
-import org.mokai.Message.Direction;
-import org.mokai.persist.MessageCriteria;
-import org.mokai.persist.MessageCriteria.OrderType;
-import org.mokai.persist.MessageStore;
 
 import com.vaadin.ui.Table;
 
@@ -24,8 +20,6 @@ public class MessagesTable extends Table {
 
 	private static final long serialVersionUID = 1L;
 	
-	private MessageStore messageStore;
-	
 	private Map<Long,Message> messagesMap;
 	
 	/**
@@ -33,9 +27,8 @@ public class MessagesTable extends Table {
 	 * 
 	 * @param messageStore from which we are retriving the messages.
 	 */
-	public MessagesTable(MessageStore messageStore) {
+	public MessagesTable() {
 		super();
-		this.messageStore = messageStore;
 		
 		init();
 	}
@@ -81,15 +74,8 @@ public class MessagesTable extends Table {
 	/**
 	 * Cleans the table and reloads the data.
 	 */
-	public void loadData() {
+	public void populate(Collection<Message> messages) {
 		removeAllItems();
-
-		MessageCriteria criteria = new MessageCriteria()
-			.direction(Direction.TO_CONNECTIONS)
-			.orderBy("id")
-			.orderType(OrderType.DOWNWARDS)
-			.numRecords(2000);
-		Collection<Message> messages = messageStore.list(criteria);
 	
 		messagesMap = new HashMap<Long,Message>();
 		for (Message message : messages) {
@@ -111,7 +97,7 @@ public class MessagesTable extends Table {
 				sdf.format(message.getCreationTime()),
 				message.getSource(),
 				message.getDestination(),
-				message.getStatus(),
+				getStringStatus(message.getStatus()),
 				message.getProperty("to", String.class),
 				message.getProperty("from", String.class),
 				message.getProperty("sequenceNumber", Integer.class),
@@ -123,6 +109,30 @@ public class MessagesTable extends Table {
 			};
 			addItem(data, message.getId());
 		}
+	}
+	
+	private String getStringStatus(byte status) {
+		if (status == Message.STATUS_CREATED) {
+			return "CREATED";
+		}
+		
+		if (status == Message.STATUS_PROCESSED) {
+			return "SENT";
+		}
+		
+		if (status == Message.STATUS_FAILED) {
+			return "FAILED";
+		}
+		
+		if (status == Message.STATUS_RETRYING) {
+			return "RETRYING";
+		}
+		
+		if (status == Message.STATUS_UNROUTABLE) {
+			return "UNROUTABLE";
+		}
+		
+		return "UNKNOWN - " + status;
 	}
 	
 	/**

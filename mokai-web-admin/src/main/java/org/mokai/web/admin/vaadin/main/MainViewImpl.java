@@ -55,6 +55,7 @@ public class MainViewImpl extends AbstractView<MainView, MainPresenter> implemen
 	@Override
 	protected void initView() {
 		viewLayout = new VerticalLayout();
+		viewLayout.setSizeFull();
 		
 		// header and menu wrapper
 		VerticalLayout header = new VerticalLayout();

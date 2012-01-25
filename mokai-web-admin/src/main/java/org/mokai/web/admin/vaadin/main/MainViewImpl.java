@@ -10,6 +10,7 @@ import com.github.peholmst.mvp4vaadin.VaadinView;
 import com.github.peholmst.mvp4vaadin.ViewEvent;
 import com.github.peholmst.mvp4vaadin.ViewListener;
 import com.vaadin.ui.ComponentContainer;
+import com.vaadin.ui.Panel;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.Notification;
@@ -96,17 +97,24 @@ public class MainViewImpl extends AbstractView<MainView, MainPresenter> implemen
 	@Override
 	public void createAndShowDashboard() {
 		DashboardViewImpl dashboardView = new DashboardViewImpl();
+		
+		Panel panel = new Panel();
+		panel.setStyleName(Reindeer.PANEL_LIGHT);
+		panel.setSizeFull();
+		
 		ComponentContainer dashboardComponent = dashboardView.getViewComponent();
 		
+		panel.addComponent(dashboardComponent);
+		
 		if (activeComponent != null) {
-			viewLayout.replaceComponent(activeComponent, dashboardComponent);
+			viewLayout.replaceComponent(activeComponent, panel);
 		} else {
-			viewLayout.addComponent(dashboardComponent);
+			viewLayout.addComponent(panel);
 		}
 		
-		viewLayout.setExpandRatio(dashboardComponent, 1.0F);
+		viewLayout.setExpandRatio(panel, 1.0F);
 		
-		activeComponent = dashboardComponent;
+		activeComponent = panel;
 	}
 	
 	@Override

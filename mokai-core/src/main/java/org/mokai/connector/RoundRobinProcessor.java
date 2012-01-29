@@ -31,7 +31,7 @@ public class RoundRobinProcessor implements Processor, ExposableConfiguration<Ro
 	private int index = 0;
 
 	@Override
-	public void process(Message message) throws Exception {
+	public synchronized void process(Message message) throws Exception {
 		
 		int retry = 0;
 		process(message, retry);

@@ -15,6 +15,8 @@ import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.MessageStore;
 import org.mokai.persist.RejectedException;
 import org.mokai.persist.StoreException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * <p>An implementation of a {@link MessageStore} used to persist messages 
@@ -26,6 +28,8 @@ import org.mokai.persist.StoreException;
  * @author German Escobar
  */
 public class JdbcMessageStore implements MessageStore {
+	
+	private Logger log = LoggerFactory.getLogger(JdbcMessageStore.class);
 	
 	/**
 	 * The sql handler for sms messages.
@@ -61,10 +65,13 @@ public class JdbcMessageStore implements MessageStore {
 		checkDataSourceNotNull();
 		Validate.notNull(message);
 		
+		long startTime = System.currentTimeMillis();
 		if (message.getId() == Message.NOT_PERSISTED) {
 			save(message);
+			log.trace("saving msg to db took " + (System.currentTimeMillis() - startTime) + " millis");
 		} else {
 			update(message);
+			log.trace("updating msg to db took " + (System.currentTimeMillis() - startTime) + " millis");
 		}
 		
 	}
@@ -185,7 +192,7 @@ public class JdbcMessageStore implements MessageStore {
 		Connection conn = null;
 		
 		try {
-			
+			long startTime = System.currentTimeMillis();
 			conn = dataSource.getConnection();
 			
 			// check if the handler supports the criteria
@@ -199,6 +206,8 @@ public class JdbcMessageStore implements MessageStore {
 			if (ret == null) {
 				ret = new ArrayList<Message>();
 			}
+			
+			log.trace("list messages took " + (System.currentTimeMillis() - startTime) + " millis");
 			
 			return ret;
 			

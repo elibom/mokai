@@ -191,6 +191,7 @@ public class SmppServerConnector implements Processor, Configurable, Serviceable
 				message.setProperty("to", submitSm.getDestination().getAddress());
 				message.setProperty("from", submitSm.getSource().getAddress());
 				message.setProperty("text", submitSm.getMessageText());
+				message.setProperty("receiptDestination", context.getId());
 				
 				messageProducer.produce(message);
 				

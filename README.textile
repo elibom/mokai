@@ -12,11 +12,7 @@ h2. Features
  
 h2. Documentation
  
-  * "User Guide":http://code.google.com/p/mokai/wiki/UserGuide
-  * "Javadoc":http://mokai.googlecode.com/svn/api/0.3.1/index.html
-  * "Concepts":http://code.google.com/p/mokai/wiki/Concepts
-  * "Embedding Mokai":http://code.google.com/p/mokai/wiki/EmbeddingMokai
-  * "Extending Mokai":http://code.google.com/p/mokai/wiki/ExtendingMokai
+  * "Main Documentation Page":https://github.com/germanescobar/mokai/wiki
   
 h2. Download
 

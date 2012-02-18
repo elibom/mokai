@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+<!DOCTYPE plugin PUBLIC "-//JPF//Java Plug-in Manifest 1.0" "http://jpf.sourceforge.net/plugin_1_0.dtd">
+<plugin id="org.mokai.mail" version="1.0.0">
+	
+	<runtime>
+		<library id="core" path="classes/" type="code">
+			<export prefix="*" />
+		</library>
+		<library id="mail" path="lib/mail-1.4.4.jar" type="code" />
+		<library id="activation" path="lib/activation-1.1.jar" type="code" />
+	</runtime>
+	
+</plugin>

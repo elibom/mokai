@@ -158,7 +158,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	@Override
 	public void doStart() throws Exception {
 		
-		log.debug(getLogHead() + "starting LogicaConnector ... ");
+		log.debug(getLogHead() + "starting SmppConnector ... ");
 		
 		started = true;
 		

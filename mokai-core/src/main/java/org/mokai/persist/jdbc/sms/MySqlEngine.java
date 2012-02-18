@@ -55,8 +55,8 @@ public class MySqlEngine implements SqlEngine {
 					"source VARCHAR(30) NOT NULL, " +
 					"destination VARCHAR(30), " +
 					"status TINYINT NOT NULL, " +
-					"smsc_to VARCHAR(30), " +
-					"smsc_from VARCHAR(30), " +
+					"smsc_to VARCHAR(50), " +
+					"smsc_from VARCHAR(50), " +
 					"smsc_text VARCHAR(1000), " +
 					"smsc_sequencenumber INT, " +
 					"smsc_messageid VARCHAR(50), " +
@@ -75,8 +75,8 @@ public class MySqlEngine implements SqlEngine {
 					"source VARCHAR(30) NOT NULL, " +
 					"destination VARCHAR(30), " +
 					"status TINYINT NOT NULL, " +
-					"smsc_to VARCHAR(30), " +
-					"smsc_from VARCHAR(30), " +
+					"smsc_to VARCHAR(50), " +
+					"smsc_from VARCHAR(50), " +
 					"smsc_text VARCHAR(1000), " +
 					"smsc_sequencenumber INT, " +
 					"smsc_messageid VARCHAR(50), " +

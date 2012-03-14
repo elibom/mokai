@@ -13,7 +13,8 @@ import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.Part;
 import javax.mail.Session;
-import javax.mail.Store;
+import javax.mail.event.MessageCountEvent;
+import javax.mail.event.MessageCountListener;
 import javax.mail.internet.MimeMessage.RecipientType;
 import javax.mail.search.FlagTerm;
 
@@ -31,8 +32,11 @@ import org.mokai.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sun.mail.imap.IMAPFolder;
+import com.sun.mail.imap.IMAPStore;
+
 /**
- * A connector that fetches an email server using IMAP, IMAPS, POP3 or POP3S.
+ * A connector that fetches an email server using IMAP or IMAPS using push (IDLE command).
  * 
  * @author German Escobar
  */
@@ -72,10 +76,10 @@ public class MailReceiver implements Connector, ExposableConfiguration<MailRecei
 	 */
 	private boolean started = false;
 	
-	/**
-	 * Used to decide if the stack trace is logged or not - we don't want to log the same stack trace every time
-	 */
-	private int failedRetries = 0;
+	private IMAPStore store;
+	
+	private IMAPFolder folder;
+	
 	
 	/**
 	 * Constructor. Creates an instance with a default {@link MailReceiverConfig} and {@link MailHandler}.
@@ -125,19 +129,21 @@ public class MailReceiver implements Connector, ExposableConfiguration<MailRecei
 		
 		// select parser
 		mailHandler = new DefaultMailHandler();
-		if (configuration.isEmailToSms()) {
-			mailHandler = new EmailToSmsHandler();
-		}
 		
 		started = true;
 		
-		new Thread(new WorkerThread()).start();
+		new Thread(new ConnectionThread()).start();
 		
 	}
 
 	@Override
 	public void doStop() throws Exception {
 		started = false;
+		
+		if (folder != null) {
+			try { folder.close(true); } catch (Exception e) { log.error(getLogHead() + "Exception closing folder: " + e.getMessage(), e); }
+		}
+		
 		status = MonitorStatusBuilder.unknown();
 	}
 
@@ -148,33 +154,26 @@ public class MailReceiver implements Connector, ExposableConfiguration<MailRecei
 	}
 	
 	/**
-	 * This is the actual thread that fetches the email server according to the specified interval.
+	 * This is the actual thread that connects to the email server and subscribes to the folder for incoming messages.
 	 * 
-	 * @author German Esocbar
+	 * @author German Escobar
 	 */
-	private class WorkerThread implements Runnable {
-
+	private class ConnectionThread implements Runnable {
+		
+		
 		@Override
 		public void run() {
 
+			int attempt = 0;
             while (started) {
-            	
-            	log.info(getLogHead() + "fetching messages from '" + configuration.getHost() + ":" + configuration.getUsername() + "'");
-            	
-            	Store store = null;
-            	Folder folder = null;
-	            	
+
             	try {
             		
-            		long startTime = System.currentTimeMillis();
-            		
-            		// max connection timeout - we could make this customizable but this is enough for now
-            		String timeout = "15000";
-		            	
+            		String timeout = "15000"; // max connection timeout - we could make this customizable but this is enough for now
             		Properties props = buildProperties(timeout);
 		        		
 		        	Session session = Session.getInstance(props, null);
-		        	store = session.getStore(configuration.getProtocol());
+		        	store = (IMAPStore) session.getStore();
 		        	
 		        	if (configuration.getPort() > 0) {
 		        		store.connect(configuration.getHost(), configuration.getPort(), configuration.getUsername(), configuration.getPassword());
@@ -182,40 +181,38 @@ public class MailReceiver implements Connector, ExposableConfiguration<MailRecei
 		        		store.connect(configuration.getHost(), configuration.getUsername(), configuration.getPassword());
 		        	}
 		        		
-		        	folder = store.getFolder(configuration.getFolder());
+		        	folder = (IMAPFolder) store.getFolder(configuration.getFolder());
 		        	folder.open(Folder.READ_WRITE);	
+		        	folder.setSubscribed(true);
 		        	
-		        	// retrieve and process messages
-		        	javax.mail.Message[] messages = retrieveMessages(folder);
+		        	folder.addMessageCountListener(new MessageCountListener() {
+
+						@Override
+						public void messagesAdded(MessageCountEvent e) {
+							log.debug(getLogHead() + "messages added triggered, fetching and handling messages ... ");
+							handleMessages(folder);
+						}
+
+						@Override
+						public void messagesRemoved(MessageCountEvent e) {}
+		        		
+		        	});
 		        	
-		    		for (javax.mail.Message m : messages) {
-		    			
-		    			// mark as seen
-		    			m.setFlag(Flags.Flag.SEEN, true);
-		    			
-		    			// delete if configured that way
-		    			if (configuration.isDelete()) {
-		    				m.setFlag(Flags.Flag.DELETED, true);
-		    			}
-		    			
-		    			mailHandler.handle(messageProducer, m);
-		    			
-		    		}
-		    		
-		    		long endTime = System.currentTimeMillis();
-		    		log.info(getLogHead() + "fetching messages took " + (endTime - startTime) + " millis");
-		            	
-		            status = MonitorStatusBuilder.unknown();
-		            
-		            failedRetries = 0;
+		        	status = MonitorStatusBuilder.ok();
+		        	
+		        	// call the IDLE command in a while as it returns as soon as other command is called
+		        	while (started) {
+		        		folder.idle();
+		        		Thread.yield();
+		        	}
 		            	
 	            } catch (Exception e) {
 	                	
 	                // log the exception and change status
-	            	logException(e, failedRetries % 5 == 0);
+	            	logException(e, attempt % 5 == 0);
 	            	status = MonitorStatusBuilder.failed("could not connect", e);
 	            	
-	            	failedRetries ++;
+	            	attempt ++;
 	                	
 	            } finally {
 	            	
@@ -228,10 +225,11 @@ public class MailReceiver implements Connector, ExposableConfiguration<MailRecei
 	            	
 	            }
 	            
-		        // wait the configured delay between reconnects
-	            try {
-	            	Thread.sleep(configuration.getInterval() * 1000);
-	            } catch (InterruptedException ee) {}
+	            // wait the configured delay between reconnects
+                try {
+                    Thread.sleep(configuration.getReconnectDelay());
+                } catch (InterruptedException ee) {
+                }
 	            
             }   
 			
@@ -246,9 +244,10 @@ public class MailReceiver implements Connector, ExposableConfiguration<MailRecei
 		private Properties buildProperties(String timeout) {
 			
 			Properties props = System.getProperties();
-        	props.setProperty("mail.store.protocol", configuration.getProtocol());
+			String protocol = configuration.isTls() ? "imaps" : "imap";
+        	props.setProperty("mail.store.protocol", protocol);
         	
-        	if (configuration.getProtocol().endsWith("s")) {
+        	if (configuration.isTls()) {
                 props.put("mail.pop3.starttls.enable", Boolean.TRUE);
                 props.put("mail.imap.starttls.enable", Boolean.TRUE);
             }
@@ -266,10 +265,41 @@ public class MailReceiver implements Connector, ExposableConfiguration<MailRecei
 		}
 		
 		/**
-		 * Helper method. Retrieves the messages 
+		 * Helper method. Called when the messages count changes in the folder
 		 * 
-		 * @param folder
-		 * @return
+		 * @param folder the folder from which we are retriving the messages
+		 */
+		private void handleMessages(Folder folder) {
+			
+			try { 
+				
+				javax.mail.Message[] messages = retrieveMessages(folder);
+				
+				for (javax.mail.Message m : messages) {
+					
+					// mark as seen
+					m.setFlag(Flags.Flag.SEEN, true);
+					
+					// delete if configured that way
+					if (configuration.isDelete()) {
+						m.setFlag(Flags.Flag.DELETED, true);
+					}
+					
+					mailHandler.handle(messageProducer, m);
+					
+				}
+				
+			} catch (Exception e) {
+				log.error(getLogHead() + "Exception retrieving messages: " + e.getMessage(), e); 
+			}
+			
+		}
+		
+		/**
+		 * Helper method. Retrieves unseen or all  messages from the specified folder according to the configuration.  
+		 * 
+		 * @param folder the folder from which we are retrieving the messages.
+		 * @return an array of javax.mail.Message objects.
 		 * @throws MessagingException
 		 */
 		private javax.mail.Message[] retrieveMessages(Folder folder) throws MessagingException {
@@ -289,12 +319,13 @@ public class MailReceiver implements Connector, ExposableConfiguration<MailRecei
 		/**
 		 * Helper method to log the exception when fail. We don't want to print the exception 
 		 * on every attempt.
+		 * 
 		 * @param e
 		 * @param doLog
 		 */
 		private void logException(Exception e, boolean doLog) {
 			
-			String logError = getLogHead() + "failed to connect";
+			String logError = getLogHead() + "failed to connect to '" + configuration.getHost() + "'";
 			
 			// print the stacktrace only if doLog is true
 			if (doLog) {
@@ -316,7 +347,7 @@ public class MailReceiver implements Connector, ExposableConfiguration<MailRecei
 	}
 	
 	/**
-	 * This is the default mail handler (i.e. when {@link MailReceiverConfig#isEmailToSms()} is false).
+	 * This is the default mail handler.
 	 * 
 	 * @author German Escobar
 	 */
@@ -346,48 +377,6 @@ public class MailReceiver implements Connector, ExposableConfiguration<MailRecei
 			message.setProperty("from", from);
 			message.setProperty("subject", subject);
 			message.setProperty("text", text);
-			
-			messageProducer.produce(message);
-			
-		}
-		
-	}
-	
-	/**
-	 * This is the email-to-sms handler (i.e. when {@link MailReceiverConfig#isEmailToSms()} is false).
-	 * 
-	 * @author German Escobar
-	 */
-	private class EmailToSmsHandler implements MailHandler {
-
-		/**
-		 * Builds and produces a {@link Message} object using the supplied {@link MessageProducer}. It maps the email information into the 
-		 * {@link Message} so that the "subject" of the message is expected to have a mobile number that will be set on the "to" property
-		 * of the message.
-		 */
-		@Override
-		public void handle(MessageProducer messageProducer, javax.mail.Message email) throws MessagingException, IOException {
-			
-			String subject = email.getSubject();
-			String from = stringAddress( email.getFrom() );
-			String recipients = stringAddress( email.getAllRecipients() );
-			String toRecipients = stringAddress( email.getRecipients(RecipientType.TO) );
-			String ccRecipients = stringAddress( email.getRecipients(RecipientType.CC) );
-			String bccRecipients = stringAddress( email.getRecipients(RecipientType.BCC) );
-			
-			String text = retrieveText(email);
-			
-			Message message = new Message();
-			message.setProperty("recipients", recipients);
-			message.setProperty("emailTo", toRecipients);
-			message.setProperty("cc", ccRecipients);
-			message.setProperty("bcc", bccRecipients);
-			message.setProperty("emailFrom", from);
-			message.setProperty("subject", subject);
-			message.setProperty("text", text);
-			
-			message.setProperty("to", subject);
-			message.setProperty("from", configuration.getSmsFrom());
 			
 			messageProducer.produce(message);
 			

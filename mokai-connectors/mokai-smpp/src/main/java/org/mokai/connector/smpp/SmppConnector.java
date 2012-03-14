@@ -15,6 +15,7 @@ import ie.omk.smpp.util.ASCIIEncoding;
 import ie.omk.smpp.util.AlphabetEncoding;
 import ie.omk.smpp.util.DefaultAlphabetEncoding;
 import ie.omk.smpp.util.Latin1Encoding;
+import ie.omk.smpp.util.UCS2Encoding;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -292,6 +293,8 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			return new ASCIIEncoding();
 		} else if (dataCoding == 3) {
 			return new Latin1Encoding();
+		} else if (dataCoding == 8) {
+			return new UCS2Encoding();
 		}
 		
 		throw new IllegalStateException("Data Coding " + configuration.getDataCoding() + " not recognized");

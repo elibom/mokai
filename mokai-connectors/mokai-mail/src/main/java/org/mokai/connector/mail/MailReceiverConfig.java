@@ -15,8 +15,8 @@ public class MailReceiverConfig {
 	private String host = "localhost";
 	
 	@Required
-	@Label("Protocol")
-	private String protocol = "imap";
+	@Label("Use TLS")
+	private boolean tls = false;
 	
 	/**
 	 * Overrides the default port of the specified protocol.
@@ -37,20 +37,14 @@ public class MailReceiverConfig {
 	private String folder = "Inbox";
 	
 	@Required
-	@Label("Interval")
-	private int interval = 300;
+	@Label("ReconnectDelay")
+	private int reconnectDelay = 5000;
 	
 	@Label("Process Unseen Messages")
 	private boolean unseen = true;
 	
 	@Label("Delete Messages")
 	private boolean delete = false;
-	
-	@Label("Email To SMS")
-	private boolean emailToSms = false;
-	
-	@Label("SMS From")
-	private String smsFrom = "12345";
 
 	public String getHost() {
 		return host;
@@ -60,12 +54,12 @@ public class MailReceiverConfig {
 		this.host = host;
 	}
 
-	public String getProtocol() {
-		return protocol;
+	public boolean isTls() {
+		return tls;
 	}
 
-	public void setProtocol(String protocol) {
-		this.protocol = protocol;
+	public void setTls(boolean tls) {
+		this.tls = tls;
 	}
 
 	public int getPort() {
@@ -100,12 +94,12 @@ public class MailReceiverConfig {
 		this.folder = folder;
 	}
 
-	public int getInterval() {
-		return interval;
+	public int getReconnectDelay() {
+		return reconnectDelay;
 	}
 
-	public void setInterval(int interval) {
-		this.interval = interval;
+	public void setReconnectDelay(int reconnectDelay) {
+		this.reconnectDelay = reconnectDelay;
 	}
 
 	public boolean isUnseen() {
@@ -122,22 +116,6 @@ public class MailReceiverConfig {
 
 	public void setDelete(boolean delete) {
 		this.delete = delete;
-	}
-
-	public boolean isEmailToSms() {
-		return emailToSms;
-	}
-
-	public void setEmailToSms(boolean emailToSms) {
-		this.emailToSms = emailToSms;
-	}
-
-	public String getSmsFrom() {
-		return smsFrom;
-	}
-
-	public void setSmsFrom(String smsFrom) {
-		this.smsFrom = smsFrom;
 	}
 
 }

@@ -25,7 +25,6 @@ import com.icegreen.greenmail.util.ServerSetupTest;
  */
 public class MailReceiverTest {
 
-	@Test
 	public void shouldReceiveImapEmail() throws Exception {
 		
 		GreenMail greenMail = new GreenMail(ServerSetupTest.ALL);
@@ -44,7 +43,6 @@ public class MailReceiverTest {
 		    
 		    MailReceiverConfig configuration = new MailReceiverConfig();
 		    configuration.setPort(3143);
-		    configuration.setInterval(1);
 		    configuration.setUsername("test@localhost.com");
 		    configuration.setPassword("test@localhost.com");
 		    
@@ -83,106 +81,6 @@ public class MailReceiverTest {
 	}
 	
 	@Test
-	public void shouldReceivePop3AndDeleteEmail() throws Exception {
-		
-		GreenMail greenMail = new GreenMail(ServerSetupTest.ALL);
-	    greenMail.start();
-	    
-	    try { 
-	    	
-		    //use random content to avoid potential residual lingering problems
-		    String subject = GreenMailUtil.random();
-		    String body = GreenMailUtil.random();
-		    GreenMailUtil.sendTextEmailTest("test@localhost.com", "from@localhost.com", subject, body);
-		    
-		    Assert.assertTrue( greenMail.waitForIncomingEmail(5000, 1) ); 
-		    
-		    MockMessageProducer messageProducer = new MockMessageProducer();
-		    
-		    MailReceiverConfig configuration = new MailReceiverConfig();
-		    configuration.setProtocol("pop3");
-		    configuration.setPort(3110);
-		    configuration.setInterval(1);
-		    configuration.setUsername("test@localhost.com");
-		    configuration.setPassword("test@localhost.com");
-		    configuration.setDelete(true);
-		    
-		    MailReceiver receiver = new MailReceiver(configuration);
-		    injectResource(new MockConnectorContext(), receiver);
-		    injectResource(messageProducer, receiver);
-		    receiver.doStart();
-		    
-		    // wait max 5 secs for message to be received
-		    waitUntilMessageIsReceived(messageProducer, 5000);
-		    
-		    Assert.assertEquals(messageProducer.messageCount(), 1);
-		    
-		    receiver.doStop();
-		    
-		    // check that email is not there
-		    Assert.assertEquals(greenMail.getReceivedMessages().length, 0);
-		    
-	    } finally {
-		    greenMail.stop();
-	    }
-	    
-	}
-	
-	@Test
-	public void shouldSetupEmailToSms() throws Exception {
-		
-		GreenMail greenMail = new GreenMail(ServerSetupTest.ALL);
-	    greenMail.start();
-	    
-	    try { 
-	    	
-		    //use random content to avoid potential residual lingering problems
-		    String subject = GreenMailUtil.random();
-		    String body = GreenMailUtil.random();
-		    GreenMailUtil.sendTextEmailTest("test@localhost.com", "from@localhost.com", subject, body);
-		    
-		    Assert.assertTrue( greenMail.waitForIncomingEmail(5000, 1) ); 
-		    
-		    MockMessageProducer messageProducer = new MockMessageProducer();
-		    
-		    MailReceiverConfig configuration = new MailReceiverConfig();
-		    configuration.setPort(3143);
-		    configuration.setInterval(1);
-		    configuration.setUsername("test@localhost.com");
-		    configuration.setPassword("test@localhost.com");
-		    configuration.setEmailToSms(true);
-		    
-		    MailReceiver receiver = new MailReceiver(configuration);
-		    injectResource(new MockConnectorContext(), receiver);
-		    injectResource(messageProducer, receiver);
-		    receiver.doStart();
-		    
-		    // wait max 5 secs for message to be received
-		    waitUntilMessageIsReceived(messageProducer, 5000);
-		    
-		    Assert.assertEquals(messageProducer.messageCount(), 1);
-		    
-		    receiver.doStop();
-		    
-		    Message message = messageProducer.getMessage(0);
-		    Assert.assertNotNull(message);
-		    Assert.assertEquals(message.getProperty("recipients", String.class), "test@localhost.com");
-		    Assert.assertEquals(message.getProperty("to", String.class), subject);
-		    Assert.assertEquals(message.getProperty("emailTo", String.class), "test@localhost.com");
-		    Assert.assertEquals(message.getProperty("cc", String.class), "");
-		    Assert.assertEquals(message.getProperty("bcc", String.class), "");
-		    Assert.assertEquals(message.getProperty("from", String.class), "12345");
-		    Assert.assertEquals(message.getProperty("emailFrom", String.class), "from@localhost.com");
-		    Assert.assertEquals(message.getProperty("subject", String.class), subject);
-		    Assert.assertEquals(message.getProperty("text", String.class), body);
-		    
-	    } finally {
-		    greenMail.stop();
-	    }
-		
-	}
-	
-	@Test
 	public void shouldTimeoutIfInvalidPort() throws Exception {
 		
 		GreenMail greenMail = new GreenMail();
@@ -190,7 +88,6 @@ public class MailReceiverTest {
 	    
 	    MailReceiverConfig configuration = new MailReceiverConfig();
 	    configuration.setPort(3996);
-	    configuration.setInterval(1);
 	    
 	    MailReceiver receiver = new MailReceiver(configuration);
 	    injectResource(new MockConnectorContext(), receiver);

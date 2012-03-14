@@ -102,7 +102,6 @@
 				<groupId>org.testng</groupId>
 				<artifactId>testng</artifactId>
 				<version>${testng.version}</version>
-				<classifier>jdk15</classifier>
 				<scope>test</scope>
 			</dependency>
 			
@@ -114,7 +113,7 @@
 		<camel.version>2.7.5</camel.version>
 		<activemq.version>5.5.0</activemq.version>
 		<jpf.version>1.5</jpf.version>
-		<testng.version>5.9</testng.version>
+		<testng.version>5.13</testng.version>
 		<slf4j.version>1.6.1</slf4j.version>
 		<mockito.version>1.8.5</mockito.version>
 	</properties>
@@ -178,6 +177,7 @@
 	</distributionManagement>
 
 	<repositories>
+		
 		<repository>
 			<id>apache.snapshots</id>
 			<name>Apache Development Snapshot Repository</name>
@@ -192,13 +192,14 @@
 		
 		<repository>
 			<id>jboss</id>
-			<url>http://repository.jboss.org/maven2/</url>
+			<name>JBoss Nexus Repository</name>
+			<url>http://repository.jboss.org/nexus/content/repositories/releases</url>
 		</repository>
 		
 		<repository>  
   			<id>elibom</id>  
   			<name>Elibom Nexus Repository</name>  
-  			<url>http://repository.elibom.net/nexus/content/groups/public</url>  
+  			<url>http://repository.elibom.net/nexus/content/repositories/releases</url>  
   			<releases>  
    				<enabled>true</enabled>  
   			</releases>  

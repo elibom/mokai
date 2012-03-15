@@ -13,6 +13,7 @@ import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.Part;
 import javax.mail.Session;
+import javax.mail.Store;
 import javax.mail.event.MessageCountEvent;
 import javax.mail.event.MessageCountListener;
 import javax.mail.internet.MimeMessage.RecipientType;
@@ -33,7 +34,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sun.mail.imap.IMAPFolder;
-import com.sun.mail.imap.IMAPStore;
 
 /**
  * A connector that fetches an email server using IMAP or IMAPS using push (IDLE command).
@@ -76,7 +76,7 @@ public class MailReceiver implements Connector, ExposableConfiguration<MailRecei
 	 */
 	private boolean started = false;
 	
-	private IMAPStore store;
+	private Store store;
 	
 	private IMAPFolder folder;
 	
@@ -173,7 +173,7 @@ public class MailReceiver implements Connector, ExposableConfiguration<MailRecei
             		Properties props = buildProperties(timeout);
 		        		
 		        	Session session = Session.getInstance(props, null);
-		        	store = (IMAPStore) session.getStore();
+		        	store = session.getStore();
 		        	
 		        	if (configuration.getPort() > 0) {
 		        		store.connect(configuration.getHost(), configuration.getPort(), configuration.getUsername(), configuration.getPassword());
@@ -184,6 +184,9 @@ public class MailReceiver implements Connector, ExposableConfiguration<MailRecei
 		        	folder = (IMAPFolder) store.getFolder(configuration.getFolder());
 		        	folder.open(Folder.READ_WRITE);	
 		        	folder.setSubscribed(true);
+		        	
+		        	// check if there are messages before calling the IDLE command
+		        	handleMessages(folder);
 		        	
 		        	folder.addMessageCountListener(new MessageCountListener() {
 

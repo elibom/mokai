@@ -127,15 +127,19 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 		connector.doStart();
 		waitUntilStatus(connector, DEFAULT_TIMEOUT, Status.OK);
 		
-		stopSimulator();
-		waitUntilStatus(connector, DEFAULT_TIMEOUT, Status.FAILED);		
-		
-		startSimulator();
-		waitUntilStatus(connector, DEFAULT_TIMEOUT, Status.OK);
-		
-		Assert.assertEquals(connector.getStatus(), Status.OK);
-		
-		connector.doStop();
+		try {
+			
+			stopSimulator();
+			waitUntilStatus(connector, DEFAULT_TIMEOUT, Status.FAILED);		
+			
+			startSimulator();
+			waitUntilStatus(connector, DEFAULT_TIMEOUT, Status.OK);
+			
+			Assert.assertEquals(connector.getStatus(), Status.OK);
+			
+		} finally {
+			connector.doStop();
+		}
 		
 	}
 	
@@ -247,18 +251,22 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 		connector.doStart();
 		waitUntilStatus(connector, DEFAULT_TIMEOUT, Status.OK);
 		
-		Message message = new Message();
-		message.setProperty("to", "3002175604");
-		message.setProperty("from", "3542");
-		message.setProperty("text", "This is the test with –");
-		
-		connector.process(message);
-		
-		Assert.assertNotNull(message.getReference());
-		
-		Mockito.verify(messageStore, Mockito.timeout(1000)).saveOrUpdate(Mockito.any(Message.class));
-		
-		connector.doStop();
+		try {
+			
+			Message message = new Message();
+			message.setProperty("to", "3002175604");
+			message.setProperty("from", "3542");
+			message.setProperty("text", "This is the test with –");
+			
+			connector.process(message);
+			
+			Assert.assertNotNull(message.getReference());
+			
+			Mockito.verify(messageStore, Mockito.timeout(1000)).saveOrUpdate(Mockito.any(Message.class));
+			
+		} finally {
+			connector.doStop();
+		}
 	}
 	
 	@Test
@@ -280,34 +288,38 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 		
 		waitUntilStatus(connector, DEFAULT_TIMEOUT, Status.OK);
 		
-		String to = "3542";
-		String from = "3002175604";
-		String text = "this is a test";
-		
-		// retrieve the session
-		Assert.assertEquals(server.getSessions().size(), 1);
-		SmppSession session = server.getSessions().iterator().next();
-		Assert.assertNotNull(session);
-		
-		// create and send the request
-		DeliverSM deliverSM = new DeliverSM();
-		deliverSM.setDestination(new Address(0, 0, to));
-		deliverSM.setSource(new Address(0, 0, from));
-		deliverSM.setMessageText(text);
-		
-		session.sendRequest(deliverSM);
-		
-		long timeout = 2000;
-		if (!receiveMessage(messageProducer, timeout)) {
-			Assert.fail("the message was not received");
+		try {
+			
+			String to = "3542";
+			String from = "3002175604";
+			String text = "this is a test";
+			
+			// retrieve the session
+			Assert.assertEquals(server.getSessions().size(), 1);
+			SmppSession session = server.getSessions().iterator().next();
+			Assert.assertNotNull(session);
+			
+			// create and send the request
+			DeliverSM deliverSM = new DeliverSM();
+			deliverSM.setDestination(new Address(0, 0, to));
+			deliverSM.setSource(new Address(0, 0, from));
+			deliverSM.setMessageText(text);
+			
+			session.sendRequest(deliverSM);
+			
+			long timeout = 2000;
+			if (!receiveMessage(messageProducer, timeout)) {
+				Assert.fail("the message was not received");
+			}
+			
+			Message message = (Message) messageProducer.getMessage(0);
+			Assert.assertEquals(to, message.getProperty("to", String.class));
+			Assert.assertEquals(from, message.getProperty("from", String.class));
+			Assert.assertEquals(text, message.getProperty("text", String.class));
+			
+		} finally {
+			connector.doStop();
 		}
-		
-		Message message = (Message) messageProducer.getMessage(0);
-		Assert.assertEquals(to, message.getProperty("to", String.class));
-		Assert.assertEquals(from, message.getProperty("from", String.class));
-		Assert.assertEquals(text, message.getProperty("text", String.class));
-		
-		connector.doStop();
 	}
 	
 	@Test
@@ -326,42 +338,46 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 		MockMessageProducer messageProducer = new MockMessageProducer();
 		SmppConnector connector = createAndStartSmppConnector(configuration, messageStore, messageProducer);
 		
-		String from = "3542";
-		String to = "3002175604";
+		try {
 		
-		// send a message
-		Message message = new Message();
-		message.setProperty("to", to);
-		message.setProperty("from", from);
-		message.setProperty("text", "This is the test");
-		message.setProperty("receiptDestination", "test");
-		sendMessage(connector, messageStore, message);
-		
-		// retrieve the session
-		Assert.assertEquals(server.getSessions().size(), 1);
-		SmppSession session = server.getSessions().iterator().next();
-		Assert.assertNotNull(session);
-		
-		DeliverSM deliverSM = new DeliverSM();
-		deliverSM.setEsmClass(SMPPPacket.SMC_RECEIPT);
-		deliverSM.setDestination(new Address(0, 0, from));
-		deliverSM.setSource(new Address(0, 0, to));
-		deliverSM.setMessageText("id:12000 sub:1 dlvrd:1 submit date:1101010000 done date:1101010000 stat:DELIVRD err:0 text:This is a ... ");
-		
-		session.sendRequest(deliverSM);
-		
-		long timeout = 2000;
-		if (!receiveMessage(messageProducer, timeout)) {
-			Assert.fail("the delivery receipt was not received");
+			String from = "3542";
+			String to = "3002175604";
+			
+			// send a message
+			Message message = new Message();
+			message.setProperty("to", to);
+			message.setProperty("from", from);
+			message.setProperty("text", "This is the test");
+			message.setProperty("receiptDestination", "test");
+			sendMessage(connector, messageStore, message);
+			
+			// retrieve the session
+			Assert.assertEquals(server.getSessions().size(), 1);
+			SmppSession session = server.getSessions().iterator().next();
+			Assert.assertNotNull(session);
+			
+			DeliverSM deliverSM = new DeliverSM();
+			deliverSM.setEsmClass(SMPPPacket.SMC_RECEIPT);
+			deliverSM.setDestination(new Address(0, 0, from));
+			deliverSM.setSource(new Address(0, 0, to));
+			deliverSM.setMessageText("id:12000 sub:1 dlvrd:1 submit date:1101010000 done date:1101010000 stat:DELIVRD err:0 text:This is a ... ");
+			
+			session.sendRequest(deliverSM);
+			
+			long timeout = 2000;
+			if (!receiveMessage(messageProducer, timeout)) {
+				Assert.fail("the delivery receipt was not received");
+			}
+			
+			Message receivedMessage = (Message) messageProducer.getMessage(0);
+			Assert.assertEquals(from, receivedMessage.getProperty("to", String.class));
+			Assert.assertEquals(to, receivedMessage.getProperty("from", String.class));
+			Assert.assertEquals(receivedMessage.getProperty("messageId", String.class), 12000 + "");
+			Assert.assertEquals("DELIVRD", receivedMessage.getProperty("finalStatus", String.class));
+			
+		} finally {
+			connector.doStop();
 		}
-		
-		Message receivedMessage = (Message) messageProducer.getMessage(0);
-		Assert.assertEquals(from, receivedMessage.getProperty("to", String.class));
-		Assert.assertEquals(to, receivedMessage.getProperty("from", String.class));
-		Assert.assertEquals(receivedMessage.getProperty("messageId", String.class), 12000 + "");
-		Assert.assertEquals("DELIVRD", receivedMessage.getProperty("finalStatus", String.class));
-		
-		connector.doStop();
 		
 	}
 	
@@ -382,42 +398,46 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 		MockMessageProducer messageProducer = new MockMessageProducer();
 		SmppConnector connector = createAndStartSmppConnector(configuration, messageStore, messageProducer);
 		
-		// send a message
-		Message message = new Message();
-		message.setProperty("to", "3542");
-		message.setProperty("from", "3002175604");
-		message.setProperty("text", "This is the test");
-		message.setProperty("receiptDestination", "test");
-		sendMessage(connector, messageStore, message);
+		try {
 		
-		// retrieve the session
-		Assert.assertEquals(server.getSessions().size(), 1);
-		SmppSession session = server.getSessions().iterator().next();
-		Assert.assertNotNull(session);
+			// send a message
+			Message message = new Message();
+			message.setProperty("to", "3542");
+			message.setProperty("from", "3002175604");
+			message.setProperty("text", "This is the test");
+			message.setProperty("receiptDestination", "test");
+			sendMessage(connector, messageStore, message);
+			
+			// retrieve the session
+			Assert.assertEquals(server.getSessions().size(), 1);
+			SmppSession session = server.getSessions().iterator().next();
+			Assert.assertNotNull(session);
+			
+			DeliverSM deliverSM = new DeliverSM();
+			deliverSM.setEsmClass(SMPPPacket.SMC_RECEIPT);
+			deliverSM.setDestination(new Address(0, 0, "3002175604"));
+			deliverSM.setSource(new Address(0, 0, "3542"));
+			deliverSM.setMessageText("id:16fee0e525 sub:1 dlvrd:1 submit date:1101010000 done date:1101010000 stat:DELIVRD err:0 text:This is a ... ");
+			
+			session.sendRequest(deliverSM);
+			
+			long timeout = 2000;
+			if (!receiveMessage(messageProducer, timeout)) {
+				Assert.fail("the delivery receipt was not received");
+			}
+			
+			Message receivedMessage = (Message) messageProducer.getMessage(0);
+			Assert.assertNotNull(receivedMessage);
 		
-		DeliverSM deliverSM = new DeliverSM();
-		deliverSM.setEsmClass(SMPPPacket.SMC_RECEIPT);
-		deliverSM.setDestination(new Address(0, 0, "3002175604"));
-		deliverSM.setSource(new Address(0, 0, "3542"));
-		deliverSM.setMessageText("id:16fee0e525 sub:1 dlvrd:1 submit date:1101010000 done date:1101010000 stat:DELIVRD err:0 text:This is a ... ");
-		
-		session.sendRequest(deliverSM);
-		
-		long timeout = 2000;
-		if (!receiveMessage(messageProducer, timeout)) {
-			Assert.fail("the delivery receipt was not received");
+		} finally {
+			connector.doStop();
 		}
-		
-		Message receivedMessage = (Message) messageProducer.getMessage(0);
-		Assert.assertNotNull(receivedMessage);
-		
-		connector.doStop();
 		
 	}
 	
 	@Test
 	public void testReceiveDeliveryReceiptWithDecId() throws Exception {
-		log.info("starting testReceiveDeliveryReceiptWithHexaId ... ");
+		log.info("starting testReceiveDeliveryReceiptWithDecId ... ");
 		
 		server.setPacketProcessor(new CustomPacketProcessor("16fee0e525"));
 		
@@ -432,36 +452,40 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 		MockMessageProducer messageProducer = new MockMessageProducer();
 		SmppConnector connector = createAndStartSmppConnector(configuration, messageStore, messageProducer);
 		
-		// send a message
-		Message message = new Message();
-		message.setProperty("to", "3542");
-		message.setProperty("from", "3002175604");
-		message.setProperty("text", "This is the test");
-		message.setProperty("receiptDestination", "test");
-		sendMessage(connector, messageStore, message);
-		
-		// retrieve the session
-		Assert.assertEquals(server.getSessions().size(), 1);
-		SmppSession session = server.getSessions().iterator().next();
-		Assert.assertNotNull(session);
-		
-		DeliverSM deliverSM = new DeliverSM();
-		deliverSM.setEsmClass(SMPPPacket.SMC_RECEIPT);
-		deliverSM.setDestination(new Address(0, 0, "3002175604"));
-		deliverSM.setSource(new Address(0, 0, "3542"));
-		deliverSM.setMessageText("id:98765432101 sub:1 dlvrd:1 submit date:1101010000 done date:1101010000 stat:DELIVRD err:0 text:This is a ... ");
-		
-		session.sendRequest(deliverSM);
-		
-		long timeout = 2000;
-		if (!receiveMessage(messageProducer, timeout)) {
-			Assert.fail("the delivery receipt was not received");
+		try {
+			
+			// send a message
+			Message message = new Message();
+			message.setProperty("to", "3542");
+			message.setProperty("from", "3002175604");
+			message.setProperty("text", "This is the test");
+			message.setProperty("receiptDestination", "test");
+			sendMessage(connector, messageStore, message);
+			
+			// retrieve the session
+			Assert.assertEquals(server.getSessions().size(), 1);
+			SmppSession session = server.getSessions().iterator().next();
+			Assert.assertNotNull(session);
+			
+			DeliverSM deliverSM = new DeliverSM();
+			deliverSM.setEsmClass(SMPPPacket.SMC_RECEIPT);
+			deliverSM.setDestination(new Address(0, 0, "3002175604"));
+			deliverSM.setSource(new Address(0, 0, "3542"));
+			deliverSM.setMessageText("id:98765432101 sub:1 dlvrd:1 submit date:1101010000 done date:1101010000 stat:DELIVRD err:0 text:This is a ... ");
+			
+			session.sendRequest(deliverSM);
+			
+			long timeout = 2000;
+			if (!receiveMessage(messageProducer, timeout)) {
+				Assert.fail("the delivery receipt was not received");
+			}
+			
+			Message receivedMessage = (Message) messageProducer.getMessage(0);
+			Assert.assertNotNull(receivedMessage);
+			
+		} finally {
+			connector.doStop();
 		}
-		
-		Message receivedMessage = (Message) messageProducer.getMessage(0);
-		Assert.assertNotNull(receivedMessage);
-		
-		connector.doStop();
 		
 	}
 	
@@ -535,33 +559,39 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 		connector.doStart();
 		waitUntilStatus(connector, DEFAULT_TIMEOUT, Status.OK);
 		
-		Message message = new Message();
-		message.setProperty("to", "3542");
-		message.setProperty("from", "3002175604");
-		message.setProperty("text", "This is the test");
-		message.setProperty("sequenceNumber", 1);
-		message.setProperty("messageId", "12000");
-		message.setProperty("commandStatus", 0);
-		
-		messageStore.saveOrUpdate(message);
-		
-		DeliverSM deliverSM = new DeliverSM();
-		deliverSM.setEsmClass(SMPPPacket.SMC_RECEIPT);
-		deliverSM.setDestination(new Address(0, 0, "3002175604"));
-		deliverSM.setSource(new Address(0, 0, "3542"));
-		deliverSM.setMessageText("id:12000 sub:1 dlvrd:1 submit date:1101010000 done date:1101010000 stat:DELIVRD err:0 text:This is a ... ");
-		
-		// retrieve the session
-		Assert.assertEquals(server.getSessions().size(), 1);
-		SmppSession session = server.getSessions().iterator().next();
-		Assert.assertNotNull(session);
-		
-		// send the delivery receipt
-		session.sendRequest(deliverSM);
-		
-		long timeout = 2000;
-		if (receiveMessage(messageProducer, timeout)) {
-			Assert.fail("the message was received");
+		try {
+			
+			Message message = new Message();
+			message.setProperty("to", "3542");
+			message.setProperty("from", "3002175604");
+			message.setProperty("text", "This is the test");
+			message.setProperty("sequenceNumber", 1);
+			message.setProperty("messageId", "12000");
+			message.setProperty("commandStatus", 0);
+			
+			messageStore.saveOrUpdate(message);
+			
+			DeliverSM deliverSM = new DeliverSM();
+			deliverSM.setEsmClass(SMPPPacket.SMC_RECEIPT);
+			deliverSM.setDestination(new Address(0, 0, "3002175604"));
+			deliverSM.setSource(new Address(0, 0, "3542"));
+			deliverSM.setMessageText("id:12000 sub:1 dlvrd:1 submit date:1101010000 done date:1101010000 stat:DELIVRD err:0 text:This is a ... ");
+			
+			// retrieve the session
+			Assert.assertEquals(server.getSessions().size(), 1);
+			SmppSession session = server.getSessions().iterator().next();
+			Assert.assertNotNull(session);
+			
+			// send the delivery receipt
+			session.sendRequest(deliverSM);
+			
+			long timeout = 2000;
+			if (receiveMessage(messageProducer, timeout)) {
+				Assert.fail("the message was received");
+			}
+			
+		} finally {
+			connector.doStop();
 		}
 	}
 	

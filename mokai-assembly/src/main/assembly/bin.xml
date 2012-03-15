@@ -68,6 +68,14 @@
 				<include>*.zip</include>
 			</includes>
 		</fileSet>
+		
+		<fileSet>
+			<directory>../mokai-connectors/mokai-mail/target</directory>
+			<outputDirectory>plugins</outputDirectory>
+			<includes>
+				<include>*.zip</include>
+			</includes>
+		</fileSet>
 
 	</fileSets>
 	

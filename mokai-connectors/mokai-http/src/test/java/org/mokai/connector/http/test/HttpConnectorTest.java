@@ -61,13 +61,13 @@ public class HttpConnectorTest {
 		Message message = new Message();
 		message.setProperty("to", "3002175604");
 		message.setProperty("from", "3542");
-		message.setProperty("text", "test แ script @็");
+		message.setProperty("text", "test ยท script @รกร");
 		
 		HttpConnector connector = new HttpConnector(configuration);
 		connector.process(message);
 		
 		Assert.assertEquals(mockHandler.getReceivedMethod(), "GET");
-		mockHandler.validateExpectedProperties("to=3002175604&from=3542&text=test แ script @็");
+		mockHandler.validateExpectedProperties("to=3002175604&from=3542&text=test ยท script @รกร");
 		Assert.assertTrue(message.getProperty("responseCode", Integer.class) == HttpStatus.SC_OK);
 	}
 	
@@ -124,13 +124,13 @@ public class HttpConnectorTest {
 		Message message = new Message();
 		message.setProperty("to", "3002175604");
 		message.setProperty("from", "3542");
-		message.setProperty("text", "test แ script @็");
+		message.setProperty("text", "test ยท script @รกร");
 		
 		HttpConnector connector = new HttpConnector(configuration);
 		connector.process(message);
 		
 		Assert.assertEquals(mockHandler.getReceivedMethod(), "POST");
-		mockHandler.validateExpectedProperties("to=3002175604&from=3542&text=test แ script @็");
+		mockHandler.validateExpectedProperties("to=3002175604&from=3542&text=test ยท script @รกร");
 		Assert.assertTrue(message.getProperty("responseCode", Integer.class) == HttpStatus.SC_OK);
 	}
 	

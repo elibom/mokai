@@ -215,7 +215,7 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 					Assert.assertEquals(submitSM.getSource().getAddress(), "3542");
 					
 					Assert.assertEquals(submitSM.getDataCoding(), 3);
-					Assert.assertEquals(submitSM.getMessage(), enc.encodeString("This is the test with –"));
+					Assert.assertEquals(submitSM.getMessage(), enc.encodeString("This is the test with Ã±"));
 					
 					Response response = Response.OK;
 					response.setMessageId("12000");
@@ -256,7 +256,7 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 			Message message = new Message();
 			message.setProperty("to", "3002175604");
 			message.setProperty("from", "3542");
-			message.setProperty("text", "This is the test with –");
+			message.setProperty("text", "This is the test with Ã±");
 			
 			connector.process(message);
 			

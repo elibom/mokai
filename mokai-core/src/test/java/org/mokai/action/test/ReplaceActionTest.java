@@ -17,15 +17,15 @@ public class ReplaceActionTest {
 		action.setField("message");
 		
 		Map<String,String> replace = new HashMap<String,String>();
-		replace.put("‡", "a");
-		replace.put("Ž", "e");
-		replace.put("–", "nh");
-		replace.put("—", "");
+		replace.put("Ã¡", "a");
+		replace.put("Ã©", "e");
+		replace.put("Ã­", "nh");
+		replace.put("Ã³", "");
 		replace.put("badword", "_");
 		action.setReplace(replace);
 		
 		Message message = new Message();
-		message.setProperty("message", "‡Ž—– badword");
+		message.setProperty("message", "Ã¡Ã©Ã­Ã³ badword");
 		
 		action.execute(message);
 		

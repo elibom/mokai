@@ -116,6 +116,8 @@
 		<testng.version>5.13</testng.version>
 		<slf4j.version>1.6.1</slf4j.version>
 		<mockito.version>1.8.5</mockito.version>
+		
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
 	<scm>
@@ -124,6 +126,7 @@
 	</scm>
 	
 	<build>
+	
 		<pluginManagement>
 			<plugins>
 				<plugin>

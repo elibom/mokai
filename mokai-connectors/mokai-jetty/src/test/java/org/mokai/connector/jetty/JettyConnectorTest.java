@@ -36,7 +36,7 @@ public class JettyConnectorTest {
 			// create test HTTP call
 			String to = "3002175604";
 			String from = "3542";
-			String originalText = "test แ script @็";
+			String originalText = "test ยท script @รกร";
 			String account = "flycast";
 			String password = "test";
 			String text = URLEncoder.encode(originalText, "UTF-8");
@@ -136,7 +136,7 @@ public class JettyConnectorTest {
 			// create test HTTP call
 			String to = "3002175604";
 			String from = "3542";
-			String originalText = "test แ script @็";
+			String originalText = "test ยท script @รกร";
 			String account = "flycast";
 			String password = "test";
 			String text = URLEncoder.encode(originalText, "ISO-8859-1");

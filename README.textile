@@ -1,5 +1,7 @@
 h1. Mokai SMS Gateway
 
+!https://buildhive.cloudbees.com/job/germanescobar/job/mokai/badge/icon!
+
 Mokai is a *messaging gateway server* that routes messages between endpoints (e.g. from applications to mobile operators or between applications) without having to write complex rules or routes. It supports a variety of mechanisms and protocols including HTTP, Mail, SMPP and JMS (Java Message Service), among others.
 
 h2. Features

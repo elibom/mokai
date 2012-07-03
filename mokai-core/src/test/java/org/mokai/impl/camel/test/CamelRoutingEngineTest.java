@@ -37,6 +37,10 @@ import org.mokai.types.mock.MockConnector;
 import org.mokai.types.mock.MockServiceableConnector;
 import org.testng.annotations.Test;
 
+/**
+ * 
+ * @author German Escobar
+ */
 public class CamelRoutingEngineTest {
 	
 	@Test

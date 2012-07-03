@@ -2,8 +2,8 @@ package org.mokai;
 
 /**
  * Performs an operation with a message (validation, transformation, etc.). Actions 
- * are invoked after messages are received, before they are processed or after they 
- * have been processed.
+ * can be invoked after messages are received, before and/or after they have been processed 
+ * by a connector.
  * 
  * @author German Escobar
  */

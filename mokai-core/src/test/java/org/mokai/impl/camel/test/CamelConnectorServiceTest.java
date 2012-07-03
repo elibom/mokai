@@ -15,6 +15,7 @@ import org.mokai.Configurable;
 import org.mokai.Connector;
 import org.mokai.ConnectorContext;
 import org.mokai.ConnectorService;
+import org.mokai.Execution;
 import org.mokai.ExecutionException;
 import org.mokai.Message;
 import org.mokai.Message.Direction;
@@ -643,6 +644,63 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 	}
 	
 	@Test
+	public void testStoppingActionExecution() throws Exception {
+		
+		MockEndpoint outboundEndpoint = getProcessedMessagesEndpoint(0);
+		MockEndpoint failedEndpoint = getFailedMessagesEndpoint(0);
+		
+		MockProcessor processor = new MockProcessor();
+		ConnectorService processorService = new MockConnectorService("test", processor, resourceRegistry);
+		
+		Action action = new StopAction();
+		processorService.addPreProcessingAction(action);
+
+		processorService.start();
+
+		simulateMessage(new Message(), "activemq:mokai-test");
+		
+		Thread.sleep(3000);
+		
+		outboundEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
+		failedEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
+	}
+	
+	@Test
+	public void testRouteNewMessageAction() throws Exception {
+		
+		MockEndpoint outboundEndpoint = getProcessedMessagesEndpoint(10);
+		MockEndpoint failedEndpoint = getFailedMessagesEndpoint(0);
+		
+		MockProcessor processor = new MockProcessor();
+		ConnectorService processorService = new MockConnectorService("test", processor, resourceRegistry);
+		
+		Action action1 = Mockito.mock(Action.class);
+		Action action2 = new SplitterAction(5, true);
+		Action action3 = Mockito.mock(Action.class);
+		Action action4 = new SplitterAction(2, false);
+		Action action5 = Mockito.mock(Action.class);
+		
+		processorService
+			.addPreProcessingAction(action1)
+			.addPreProcessingAction(action2)
+			.addPreProcessingAction(action3)
+			.addPreProcessingAction(action4)
+			.addPreProcessingAction(action5);
+
+		processorService.start();
+
+		simulateMessage(new Message(), "activemq:mokai-test");
+		
+		outboundEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
+		failedEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
+		
+		Mockito.verify(action1).execute(Mockito.any(Message.class));
+		Mockito.verify(action3, Mockito.times(5)).execute(Mockito.any(Message.class));
+		Mockito.verify(action5, Mockito.times(15)).execute(Mockito.any(Message.class));
+		
+	}
+	
+	@Test
 	public void testPreProcessingActionException() throws Exception {
 
 		MockEndpoint outboundEndpoint = getProcessedMessagesEndpoint(0);
@@ -861,6 +919,7 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 	
 	/**
 	 * Helper method to create the route that validates the output of the receivers.
+	 * 
 	 * @return
 	 * @throws Exception
 	 */
@@ -876,6 +935,7 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 	
 	/**
 	 * Helper method to create the route that validates the output of the processors.
+	 * 
 	 * @return
 	 * @throws Exception
 	 */
@@ -891,6 +951,7 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 	
 	/**
 	 * Helper method to create the route that validates the failed messages.
+	 * 
 	 * @return
 	 * @throws Exception
 	 */
@@ -1012,6 +1073,52 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 		@Override
 		public boolean supports(Message message) {
 			return false;
+		}
+	}
+	
+	/**
+	 * An action to test the stop execution feature.
+	 * 
+	 * @author German Escobar
+	 */
+	private class StopAction implements Action {
+		
+		@Resource
+		private Execution execution;
+
+		@Override
+		public void execute(Message message) throws Exception {
+			execution.stop();
+		}
+		
+	}
+	
+	private class SplitterAction implements Action {
+		
+		private int quantity;
+		
+		boolean stop;
+		
+		@Resource
+		private Execution execution;
+		
+		public SplitterAction(int quantity, boolean stop) {
+			this.quantity = quantity;
+			this.stop = stop;
+		}
+
+		@Override
+		public void execute(Message message) throws Exception {
+			
+			for (int i=0; i < quantity; i++) {
+				System.out.println("Enviando mensaje " + (i+1) + "!!!!!!!!!!");
+				execution.route(new Message());
+			}
+			
+			if (stop) {
+				execution.stop();
+			}
+			
 		}
 	}
 	

@@ -103,15 +103,22 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 	private int failedMessages;
 	
 	/**
-	 * Constructor. The id is modified by removing spaces and lowercasing it.
+	 * <p>Constructor. Initializes the object with the received arguments. Modifies the id of the connector by removing 
+	 * spaces and lower casing it. Injects some resources to the connector: {@link ResourceRegistry} implementation, 
+	 * {@link MessageProducer} implementation and the {@link ConnectorContext}.</p>
+	 * 
+	 * <p>Notice that this constructor doesn't initialize the routes. See the {@link #start()} method to see how the 
+	 * routes are initialized.</p>
 	 * 
 	 * @param id the id of the connector service. Shouldn't be null or empty.
 	 * @param connector the {@link Connector} implementation
-	 * @param resourceRegistry a populated {@link ResourceRegistry} implementation with
-	 * at least the CamelContext and the {@link RedeliveryPolicy}, among other resources.
-	 * @throws IllegalArgumentException if the id arg is null or empty, or if the 
-	 * processor arg is null.
+	 * @param resourceRegistry a populated {@link ResourceRegistry} implementation with at least the CamelContext and 
+	 * the {@link RedeliveryPolicy}, among other resources.
+	 * 
+	 * @throws IllegalArgumentException if the id, connector, ResourceRegistry or CamelContext are not provided..
 	 * @throws ExecutionException if an exception is thrown configuring the connector.
+	 * 
+	 * @see #start()
 	 */
 	public AbstractCamelConnectorService(String id, Connector connector, ResourceRegistry resourceRegistry) 
 			throws IllegalArgumentException, ExecutionException {
@@ -123,6 +130,7 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 		
 		String fixedId = StringUtils.lowerCase(id);
 		this.id = StringUtils.deleteWhitespace(fixedId);
+		
 		this.priority = DEFAULT_PRIORITY;
 		this.maxConcurrentMsgs = DEFAULT_MAX_CONCURRENT_MSGS;
 		this.connector = connector;
@@ -140,13 +148,22 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 		this.camelContext = resourceRegistry.getResource(CamelContext.class);
 		this.camelProducer = camelContext.createProducerTemplate();
 		
-		// add the message producer to the processor
+		// inject resources to the connector
 		ResourceInjector.inject(connector, resourceRegistry);
 		injectMessageProducer(connector);
 		injectConnectorContext(connector);
 		
 	}
 	
+	/**
+	 * Helper method. Called from the {@link #start()} method to initialize the Camel routes that we use 
+	 * internally to move messages (eg. outbound router -> acceptor -> pre actions -> connector -> post actions). 
+	 * Specifically, it creates outbound routes (if the connector is a processor) and inbound routes.
+	 * 
+	 * @throws ExecutionException wraps any exception thrown while creating the Camel routes.
+	 * 
+	 * @see #start()
+	 */
 	private void initRoutes() throws ExecutionException {
 		
 		try {
@@ -172,6 +189,12 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 		
 	}
 	
+	/**
+	 * Helper method. Called from the {@link #initRoutes()} method to initialize Camel routes for outbound routing 
+	 * (ie. when the connector implements {@link Processor}).
+	 * 
+	 * @return an initialized RouteBuilder (internal Camel object).
+	 */
 	private RouteBuilder createOutboundRouteBuilder() {
 		
 		// these are the outbound routes
@@ -188,27 +211,20 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 					}
 					
 				}).to(getFailedMessagesUri());
-
-				ActionsProcessor preProcessingActionsProcessor = new ActionsProcessor(preProcessingActions);
-				ActionsProcessor postProcessingActionsProcessor = new ActionsProcessor(postProcessingActions);
 				
-				// from the queue
-				RouteDefinition route = from(getOutboundUri());
+				// we need an internal queue between the pre-processing actions and the connector
+				// this change was part of the issue #34
+				String internalUri = getOutboundUriPrefix() + "int-" + id;
 				
-				// set the source and type of the Message
-				route.process(new OutboundMessageProcessor());
+				// from the connector queue to the pre-processing actions which puts the message(s) in an internal queue
+				from(getOutboundUri())
+					.process(new OutboundMessageProcessor()) // sets the destination
+					.process(new ActionsProcessor(preProcessingActions, internalUri)); // pre-processing actions
 				
-				// execute the pre-processing actions
-				route.process(preProcessingActionsProcessor);
-				
-				// call the processor (this process the message)
-				route.process(new ConnectorProcessor());
-				
-				// execute the post-processing actions
-				route.process(postProcessingActionsProcessor);
-				
-				// route to the processed messages
-				route.to(getProcessedMessagesUri());
+				// fromt the internal queue to the post-processing actions which puts the message in the processed URI
+				from(getOutboundUriPrefix() + "int-" + id)
+					.process(new ConnectorProcessor()) // execute the connector
+					.process(new ActionsProcessor(postProcessingActions, getProcessedMessagesUri())); 
 					
 			}
 			
@@ -217,26 +233,25 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 		return outboundRouteBuilder;
 	}
 	
+	/**
+	 * Helper method. Called from the {@link #initRoutes()} method to initialize Camel routes for inbound routing 
+	 * (ie. for receiving messages).
+	 * 
+	 * @return an initialized RouteBuilder (internal Camel object).
+	 */
 	private RouteBuilder createInboundRouteBuilder() {
 		
 		// these are the inbound routes
 		RouteBuilder inboundRouteBuilder = new RouteBuilder() {
 
 			@Override
-			public void configure() throws Exception {
-				ActionsProcessor postReceivingActionsProcessor = new ActionsProcessor(postReceivingActions);
+			public void configure() throws Exception {;
 				
-				// from the component that receives the messages from the MessageProducer	
-				RouteDefinition route = from(getInboundUri());
-				
-				// add the source and type of the Message
-				route.process(new InboundMessageProcessor());
-				
-				// execute the post-receiving actions
-				route.process(postReceivingActionsProcessor);
-				
-				// route to the received messages endpoint
-				route.to(getMessagesRouterUri());
+				// from the inbound queue (that receives the messages from the MessageProducer) to the post-receiving
+				// actions that puts the message(s) in the router URI
+				from(getInboundUri())
+					.process(new InboundMessageProcessor())
+					.process(new ActionsProcessor(postReceivingActions, getMessagesRouterUri()));
 			}
 			
 		};

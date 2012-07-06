@@ -121,8 +121,8 @@
 	</properties>
 
 	<scm>
-		<url>scm:git:git://github.com/mokai/mokai.git</url>
-		<connection>scm:git:git://github.com/mokai/mokai.git</connection>
+		<url>scm:git:git@github.com:germanescobar/mokai.git</url>
+		<connection>scm:git:git@github.com:germanescobar/mokai.git</connection>
 	</scm>
 	
 	<build>

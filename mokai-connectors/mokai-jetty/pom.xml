@@ -46,7 +46,7 @@
 	</dependencies>
 	
 	<properties>
-		<jetty.version>7.1.6.v20100715</jetty.version>
+		<jetty.version>8.1.4.v20120524</jetty.version>
 	</properties>
 	
 	<build>

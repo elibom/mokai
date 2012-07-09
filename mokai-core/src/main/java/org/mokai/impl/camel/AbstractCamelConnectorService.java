@@ -77,6 +77,8 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 	
 	private CamelContext camelContext;
 	
+	private ConnectorServiceChangeListener changeListener;
+	
 	/**
 	 * Used to send messages to Apache Camel endpoints.
 	 */
@@ -626,6 +628,10 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 			}
 			
 			state = State.STARTED;
+			
+			if (changeListener != null) {
+				changeListener.changed(this, getDirection());
+			}
 		} catch (Exception e) {
 			throw new ExecutionException(e);
 		}
@@ -656,6 +662,10 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 			}
 			
 			state = State.STOPPED;
+			
+			if (changeListener != null) {
+				changeListener.changed(this, getDirection());
+			}
 		} catch (Exception e) {
 			throw new ExecutionException(e);
 		}
@@ -821,6 +831,14 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 		
 	}
 	
+	public ConnectorServiceChangeListener getChangeListener() {
+		return changeListener;
+	}
+
+	public void setChangeListener(ConnectorServiceChangeListener changeListener) {
+		this.changeListener = changeListener;
+	}
+
 	/**
 	 * The outbound uri is the endpoint where messages are queued before they are processed by a {@link Processor}.
 	 *  

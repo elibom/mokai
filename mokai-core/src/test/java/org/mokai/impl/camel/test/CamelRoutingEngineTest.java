@@ -29,6 +29,7 @@ import org.mokai.ObjectNotFoundException;
 import org.mokai.Processor;
 import org.mokai.Service;
 import org.mokai.impl.camel.CamelRoutingEngine;
+import org.mokai.impl.camel.ConnectorServiceChangeListener;
 import org.mokai.impl.camel.UriConstants;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.MessageStore;
@@ -94,6 +95,48 @@ public class CamelRoutingEngineTest {
 		
 		psTest = connectorServices.get(1); 
 		Assert.assertEquals(cs1, psTest); // the one with 2000 priority
+		
+		routingEngine.stop();
+	}
+	
+	/**
+	 * This method is here so we can test that the routing engine is passing the change listener correctlly.
+	 */
+	@Test(dependsOnMethods="testCreateRemoveConnection")
+	public void testConnectionStartStopChangeListener() throws Exception {
+		ConnectorServiceChangeListener listener = mock(ConnectorServiceChangeListener.class);
+		
+		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
+		routingEngine.start();
+		routingEngine.setConnectorServiceChangeListener( listener );
+		
+		ConnectorService cs1 = routingEngine.addConnection("test1", mock(Connector.class));
+		
+		cs1.start();
+		cs1.stop();
+		
+		verify(listener, times(2)).changed(cs1, Direction.TO_CONNECTIONS);
+		
+		routingEngine.stop();
+	}
+	
+	/**
+	 * This method is here so we can test that the routing engine is passing the change listener correctlly.
+	 */
+	@Test(dependsOnMethods="testCreateRemoveConnection")
+	public void testApplicationStartStopChangeListener() throws Exception {
+		ConnectorServiceChangeListener listener = mock(ConnectorServiceChangeListener.class);
+		
+		CamelRoutingEngine routingEngine = new CamelRoutingEngine();
+		routingEngine.start();
+		routingEngine.setConnectorServiceChangeListener( listener );
+		
+		ConnectorService cs1 = routingEngine.addApplication("test1", mock(Connector.class));
+		
+		cs1.start();
+		cs1.stop();
+		
+		verify(listener, times(2)).changed(cs1, Direction.TO_APPLICATIONS);
 		
 		routingEngine.stop();
 	}

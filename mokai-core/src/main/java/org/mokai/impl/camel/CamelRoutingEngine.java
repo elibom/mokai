@@ -20,6 +20,7 @@ import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.impl.DefaultCamelContext;
+import org.apache.camel.spi.BrowsableEndpoint;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.mokai.Connector;
@@ -58,6 +59,8 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 	private ResourceRegistry resourceRegistry;
 	
 	private State state = State.STOPPED;
+	
+	private ConnectorServiceChangeListener connectorServiceChangeListener; 
 	
 	private ExecutorService executor = 
 			new ThreadPoolExecutor(2, 4, Long.MAX_VALUE, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
@@ -280,8 +283,9 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 		
 		log.debug("adding application with id '" + fixedId + "'");
 		
-		// create the ConnectorService instance
+		// create the ConnectorService instance and set the change listener
 		CamelApplicationService applicationService = new CamelApplicationService(fixedId, connector, resourceRegistry);
+		applicationService.setChangeListener(connectorServiceChangeListener);
 		
 		// configure the connector
 		LifecycleMethodsHelper.configure(connector);
@@ -325,8 +329,9 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 		
 		log.debug("adding connection with id '" + fixedId + "'");
 		
-		// create the ConnectorService instance
+		// create the ConnectorService instance and set the change listener
 		CamelConnectionService connectionService = new CamelConnectionService(fixedId, connector, resourceRegistry);
+		connectionService.setChangeListener(connectorServiceChangeListener);
 		
 		// configure the connector
 		LifecycleMethodsHelper.configure(connector);
@@ -474,6 +479,24 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 
 	public final CamelContext getCamelContext() {
 		return camelContext;
+	}
+	
+	public final int getNumQueuedConnectionsMsgs() {
+		BrowsableEndpoint queueEndpoint = camelContext.getEndpoint(UriConstants.CONNECTIONS_ROUTER, BrowsableEndpoint.class);
+		return queueEndpoint.getExchanges().size();
+	}
+	
+	public final int getNunQueuedApplicationsMsgs() {
+		BrowsableEndpoint queueEndpoint = camelContext.getEndpoint(UriConstants.APPLICATIONS_ROUTER, BrowsableEndpoint.class);
+		return queueEndpoint.getExchanges().size();
+	}
+
+	public ConnectorServiceChangeListener getConnectorServiceChangeListener() {
+		return connectorServiceChangeListener;
+	}
+
+	public void setConnectorServiceChangeListener(ConnectorServiceChangeListener connectorServiceChangeListener) {
+		this.connectorServiceChangeListener = connectorServiceChangeListener;
 	}
 
 }

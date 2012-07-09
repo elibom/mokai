@@ -16,7 +16,7 @@ public class Main {
 	private Main() {}
 
 	public static void main(String[] args) {
-
+		
 		// start spring context
 		String[] configLocations = new String[] { 
 				"conf/core-context.xml", "conf/admin-console-context.xml" 

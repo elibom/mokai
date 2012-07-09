@@ -1111,7 +1111,6 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 		public void execute(Message message) throws Exception {
 			
 			for (int i=0; i < quantity; i++) {
-				System.out.println("Enviando mensaje " + (i+1) + "!!!!!!!!!!");
 				execution.route(new Message());
 			}
 			

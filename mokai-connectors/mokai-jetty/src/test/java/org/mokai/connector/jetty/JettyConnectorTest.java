@@ -194,7 +194,7 @@ public class JettyConnectorTest {
 			GetMethod getMethod = new GetMethod("http://localhost:9080/");
 			String userPassword = "admin:password";
 			String basicAuth = new sun.misc.BASE64Encoder().encode (userPassword.getBytes());
-			getMethod.addRequestHeader("Authorization", basicAuth);
+			getMethod.addRequestHeader("Authorization", "Basic " + basicAuth);
 			int responseCode = client.executeMethod(getMethod);
 			
 			Assert.assertEquals(responseCode, 200);
@@ -230,7 +230,7 @@ public class JettyConnectorTest {
 			GetMethod getMethod = new GetMethod("http://localhost:9080/");
 			String userPassword = "wrong:credentials";
 			String basicAuth = new sun.misc.BASE64Encoder().encode (userPassword.getBytes());
-			getMethod.addRequestHeader("Authorization", basicAuth);
+			getMethod.addRequestHeader("Authorization", "Basic " + basicAuth);
 			int responseCode = client.executeMethod(getMethod);
 			
 			Assert.assertEquals(responseCode, 401);

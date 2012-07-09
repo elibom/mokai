@@ -1,0 +1,194 @@
+html, body {
+	background: #eee;
+	color: #444;
+}
+
+form {
+	margin: 0px;
+	padding: 0px;	
+}
+
+/* Login Page */
+div#login .modal-header {
+	margin-bottom: 20px;
+	background: #111; 
+	color: white;	
+}
+
+/* Dashboard Page */
+.page-header {
+	background: white;
+	padding: 20px 20px 10px;
+	margin: 80px -20px 0px;
+	border: 1px solid #DDD;
+	border-radius: 6px 6px 0 0;
+}
+.page-header .metric {
+	float: left;
+	width: 32%;
+	border: 1px solid white;
+	text-align: center;
+}
+.page-header .metric span.number {
+	font-size: 34px;	
+	color: #666;
+}
+.page-header .metric span.red {
+	color: #870303;	
+}
+.page-header .metric span.tag {
+	display: block;
+	color: #999;
+}
+
+#body {
+	background: whiteSmoke; 
+	margin-right: -20px; 
+	border-width: 0 1px 1px 1px; 
+	border-color: #ddd; 
+	border-style: solid; 
+	border-radius: 0 0 6px 6px; 
+	-webkit-border-radius: 0 0 6px 6px;
+	-moz-border-radius: 0 0 6px 6px;
+	min-height: 500px; 
+	padding:20px 10px 10px 10px;	
+}
+
+#body h3 {
+	padding-bottom: 10px;	
+}
+
+div.left {
+	float:left;	
+}
+div.right {
+	float: right	
+}
+
+section.connector {
+	background: white;
+	border: 1px solid #ccc;
+	min-width: 260px;
+	margin-bottom: 20px;
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+	border-radius: 5px;	
+}
+section.connector header {
+	overflow: auto;
+	color: white;
+	line-height: 13px;
+	text-shadow: -1px -1px black;
+	background: #666;
+	background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#666), to(#333));
+	background-image: -webkit-linear-gradient(top, #666, #333);
+	background-image: -o-linear-gradient(top, #666, #333);
+	background-image: -moz-linear-gradient(#666, #333);
+	background-image: linear-gradient(top, #666, #333);	
+}
+section.connector header .left {
+	padding:5px 8px;
+}
+section.connector header .right {
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+	height: 41px;
+	padding:5px 8px;
+}
+section.connector header small {
+	font-size: 12px;
+	color: #ccc;	
+}
+section.connector header .divider {
+	float: right;
+	padding: 0; 
+	width: 1px; 
+	height: 41px; 
+	background: #333; 
+	border-right: 1px solid #666;	
+}
+section.connector > div {
+	clear:both;	
+	overflow: auto;
+	padding:5px;
+}
+section.connector .queued {
+	color: #999;
+	line-height: 21px;
+	padding-left: 5px;	
+}
+section.connector .queued span {
+	color: #333;
+	font-size: 16px;
+	line-height: 21px;	
+}
+section.connector .status {
+	display: inline-block;
+	
+	width: 60px;	
+	text-align: center;
+	color: white;
+	font-size: 11px;
+	font-weight: bold;
+	padding: 2px 2px;
+	margin-right: 2px;
+	border-radius: 3px;
+}
+
+section.connector .status-success {
+	background: #7a9633;
+	background-image: -webkit-gradient(linear,00,0100%,from(#7a9633),to(#577A21));
+	background-image: -webkit-linear-gradient(top,#7a9633,#577A21);
+	background-image: -o-linear-gradient(top,#7a9633,#577A21);
+	background-image: -moz-linear-gradient(top,#7a9633,#577A21);
+	background-image: linear-gradient(top,#7a9633,#608825);
+	text-shadow: -1px -1px #3f5918;
+}
+section.connector .status-failed {
+	background: #963333;
+	background-image: -webkit-gradient(linear,00,0100%,from(#963333),to(#7a2121));
+	background-image: -webkit-linear-gradient(top,#963333,#7a2121);
+	background-image: -o-linear-gradient(top,#963333,#7a2121);
+	background-image: -moz-linear-gradient(top,#963333,#7a2121);
+	background-image: linear-gradient(top,#963333,#7a2121);
+	text-shadow: -1px -1px #401111;
+}
+section.connector .status-unknown {
+	visibility: hidden;
+}
+
+/* Landscape phones and down */
+@media (max-width: 480px) {
+	.page-header .metric span.number {
+		font-size: 24px;	
+	}
+	.page-header .metric span.tag {
+		font-size: 11px;
+	}
+}
+
+/* Landscape phone to portrait tablet */
+@media (max-width: 767px) {
+	.navbar-fixed-top {
+		margin-bottom: 0px;
+	}
+}
+
+@media (max-width: 979px) {
+	.row {
+		margin-left: -20px;
+	}
+	.page-header {
+		margin-top: 0px;
+	}
+	#content {
+		padding-top: 0px;
+	}	
+}
+
+@media (min-width: 1200px) {
+	.row {
+		margin-left: -20px;
+	}
+}

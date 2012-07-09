@@ -22,6 +22,7 @@
 	<bean id="routingEngine" class="org.mokai.impl.camel.CamelRoutingEngine">
 		<constructor-arg ref="jmsComponent" />	
 		<property name="messageStore"><ref bean="messageStore" /></property>
+		<property name="connectorServiceChangeListener" ref="webSocketsListener" />
 	</bean>
 	
 	<bean id="pluginMechanism" class="org.mokai.plugin.jpf.JpfPluginMechanism" init-method="configure" 

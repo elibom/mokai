@@ -9,8 +9,29 @@
 			http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 	
 	<context:annotation-config/>
+	
+	<bean name="sessions" class="org.mokai.web.admin.jogger.controllers.Sessions">
+		<property name="adminPasswordStore" ref="adminPasswordStore" />
+	</bean>
+	<bean name="dashboard" class="org.mokai.web.admin.jogger.controllers.Dashboard">
+		<property name="routingEngine" ref="routingEngine" />
+	</bean>
+	<bean name="connections" class="org.mokai.web.admin.jogger.controllers.Connections">
+		<property name="routingEngine" ref="routingEngine" />
+	</bean>
+	<bean name="applications" class="org.mokai.web.admin.jogger.controllers.Applications">
+		<property name="routingEngine" ref="routingEngine" />
+	</bean>
+	
+	<bean name="adminPasswordStore" class="org.mokai.web.admin.DefaultAdminPasswordStore"></bean>
+	<bean name="webSocketsListener" class="org.mokai.web.admin.websockets.WebConnectorServiceChangeListener"></bean>
+	<bean name="webSocketsServer" class="org.mokai.web.admin.websockets.NettosphereServer" init-method="start" 
+			destroy-method="stop">
+		<property name="port" value="8585" />
+		<property name="atmosphereHandler"><bean class="org.mokai.web.admin.websockets.MokaiAtmosphereHandler" /></property>
+	</bean>
 
-	<bean name="web-server" class="org.eclipse.jetty.server.Server"
+	<bean name="webServer" class="org.eclipse.jetty.server.Server"
 		init-method="start" destroy-method="stop">
 		<property name="connectors"> 
 			<list>
@@ -27,6 +48,7 @@
 					<list>
 						<bean class="org.eclipse.jetty.servlet.ServletContextHandler">
 							<property name="contextPath" value="/" />
+							<property name="resourceBase" value="#{new org.springframework.core.io.ClassPathResource('webapp').getURI().toString()}" />
 							<property name="sessionHandler">
 								<bean class="org.eclipse.jetty.server.session.SessionHandler" />
 							</property>
@@ -41,16 +63,20 @@
 												</property>
 											</bean>
 											<bean class="org.eclipse.jetty.servlet.ServletHolder">
-												<property name="name" value="ApplicationServlet" />
+												<property name="name" value="JoggerServlet" />
 												<property name="servlet">
-													<bean class="org.mokai.web.admin.servlet.SpringApplicationServlet" />
+													<bean class="org.mokai.web.admin.jogger.MokaiJoggerServlet" />
 												</property>
 												<property name="initParameters">
 													<map>
-														<entry key="application" value="org.mokai.web.admin.vaadin.WebAdminApplication" />
-														<entry key="widgetset" value="org.mokai.web.admin.vaadin.gwt.MokaiAdminWidgetSet" />
-														<entry key="productionMode" value="false" />
+														<entry key="interceptorsClass" value="org.mokai.web.admin.jogger.interceptors.AppInterceptors" />
 													</map>
+												</property>
+											</bean>
+											<bean class="org.eclipse.jetty.servlet.ServletHolder">
+												<property name="name" value="default" />
+												<property name="servlet">
+													<bean class="org.eclipse.jetty.servlet.DefaultServlet" />
 												</property>
 											</bean>
 										</list>
@@ -71,7 +97,7 @@
 														<value>/*</value>
 													</list>
 												</property>
-												<property name="servletName" value="ApplicationServlet" />
+												<property name="servletName" value="JoggerServlet" />
 											</bean>
 										</list>
 									</property>

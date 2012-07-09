@@ -7,7 +7,7 @@
   
   <connector id="jetty-test" className="org.mokai.connector.jetty.JettyConnector">
   	<configuration>
-   		<property name="port">9080</property>
+   		<property name="port">9081</property>
     </configuration>
   </connector>
   

@@ -481,12 +481,14 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 		return camelContext;
 	}
 	
-	public final int getNumQueuedConnectionsMsgs() {
+	@Override
+	public final int getNumQueuedInConnectionsRouter() {
 		BrowsableEndpoint queueEndpoint = camelContext.getEndpoint(UriConstants.CONNECTIONS_ROUTER, BrowsableEndpoint.class);
 		return queueEndpoint.getExchanges().size();
 	}
 	
-	public final int getNunQueuedApplicationsMsgs() {
+	@Override
+	public final int getNumQueuedInApplicationsRouter() {
 		BrowsableEndpoint queueEndpoint = camelContext.getEndpoint(UriConstants.APPLICATIONS_ROUTER, BrowsableEndpoint.class);
 		return queueEndpoint.getExchanges().size();
 	}

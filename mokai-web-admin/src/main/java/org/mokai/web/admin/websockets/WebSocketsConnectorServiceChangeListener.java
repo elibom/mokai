@@ -1,29 +1,28 @@
 package org.mokai.web.admin.websockets;
 
-import org.atmosphere.cpr.Broadcaster;
-import org.atmosphere.cpr.BroadcasterFactory;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mokai.ConnectorService;
 import org.mokai.Message.Direction;
+import org.mokai.RoutingEngine;
 import org.mokai.impl.camel.ConnectorServiceChangeListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This is a {@link ConnectorServiceChangeListener} implementation that broadcast the changes to the WebSockets c
- * onnected clients.
+ * This is a {@link ConnectorServiceChangeListener} implementation that broadcast the changes to the WebSockets 
+ * connected clients. It is registered on the {@link RoutingEngine}.
  * 
  * @author German Escobar
  */
-public class WebSocketConnectorServiceChangeListener implements ConnectorServiceChangeListener {
+public class WebSocketsConnectorServiceChangeListener implements ConnectorServiceChangeListener {
 	
-	private Logger log = LoggerFactory.getLogger(WebSocketConnectorServiceChangeListener.class);
+	private Logger log = LoggerFactory.getLogger(WebSocketsConnectorServiceChangeListener.class);
+	
+	private WebSocketsBroadcaster broadcaster;
 
 	@Override
 	public void changed(ConnectorService connectorService, Direction direction) {
-		
-		Broadcaster b = BroadcasterFactory.getDefault().lookup("changes", true);
 		
 		try {
 			JSONObject json = new JSONObject().put("eventType", getEventType(direction));
@@ -34,7 +33,7 @@ public class WebSocketConnectorServiceChangeListener implements ConnectorService
 					.put("queued", connectorService.getNumQueuedMessages())
 			);
 			
-			b.broadcast(json.toString());
+			broadcaster.broadcast(json.toString());
 		} catch (JSONException e) {
 			log.error("JSONException notifying connector service change: " + e.getMessage(), e);
 		}
@@ -56,6 +55,10 @@ public class WebSocketConnectorServiceChangeListener implements ConnectorService
 		}
 		
 		return "UNKNWON";
+	}
+
+	public void setBroadcaster(WebSocketsBroadcaster broadcaster) {
+		this.broadcaster = broadcaster;
 	}
 
 }

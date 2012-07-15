@@ -24,11 +24,22 @@
 	</bean>
 	
 	<bean name="adminPasswordStore" class="org.mokai.web.admin.DefaultAdminPasswordStore"></bean>
-	<bean name="webSocketsListener" class="org.mokai.web.admin.websockets.WebConnectorServiceChangeListener"></bean>
+	
+	<bean name="webSocketsBroadcaster" class="org.mokai.web.admin.websockets.AtmosphereBroadcaster" />
+	<bean name="webSocketsListener" class="org.mokai.web.admin.websockets.WebSocketsConnectorServiceChangeListener">
+		<property name="broadcaster" ref="webSocketsBroadcaster" />
+	</bean>
 	<bean name="webSocketsServer" class="org.mokai.web.admin.websockets.NettosphereServer" init-method="start" 
 			destroy-method="stop">
 		<property name="port" value="8585" />
 		<property name="atmosphereHandler"><bean class="org.mokai.web.admin.websockets.MokaiAtmosphereHandler" /></property>
+	</bean>
+	
+	<bean name="webSocketsChangeMonitor" class="org.mokai.web.admin.websockets.WebSocketsChangeMonitor" init-method="start" 
+			destroy-method="stop" depends-on="webSocketsServer">
+		<property name="routingEngine" ref="routingEngine" />
+		<property name="connectorServiceChangeListener" ref="webSocketsListener" />
+		<property name="broadcaster" ref="webSocketsBroadcaster" />
 	</bean>
 
 	<bean name="webServer" class="org.eclipse.jetty.server.Server"

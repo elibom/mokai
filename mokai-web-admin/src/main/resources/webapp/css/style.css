@@ -124,7 +124,7 @@ section.connector .queued span {
 	line-height: 21px;	
 }
 section.connector .status {
-	display: inline-block;
+	display: none;
 	
 	width: 60px;	
 	text-align: center;
@@ -136,7 +136,11 @@ section.connector .status {
 	border-radius: 3px;
 }
 
-section.connector .status-success {
+section.connector.status-ok {
+	background: white;
+}
+section.connector.status-ok .status {
+	display: inline-block;
 	background: #7a9633;
 	background-image: -webkit-gradient(linear,00,0100%,from(#7a9633),to(#577A21));
 	background-image: -webkit-linear-gradient(top,#7a9633,#577A21);
@@ -145,7 +149,15 @@ section.connector .status-success {
 	background-image: linear-gradient(top,#7a9633,#608825);
 	text-shadow: -1px -1px #3f5918;
 }
-section.connector .status-failed {
+section.connector.status-ok .status:before {
+	content: "OK";
+}
+
+section.connector.status-failed {
+	background: #ebdbda;
+}
+section.connector.status-failed .status {
+	display: inline-block;
 	background: #963333;
 	background-image: -webkit-gradient(linear,00,0100%,from(#963333),to(#7a2121));
 	background-image: -webkit-linear-gradient(top,#963333,#7a2121);
@@ -154,8 +166,8 @@ section.connector .status-failed {
 	background-image: linear-gradient(top,#963333,#7a2121);
 	text-shadow: -1px -1px #401111;
 }
-section.connector .status-unknown {
-	visibility: hidden;
+section.connector.status-failed .status:before {
+	content: "Failed";
 }
 
 /* Landscape phones and down */

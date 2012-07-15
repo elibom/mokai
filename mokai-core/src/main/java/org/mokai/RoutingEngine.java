@@ -100,4 +100,17 @@ public interface RoutingEngine {
 	 * @return the implementation of the MessageStore that is being used. It should never be null.
 	 */
 	MessageStore getMessageStore();
+	
+	/**
+	 * 
+	 * @return the number of queued messages in the applications router.
+	 */
+	int getNumQueuedInApplicationsRouter();
+	
+	/**
+	 * 
+	 * @return the number of queued messages in the connections router.
+	 */
+	int getNumQueuedInConnectionsRouter();
+	
 }

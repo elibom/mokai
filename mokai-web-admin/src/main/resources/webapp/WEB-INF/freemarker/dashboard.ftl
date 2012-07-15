@@ -41,17 +41,17 @@
 	<div id="content" class="container">
 	
 		<div class="page-header row">
-			<div class="metric">
+			<div id="failedMessages" class="metric">
 				<span class="number red">${failedMsgs}</span>
 				<span class="tag">Failed</span>
 			</div>
 			
-			<div class="metric">
+			<div id="toApplications" class="metric">
 				<span class="number">${toApplications}</span>
 				<span class="tag">To Applications</span>
 			</div>
 			
-			<div class="metric">
+			<div id="toConnections" class="metric">
 				<span class="number">${toConnections}</span>
 				<span class="tag">To Connections</span>
 			</div>
@@ -78,7 +78,9 @@
 						</header>
 						<div>
 							<div>
-								<div class="left queued"><span>${connector.queuedMessages}</span> queued</div>
+								<#if connector.processor >
+									<div class="left queued"><span>${connector.queuedMessages}</span> queued</div>
+								</#if>
 								<div class="right">
 									<#if connector.status = "OK">
 										<span class="status status-success">Running</span>
@@ -97,7 +99,13 @@
 				<h3 style="padding-bottom: 10px;">Connections</h3>
 				
 				<#list connections as connector>
-    				<section class="connector" id="connection-${connector.id}" data="${connector.id}">
+					<#if connector.status = "OK">
+						<section class="connector status-ok" id="connection-${connector.id}" data="${connector.id}">
+					<#elseif connector.status = "FAILED">
+    					<section class="connector status-failed" id="connection-${connector.id}" data="${connector.id}">
+    				<#else>
+    					<section class="connector" id="connection-${connector.id}" data="${connector.id}">
+    				</#if>
 						<header>
 							<div class="left"><h5>${connector.id}</h5><small>${connector.type}</small></div>
 							<div class="right">
@@ -112,13 +120,11 @@
 						</header>
 						<div>
 							<div>
-								<div class="left queued"><span>${connector.queuedMessages}</span> queued</div>
+								<#if connector.processor >
+									<div class="left queued"><span>${connector.queuedMessages}</span> queued</div>
+								</#if>
 								<div class="right">
-									<#if connector.status = "OK">
-										<span class="status status-success">Running</span>
-									<#elseif connector.status = "FAILED">
-										<span class="status status-failed">Failed</span>
-									</#if>
+									<span class="status"></span>
 								</div>
 							</div>
 						</div>
@@ -226,6 +232,8 @@
   				url: "/" + type + "/" + id + "/" + state,
   				dataType: "json"
 			});
+			
+			alert("Petición enviada");
 		}
 		
 		$('section a.cmd-applications-start').live('click', function() {
@@ -270,6 +278,14 @@
  			} else {
  				$('#' + prefix + '-' + id + '-state').html('<i class="icon-off icon-white"></i> Start').attr('class', 'btn btn-mini btn-danger cmd-' + prefix + 's-start');
  			}
+ 			
+ 			$('#' + prefix + '-' + id + ' .queued').html('<span>' + queuedMessages + '</span> queued');
+ 			$('#' + prefix + '-' + id).removeClass("status-ok status-failed");
+ 			if (status === 'OK') {
+ 				$('#' + prefix + '-' + id).addClass("status-ok");
+ 			} else if (status === 'FAILED') {
+ 				$('#' + prefix + '-' + id).addClass("status-failed");
+ 			}
  		}
  		
  		request.onMessage = function (response) {
@@ -285,6 +301,12 @@
  				connectorServiceChanged(json, "application");
  			} else if (json.eventType === "CONNECTION_CHANGED") {
  				connectorServiceChanged(json, "connection");
+ 			} else if (json.eventType === "TO_APPLICATIONS_CHANGED") {
+ 				$('#toApplications span.number').html(json.data.value);
+ 			} else if (json.eventType === "TO_CONNECTIONS_CHANGED") {
+ 				$('#toConnections span.number').html(json.data.value);
+ 			} else if (json.eventType === "FAILED_CHANGED") {
+ 				$('#failedMessages span.number').html(json.data.value);
  			}
  			
  			//alert(message);

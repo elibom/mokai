@@ -8,7 +8,6 @@ import org.jogger.http.Request;
 import org.jogger.http.Response;
 import org.mokai.Message;
 import org.mokai.RoutingEngine;
-import org.mokai.impl.camel.CamelRoutingEngine;
 import org.mokai.persist.MessageCriteria;
 
 /**
@@ -25,13 +24,8 @@ public class Dashboard {
 		List<ConnectorUI> connections = HelperUI.buildConnectorUIs( routingEngine.getConnections() );
 		List<ConnectorUI> applications = HelperUI.buildConnectorUIs( routingEngine.getApplications() );
 		
-		int toConnections = 0;
-		int toApplications = 0;
-		if (CamelRoutingEngine.class.isInstance(routingEngine)) {
-			CamelRoutingEngine camelRE = (CamelRoutingEngine) routingEngine;
-			toConnections = camelRE.getNumQueuedConnectionsMsgs();
-			toApplications = camelRE.getNunQueuedApplicationsMsgs();
-		}
+		int toConnections = routingEngine.getNumQueuedInConnectionsRouter();
+		int toApplications = routingEngine.getNumQueuedInApplicationsRouter();
 		
 		MessageCriteria criteria = new MessageCriteria()
 			.addStatus(Message.STATUS_FAILED)

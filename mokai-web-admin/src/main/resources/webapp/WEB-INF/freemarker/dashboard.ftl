@@ -2,138 +2,99 @@
 <#import "layout.ftl" as layout>
 <@layout.layout>
 	
-	<div class="navbar navbar-fixed-top">
-  		<div class="navbar-inner">
-    		<div class="container">
-    			
-    			<!-- .btn-navbar is used as the toggle for collapsed navbar content -->
-      				<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-	  			    	<span class="icon-bar"></span>
-        				<span class="icon-bar"></span>
-        				<span class="icon-bar"></span>
-      				</a>
-    		
-    			<a class="brand" href="#">
-  					Mokai
-				</a>
-				
-				<div class="nav-collapse">
-	      			<ul class="nav">
-	  					<li class="active"><a href="#">Dashboard</a></li>
-	  					<li><a href="#">Messages</a></li>
-					</ul>
-					
-					<ul class="nav pull-right">
-						<li class="divider-vertical"></li>
-						<li class="dropdown">
-	   						<a href="#" class="dropdown-toggle" data-toggle="dropdown">Account <b class="caret"></b></a>
-	    					<ul class="dropdown-menu">
-	      						<li><a href="#">Change Password</a></li>
-	      						<li><a href="#">Logout</a></li>
-	    					</ul>
-	  					</li>
-					</ul>
-				</div>
-    		</div>
-  		</div>
+	<div class="metrics header-space row">
+		<div id="failedMessages" class="metric">
+			<span class="number red">${failedMsgs}</span>
+			<span class="tag">Failed</span>
+		</div>
+			
+		<div id="toApplications" class="metric">
+			<span class="number">${toApplications}</span>
+			<span class="tag">To Applications</span>
+		</div>
+			
+		<div id="toConnections" class="metric">
+			<span class="number">${toConnections}</span>
+			<span class="tag">To Connections</span>
+		</div>
+			
 	</div>
 	
-	<div id="content" class="container">
-	
-		<div class="page-header row">
-			<div id="failedMessages" class="metric">
-				<span class="number red">${failedMsgs}</span>
-				<span class="tag">Failed</span>
-			</div>
-			
-			<div id="toApplications" class="metric">
-				<span class="number">${toApplications}</span>
-				<span class="tag">To Applications</span>
-			</div>
-			
-			<div id="toConnections" class="metric">
-				<span class="number">${toConnections}</span>
-				<span class="tag">To Connections</span>
-			</div>
-			
+	<div id="body" class="row">
+		<div class="span4">
+			<h3>Applications</h3>
+				
+			<#list applications as connector>
+    			<section class="connector" id="application-${connector.id}" data="${connector.id}">
+					<header>
+						<div class="left"><h5>${connector.id}</h5><small>${connector.type}</small></div>
+						<div class="right">
+							<#if connector.state = "STARTED">
+								<a id="application-${connector.id}-state" class="btn btn-mini cmd-applications-stop" href="#"><i class="icon-off"></i> Stop</a>
+							<#else>
+								<a id="application-${connector.id}-state" class="btn btn-mini btn-danger cmd-applications-start" href="#"><i class="icon-off icon-white"></i> Start</a>
+							</#if>
+						</div>
+						<div class="divider"></div>
+						<div class="right"><a class="btn btn-mini cmd-applications-info" href="#"><i class="icon-info-sign"></i></a></div>
+					</header>
+					<div>
+						<div>
+							<#if connector.processor >
+								<div class="left queued"><span>${connector.queuedMessages}</span> queued</div>
+							</#if>
+							<div class="right">
+								<#if connector.status = "OK">
+									<span class="status status-success">Running</span>
+								<#elseif connector.status = "FAILED">
+									<span class="status status-failed">Failed</span>
+								</#if>
+							</div>
+						</div>
+					</div>
+				</section>
+			</#list>	
 		</div>
-	
-		<div id="body" class="row">
-			<div class="span4">
-				<h3>Applications</h3>
-				
-				<#list applications as connector>
-    				<section class="connector" id="application-${connector.id}" data="${connector.id}">
-						<header>
-							<div class="left"><h5>${connector.id}</h5><small>${connector.type}</small></div>
-							<div class="right">
-								<#if connector.state = "STARTED">
-									<a id="application-${connector.id}-state" class="btn btn-mini cmd-applications-stop" href="#"><i class="icon-off"></i> Stop</a>
-								<#else>
-									<a id="application-${connector.id}-state" class="btn btn-mini btn-danger cmd-applications-start" href="#"><i class="icon-off icon-white"></i> Start</a>
-								</#if>
-							</div>
-							<div class="divider"></div>
-							<div class="right"><a class="btn btn-mini cmd-applications-info" href="#"><i class="icon-info-sign"></i></a></div>
-						</header>
-						<div>
-							<div>
-								<#if connector.processor >
-									<div class="left queued"><span>${connector.queuedMessages}</span> queued</div>
-								</#if>
-								<div class="right">
-									<#if connector.status = "OK">
-										<span class="status status-success">Running</span>
-									<#elseif connector.status = "FAILED">
-										<span class="status status-failed">Failed</span>
-									</#if>
-								</div>
-							</div>
-						</div>
-					</section>
-				</#list>
-				
-			</div>
 			
-			<div class="span4 offset3">
-				<h3 style="padding-bottom: 10px;">Connections</h3>
+		<div class="span4 offset3">
+			<h3 style="padding-bottom: 10px;">Connections</h3>
 				
-				<#list connections as connector>
-					<#if connector.status = "OK">
-						<section class="connector status-ok" id="connection-${connector.id}" data="${connector.id}">
-					<#elseif connector.status = "FAILED">
-    					<section class="connector status-failed" id="connection-${connector.id}" data="${connector.id}">
-    				<#else>
-    					<section class="connector" id="connection-${connector.id}" data="${connector.id}">
-    				</#if>
-						<header>
-							<div class="left"><h5>${connector.id}</h5><small>${connector.type}</small></div>
-							<div class="right">
-								<#if connector.state = "STARTED">
-									<a id="connection-${connector.id}-state" class="btn btn-mini cmd-connections-stop" href="#"><i class="icon-off"></i> Stop</a>
-								<#else>
-									<a id="connection-${connector.id}-state" class="btn btn-mini btn-danger cmd-connections-start" href="#"><i class="icon-off icon-white"></i> Start</a>
-								</#if>
-							</div>
-							<div class="divider"></div>
-							<div class="right"><a class="btn btn-mini cmd-connections-info" href="#"><i class="icon-info-sign"></i></a></div>
-						</header>
+			<#list connections as connector>
+				<#if connector.status = "OK">
+					<section class="connector status-ok" id="connection-${connector.id}" data="${connector.id}">
+				<#elseif connector.status = "FAILED">
+    				<section class="connector status-failed" id="connection-${connector.id}" data="${connector.id}">
+    			<#else>
+    				<section class="connector" id="connection-${connector.id}" data="${connector.id}">
+    			</#if>
+					<header>
+						<div class="left"><h5>${connector.id}</h5><small>${connector.type}</small></div>
+						<div class="right">
+							<#if connector.state = "STARTED">
+								<a id="connection-${connector.id}-state" class="btn btn-mini cmd-connections-stop" href="#"><i class="icon-off"></i> Stop</a>
+							<#else>
+								<a id="connection-${connector.id}-state" class="btn btn-mini btn-danger cmd-connections-start" href="#"><i class="icon-off icon-white"></i> Start</a>
+							</#if>
+						</div>
+						<div class="divider"></div>
+						<div class="right"><a class="btn btn-mini cmd-connections-info" href="#"><i class="icon-info-sign"></i></a></div>
+					</header>
+					<div>
 						<div>
-							<div>
-								<#if connector.processor >
-									<div class="left queued"><span>${connector.queuedMessages}</span> queued</div>
-								</#if>
-								<div class="right">
-									<span class="status"></span>
-								</div>
+							<#if connector.processor >
+								<div class="left queued"><span>${connector.queuedMessages}</span> queued</div>
+							</#if>
+							<div class="right">
+								<span class="status"></span>
 							</div>
 						</div>
-					</section>
-				</#list>
-			</div>
+					</div>
+				</section>
+			</#list>
 		</div>
 	</div>
 	
+	<!-- Modal Info -->
 	<div class="modal hide" id="connector-modal"></div>
 	<script id="connector-info" type="text/template">
 	  	<div class="modal-header">

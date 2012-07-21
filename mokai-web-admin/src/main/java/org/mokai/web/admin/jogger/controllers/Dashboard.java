@@ -9,12 +9,14 @@ import org.jogger.http.Response;
 import org.mokai.Message;
 import org.mokai.RoutingEngine;
 import org.mokai.persist.MessageCriteria;
+import org.mokai.web.admin.jogger.annotations.Secured;
 
 /**
  * Dashboard controller.
  * 
  * @author German Escobar
  */
+@Secured
 public class Dashboard {
 	
 	private RoutingEngine routingEngine;
@@ -38,6 +40,7 @@ public class Dashboard {
 		root.put("failedMsgs", failed);
 		root.put("toApplications", toApplications);
 		root.put("toConnections", toConnections);
+		root.put("tab", "dashboard");
 		
 		response.render("dashboard.ftl", root);
 		

@@ -1,6 +1,7 @@
 package org.mokai.web.admin.jogger.controllers;
 
 import org.jasypt.util.password.StrongPasswordEncryptor;
+import org.jogger.http.Cookie;
 import org.jogger.http.Request;
 import org.jogger.http.Response;
 import org.json.JSONException;
@@ -17,11 +18,18 @@ public class Sessions {
 	private AdminPasswordStore adminPasswordStore;
 
 	public void newForm(Request request, Response response) {
+		
+		boolean authenticated = (Boolean) response.getAttributes().get("authenticated");
+		if (authenticated) {
+			response.redirect("/");
+			return;
+		}
+		
 		response.render("login.ftl");
 	}
 	
 	public void create(Request request, Response response) throws JSONException {
-	
+		
 		JSONObject input = null;
 		try {
 			input = new JSONObject(request.getBody().asString());
@@ -36,6 +44,11 @@ public class Sessions {
 		if ( !"admin".equals(username) || !isPasswordValid(password) ) {
 			response.unauthorized();
 		}
+		
+		Cookie cookie = new Cookie("access_token", "SO8ERHEHFSKJFHI7S3G3WODY7WFG64");
+		cookie.setMaxAge( 3600 * 24 * 14 );
+		cookie.setHttpOnly(true);
+		response.setCookie( cookie );
 		
 	}
 	
@@ -61,6 +74,16 @@ public class Sessions {
 		}
 		
 		return input.getString(field);
+	}
+	
+	public void delete(Request request, Response response) {
+		
+		Cookie cookie = request.getCookie("access_token");
+		
+		if (cookie != null) {
+			response.removeCookie(cookie);
+		}
+		
 	}
 
 	public void setAdminPasswordStore(AdminPasswordStore adminPasswordStore) {

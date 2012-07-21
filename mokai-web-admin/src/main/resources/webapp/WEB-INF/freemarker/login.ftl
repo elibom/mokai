@@ -5,7 +5,10 @@
   		<div class="modal-header">
     		<h2>Login</h2>
   		</div>
-  		<form class="form-horizontal" onsubmit="return false;">
+  		<div class="alert alert-error" style="display:none;">
+  			Invalid user/password combination
+		</div>
+  		<form class="form-horizontal" onsubmit="return false;" style="padding-top: 20px;">
   			<div class="modal-body">
   				<div class="control-group">
     				<label class="control-label">Username</label>
@@ -26,6 +29,8 @@
   		</form>
 	</div>
 	
+	<script type="text/javascript" src="/js/common.js"></script>
+	
 	<script type="text/javascript">
 		
 		$(document).ready(function() {
@@ -35,7 +40,7 @@
 				
 				var value = component.val();
 			
-				if (value.length == 0 || value.replace(/\s/g, '').length == 0) {
+				if ( !isNotEmpty(value) ) {
 					if (focus) {
 						component.focus();
 					}
@@ -57,6 +62,7 @@
 				
 			}
 			
+			ajaxBind( $('form') );
 			$('form').submit(function() {
 				var valid = true;
 				
@@ -65,7 +71,34 @@
 					valid = false;	
 				}
 				
+				if (valid) {
 				
+					App.request = $.ajax({
+						type: 'POST',
+						url: '/sessions',
+						data: '{"username": "' + $('input#username').val() + '", "password": "' + $('input#password').val() + '"}'
+					});
+					
+					App.request.done(function(data) {
+						stopTimers();
+						$('#fade').fadeOut();
+						location.href = '/';
+					});
+					
+					App.request.fail(function(jqXHR) {
+						stopTimers();
+						
+						if (jqXHR.status == 401) { // bad request
+							$('#fade').fadeOut();
+							$('.alert-error').slideDown('slow');
+						} else { // usually a status 500
+							
+							var output = App.errorTemplate({title: "Unexpected Error", body: "<strong>¡Sorry!</strong> Something went wrong. Please check Mokai's logs for more information." });
+							$('#fade').html( output );
+								
+						}
+					});
+				}
 			});
 		});
 		

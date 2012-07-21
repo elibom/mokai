@@ -9,12 +9,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.mokai.ConnectorService;
 import org.mokai.RoutingEngine;
+import org.mokai.web.admin.jogger.annotations.Secured;
 
 /**
  * Applications controller.
  * 
  * @author German Escobar
  */
+@Secured
 public class Applications {
 	
 	private RoutingEngine routingEngine;

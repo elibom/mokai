@@ -6,7 +6,7 @@ public class AppInterceptors extends SpringInterceptors {
 
 	@Override
 	public void initialize() {
-		
+		add( "securityInterceptor" );
 	}
 
 }

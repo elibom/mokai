@@ -1,6 +1,8 @@
 html, body {
 	background: #eee;
 	color: #444;
+	height: 100%;
+	min-height: 100%;
 }
 
 form {
@@ -10,33 +12,43 @@ form {
 
 /* Login Page */
 div#login .modal-header {
-	margin-bottom: 20px;
 	background: #111; 
 	color: white;	
 }
 
+.alert {
+	-webkit-border-radius: 0px; -moz-border-radius: 0px; border-radius: 0px; 
+	margin-bottom: 0px;
+}
+
+.header-space {
+	margin-top: 60px;
+}
+
 /* Dashboard Page */
-.page-header {
+.metrics {
 	background: white;
 	padding: 20px 20px 10px;
-	margin: 80px -20px 0px;
+	margin-left: -20px; 
+	margin-right: -20px; 
+	margin-bottom: 0px;
 	border: 1px solid #DDD;
 	border-radius: 6px 6px 0 0;
 }
-.page-header .metric {
+.metrics .metric {
 	float: left;
 	width: 32%;
 	border: 1px solid white;
 	text-align: center;
 }
-.page-header .metric span.number {
+.metrics .metric span.number {
 	font-size: 34px;	
 	color: #666;
 }
-.page-header .metric span.red {
+.metrics .metric span.red {
 	color: #870303;	
 }
-.page-header .metric span.tag {
+.metrics .metric span.tag {
 	display: block;
 	color: #999;
 }
@@ -50,7 +62,7 @@ div#login .modal-header {
 	border-radius: 0 0 6px 6px; 
 	-webkit-border-radius: 0 0 6px 6px;
 	-moz-border-radius: 0 0 6px 6px;
-	min-height: 500px; 
+	min-height: 400px; 
 	padding:20px 10px 10px 10px;	
 }
 
@@ -170,12 +182,57 @@ section.connector.status-failed .status:before {
 	content: "Failed";
 }
 
+/* Messages Page */
+form.form-inline > * {
+	margin-right: 8px;
+}
+
+form#filter-messages {
+	margin-top: 10px; 
+	margin-bottom:10px;
+}
+
+#messages-table {
+	width: 100%; 
+	max-height: 80%; 
+	overflow: auto;
+}
+
+#messages-table table th, table td {
+	white-space:nowrap; 
+}
+
+#fade {
+	display: none; 
+	position: fixed; 
+	width: 100%; 
+	height: 100%; 
+	top: 0px; 
+	left: 0px; 
+	background: rgba(0, 0, 0, 0.7); 
+	z-index: 1999;
+}
+#loading {
+	position:fixed; 
+	border:1px solid #ccc; 
+	left: 50%; 
+	top: 50%; 
+	z-index: 2000; 
+	background:#fff; 
+	border-radius: 5px; -webkit-border-radius: 5px; -moz-border-radius: 5px;
+	margin-top: -31px; 
+	margin-left: -31px; 
+	padding:15px; 
+	text-align:center;
+}
+
+
 /* Landscape phones and down */
 @media (max-width: 480px) {
-	.page-header .metric span.number {
+	.metrics .metric span.number {
 		font-size: 24px;	
 	}
-	.page-header .metric span.tag {
+	.metrics .metric span.tag {
 		font-size: 11px;
 	}
 }
@@ -191,7 +248,7 @@ section.connector.status-failed .status:before {
 	.row {
 		margin-left: -20px;
 	}
-	.page-header {
+	.header-space {
 		margin-top: 0px;
 	}
 	#content {

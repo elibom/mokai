@@ -22,16 +22,14 @@ div#login .modal-header {
 }
 
 .header-space {
-	margin-top: 60px;
+	margin-top: 40px;
 }
 
 /* Dashboard Page */
 .metrics {
 	background: white;
 	padding: 20px 20px 10px;
-	margin-left: -20px; 
-	margin-right: -20px; 
-	margin-bottom: 0px;
+	margin: 30px -20px 0 -20px;
 	border: 1px solid #DDD;
 	border-radius: 6px 6px 0 0;
 }
@@ -239,12 +237,16 @@ form#filter-messages {
 
 /* Landscape phone to portrait tablet */
 @media (max-width: 767px) {
-	.navbar-fixed-top {
-		margin-bottom: 0px;
+	
+	.metrics {
+		margin-top: 0px;
 	}
 }
 
 @media (max-width: 979px) {
+	.navbar-fixed-top {
+		margin-bottom: 0px;
+	}
 	.row {
 		margin-left: -20px;
 	}
@@ -254,6 +256,9 @@ form#filter-messages {
 	#content {
 		padding-top: 0px;
 	}	
+	#password_changed_alert {
+		margin: 0 -20px;	
+	}
 }
 
 @media (min-width: 1200px) {

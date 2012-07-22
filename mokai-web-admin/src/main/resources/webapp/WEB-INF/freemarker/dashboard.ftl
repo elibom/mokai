@@ -2,7 +2,7 @@
 <#import "layout.ftl" as layout>
 <@layout.layout>
 	
-	<div class="metrics header-space row">
+	<div class="metrics row">
 		<div id="failedMessages" class="metric">
 			<span class="number red">${failedMsgs}</span>
 			<span class="tag">Failed</span>
@@ -164,15 +164,25 @@
 		
 		function showConnectorInfo(elem, type) {
 			var id = elem.closest('section').attr('data');
-			var req = $.ajax({
+			App.request = $.ajax({
   				url: "/" + type + "/" + id,
   				dataType: "json"
 			});
-			req.success(function(data) {
+			App.request.done(function(data) {
+				stopTimers();
+				$('#fade').fadeOut();
 				var html = connectorTemplate(data);
 				$('#connector-modal').html( html );
 				
 				$('#connector-modal').modal();
+			});
+			App.request.fail(function(jqXHR) {
+				stopTimers();
+							
+				if (jqXHR.status != 200) { // error
+					var output = App.errorTemplate({title: "Unexpected Error", body: "<strong>¡Sorry!</strong> Something went wrong. Please check Mokai's logs for more information." });
+					$('#fade').html( output );
+				}
 			});
 		}
 		
@@ -188,13 +198,25 @@
 		
 		function startStopConnector(elem, type, state) {
 			var id = elem.closest('section').attr('data');
-			var req = $.ajax({
+			App.request = $.ajax({
 				type: "POST",
   				url: "/" + type + "/" + id + "/" + state,
   				dataType: "json"
 			});
 			
-			alert("Petición enviada");
+			App.request.done(function() {
+				stopTimers();
+				$('#fade').fadeOut();
+			});
+			
+			App.request.fail(function(jqXHR) {
+				stopTimers();
+							
+				if (jqXHR.status != 200) { // error
+					var output = App.errorTemplate({title: "Unexpected Error", body: "<strong>¡Sorry!</strong> Something went wrong. Please check Mokai's logs for more information." });
+					$('#fade').html( output );
+				}
+			});
 		}
 		
 		$('section a.cmd-applications-start').live('click', function() {

@@ -7,6 +7,9 @@
 	<bean name="sessions" class="org.mokai.web.admin.jogger.controllers.Sessions">
 		<property name="adminPasswordStore" ref="adminPasswordStore" />
 	</bean>
+	<bean name="admin" class="org.mokai.web.admin.jogger.controllers.Administration">
+		<property name="adminPasswordStore" ref="adminPasswordStore" />
+	</bean>
 	<bean name="dashboard" class="org.mokai.web.admin.jogger.controllers.Dashboard">
 		<property name="routingEngine" ref="routingEngine" />
 	</bean>
@@ -20,7 +23,9 @@
 		<property name="routingEngine" ref="routingEngine" />
 	</bean>
 	
-	<bean name="securityInterceptor" class="org.mokai.web.admin.jogger.interceptors.SecurityInterceptor"></bean>
+	<bean name="securityInterceptor" class="org.mokai.web.admin.jogger.interceptors.SecurityInterceptor">
+		<property name="adminPasswordStore" ref="adminPasswordStore" />
+	</bean>
 	
 	
 </beans>

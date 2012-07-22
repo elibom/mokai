@@ -29,8 +29,6 @@
   		</form>
 	</div>
 	
-	<script type="text/javascript" src="/js/common.js"></script>
-	
 	<script type="text/javascript">
 		
 		$(document).ready(function() {
@@ -88,7 +86,7 @@
 					App.request.fail(function(jqXHR) {
 						stopTimers();
 						
-						if (jqXHR.status == 401) { // bad request
+						if (jqXHR.status == 401) { // unauthorized
 							$('#fade').fadeOut();
 							$('.alert-error').slideDown('slow');
 						} else { // usually a status 500

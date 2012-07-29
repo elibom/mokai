@@ -40,7 +40,8 @@ public class SecurityInterceptor implements Interceptor {
 		
 		// if not authenticated redirect (if HTML) or return 401 otherwise
 		if (requiresAuth && !authenticated) {
-			if (request.getHeader("Accept").contains("text/html")) {
+			String acceptHeader = request.getHeader("Accept");
+			if (acceptHeader != null && acceptHeader.contains("text/html")) {
 				response.redirect("/sessions/new");
 				return;
 			} else {

@@ -13,7 +13,6 @@ import org.mokai.Connector;
 import org.mokai.ConnectorService;
 import org.mokai.ExposableConfiguration;
 import org.mokai.Processor;
-import org.mokai.web.admin.vaadin.dashboard.Helper;
 
 /**
  * Helper class to reuse code that is used by multiples controllers, specially {@link Connections} and 

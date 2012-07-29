@@ -4,7 +4,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.mokai.ConnectorService;
 import org.mokai.Processor;
-import org.mokai.web.admin.vaadin.dashboard.Helper;
 
 /**
  * DTO used to pass connectors to the view.

@@ -214,17 +214,13 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 					
 				}).to(getFailedMessagesUri());
 				
-				// we need an internal queue between the pre-processing actions and the connector
-				// this change was part of the issue #34
-				String internalUri = getOutboundUriPrefix() + "int-" + id;
-				
 				// from the connector queue to the pre-processing actions which puts the message(s) in an internal queue
 				from(getOutboundUri())
 					.process(new OutboundMessageProcessor()) // sets the destination
-					.process(new ActionsProcessor(preProcessingActions, internalUri)); // pre-processing actions
+					.process(new ActionsProcessor(preProcessingActions, getOutboundInternalUri())); // pre-processing actions
 				
 				// fromt the internal queue to the post-processing actions which puts the message in the processed URI
-				from(getOutboundUriPrefix() + "int-" + id)
+				from(getOutboundInternalUri())
 					.process(new ConnectorProcessor()) // execute the connector
 					.process(new ActionsProcessor(postProcessingActions, getProcessedMessagesUri())); 
 					
@@ -357,8 +353,14 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 	
 	@Override
 	public final int getNumQueuedMessages() {
+		
 		BrowsableEndpoint queueEndpoint = camelContext.getEndpoint(getOutboundUriPrefix() + id, BrowsableEndpoint.class);
-		return queueEndpoint.getExchanges().size();
+		int num = queueEndpoint.getExchanges().size();
+		
+		num += camelContext.getEndpoint(getOutboundInternalUri(), BrowsableEndpoint.class).getExchanges().size();
+		
+		return num;
+		
 	}
 
 	@Override
@@ -571,23 +573,32 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 	}
 	
 	/**
-	 * This is the queue where messages are stored after the processor service
-	 * has accepted them. Remember that he {@link ConnectionsRouter#route(Exchange)} 
-	 * method is the responsible of choosing the processor service that will
+	 * This is the queue where messages are stored after the connector service has accepted them. Remember that the 
+	 * {@link ConnectionsRouter#route(Exchange)} method is the responsible of choosing the processor service that will
 	 * handle the message.
 	 * 
-	 * @return an Apache Camel endpoint uri where the messages are queued
-	 * before processing them.
+	 * @return an Apache Camel endpoint uri where the messages are queued before processing them.
 	 * 
 	 * @see ConnectionsRouter
 	 */
 	private String getOutboundUri() {
-		return getOutboundUriPrefix() + id + "?maxConcurrentConsumers=" + maxConcurrentMsgs;
+		return getOutboundUriPrefix() + id;
 	}
 	
 	/**
-	 * This is an endpoint where processors put the received messages before they
-	 * are passed through the post-receiving actions.
+	 * This is the queue where messages are stored after the pre-processing actions have executed. Notice that this
+	 * URI is the one that will have multiple concurrent consumers.
+	 * 
+	 * @return an Apache Camel endpoint uri where the messages are queued after the pre-processing
+	 * actions.
+	 */
+	private String getOutboundInternalUri() {
+		return getOutboundUriPrefix() + "int-" + id + "?maxConcurrentConsumers=" + maxConcurrentMsgs;
+	}
+	
+	/**
+	 * This is an endpoint where processors put the received messages before they are passed through the post-receiving 
+	 * actions.
 	 * 
 	 * @return an Apache Camel endpoint Uri where the received messages are stored.
 	 */
@@ -596,11 +607,10 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 	}
 
 	/**
-	 * Starts consuming messages from the queue (returned by 
-	 * {@link AbstractCamelConnectorService#getQueueUri()} method) and builds the Apache 
-	 * Camel routes to process and receive messages from the {@link Processor}. 
-	 * If the {@link Processor} implements {@link Serviceable}, it will call the 
-	 * {@link Serviceable#doStart()} method.
+	 * Starts consuming messages from the queue (returned by {@link AbstractCamelConnectorService#getQueueUri()} 
+	 * method) and builds the Apache Camel routes to process and receive messages from the {@link Processor}. 
+	 * If the {@link Processor} implements {@link Serviceable}, it will call the {@link Serviceable#doStart()} 
+	 * method.
 	 */
 	@Override
 	public final void start() throws ExecutionException {

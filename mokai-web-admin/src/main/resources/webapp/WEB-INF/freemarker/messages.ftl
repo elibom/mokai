@@ -41,7 +41,7 @@
 			<tbody>
 				<#list messages as message>
 					<tr>
-						<td style="min-width: 28px;">${message.id}</td>
+						<td style="min-width: 28px;">${message.id?c}</td>
 						<td style="min-width: 140px;">${message.date}</td>
 						<td style="min-width: 70px;">${message.source}</td>
 						<td style="min-width: 70px;">${message.destination}</td>

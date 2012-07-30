@@ -13,7 +13,7 @@ public class NettosphereServer {
 	
 	private Nettosphere server;
 	
-	private String host = "127.0.0.1";
+	private String host = "0.0.0.0";
 	
 	private int port = 8585;
 

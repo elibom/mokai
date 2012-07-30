@@ -51,13 +51,13 @@
 		<dependency>
 			<groupId>org.jogger</groupId>
 			<artifactId>jogger-core</artifactId>
-			<version>0.4.3-SNAPSHOT</version>
+			<version>0.5.0</version>
 		</dependency>
 		
 		<dependency>
 			<groupId>org.jogger</groupId>
 			<artifactId>jogger-spring</artifactId>
-			<version>0.4.3-SNAPSHOT</version>
+			<version>0.5.0</version>
 		</dependency>
 		
 		<dependency>

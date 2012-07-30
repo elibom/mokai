@@ -99,7 +99,7 @@ public class MessageUI {
 	}
 
 	public String getDestination() {
-		return destination;
+		return destination == null ? "" : destination;
 	}
 
 	public void setDestination(String destination) {

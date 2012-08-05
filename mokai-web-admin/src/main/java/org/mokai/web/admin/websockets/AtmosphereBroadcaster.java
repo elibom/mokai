@@ -13,8 +13,15 @@ public class AtmosphereBroadcaster implements WebSocketsBroadcaster {
 
 	@Override
 	public void broadcast(String data) {
-		Broadcaster b = BroadcasterFactory.getDefault().lookup("changes", true);
-		b.broadcast(data);
+		BroadcasterFactory broadcasterFactory = BroadcasterFactory.getDefault();
+		if (broadcasterFactory == null) {
+			return;
+		}
+		
+		Broadcaster b = broadcasterFactory.lookup("changes", true);
+		if (b != null) {
+			b.broadcast(data);
+		}
 	}
 
 }

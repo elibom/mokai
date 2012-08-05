@@ -10,6 +10,7 @@ import ie.omk.smpp.message.EnquireLink;
 import ie.omk.smpp.message.SMPPPacket;
 import ie.omk.smpp.message.SubmitSM;
 import ie.omk.smpp.message.SubmitSMResp;
+import ie.omk.smpp.message.tlv.Tag;
 import ie.omk.smpp.net.TcpLink;
 import ie.omk.smpp.util.ASCIIEncoding;
 import ie.omk.smpp.util.AlphabetEncoding;
@@ -31,6 +32,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 
 import org.mokai.ConnectorContext;
 import org.mokai.ExposableConfiguration;
@@ -233,6 +235,38 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			throw new IllegalStateException("SMPP client not connected.");
 		}
 		
+		int msgRefNum = new Random().nextInt(10000); // used if we send more than one segment
+		
+		String[] texts = getMessageTexts( message.getProperty("text", String.class) );
+		for (int i=0; i < texts.length; i++) {
+			
+			log.info("sending segment " + (i+1) + " of " + texts.length);
+			
+			SubmitSM request = buildSubmitSM(message);
+			
+			request.setMessage( getEncodedBytes(texts[i]) );
+			request.setDataCoding( getDataCoding().getDataCoding() );
+			request.setSequenceNum( getSequenceNumber() );
+			
+			if (texts.length > 1) {
+				request.setOptionalParameter(Tag.SAR_TOTAL_SEGMENTS, texts.length);
+				request.setOptionalParameter(Tag.SAR_SEGMENT_SEQNUM, i + 1);
+				request.setOptionalParameter(Tag.SAR_MSG_REF_NUM, msgRefNum);
+			}
+			
+			if (i == 0) {
+				message.setProperty("sequenceNumber", request.getSequenceNum());
+			}
+			
+			connection.sendRequest(request);
+			
+		}
+		
+
+	}
+	
+	private SubmitSM buildSubmitSM(Message message) {
+		
 		SubmitSM request = new SubmitSM();
 		
 		Address sourceAr = new Address();
@@ -254,34 +288,36 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		}
 		destAr.setAddress(message.getProperty("to", String.class));
 		request.setDestination(destAr);
-		
-		String text = message.getProperty("text", String.class);
-		if (text != null) {
-			AlphabetEncoding enc = getDataCoding();
-			byte[] encodedBytes = enc.encodeString(text);
-			
-			String strBytes = "";
-			for (int i=0; i < encodedBytes.length; i++) {
-				strBytes += " : " + encodedBytes[i];
-			}
-			log.trace("encoded bytes of the message: " + strBytes);
-			
-			request.setMessage(encodedBytes);
-			request.setDataCoding(enc.getDataCoding());
-		} else {
-			request.setMessageText("");
-		}
 
 		if (configuration.isRequestDeliveryReceipts()) {
 			request.setRegistered((byte) 0x01);
 		}
 		
-		// submit the request and add it to the map
-		request.setSequenceNum(getSequenceNumber());
-		connection.sendRequest(request);
-
-		message.setProperty("sequenceNumber", request.getSequenceNum());
-
+		return request;
+		
+	}
+	
+	private String[] getMessageTexts(String text) {
+		
+		if (text == null) {
+			return new String[] { "" };
+		}
+		
+		return text.split("(?<=\\G.{160})");
+		
+	}
+	
+	private byte[] getEncodedBytes(String text) throws IllegalStateException, UnsupportedEncodingException {
+		AlphabetEncoding enc = getDataCoding();
+		byte[] encodedBytes = enc.encodeString(text);
+		
+		String strBytes = "";
+		for (int i=0; i < encodedBytes.length; i++) {
+			strBytes += " : " + encodedBytes[i];
+		}
+		log.trace("encoded bytes of the message: " + strBytes);
+		
+		return encodedBytes;
 	}
 	
 	private AlphabetEncoding getDataCoding() throws IllegalStateException, UnsupportedEncodingException {

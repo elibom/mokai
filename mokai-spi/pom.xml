@@ -12,6 +12,12 @@
 	<name>Mokai SPI</name>
 	<description>Mokai SPI Module</description>
 
+	<dependencies>
+		<dependency>
+			<groupId>net.gescobar</groupId>
+			<artifactId>jmx-annotations</artifactId>
+		</dependency>
+	</dependencies>
 
 	<build>
 		<plugins>

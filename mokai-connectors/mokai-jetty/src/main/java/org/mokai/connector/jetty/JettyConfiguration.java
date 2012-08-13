@@ -3,6 +3,8 @@ package org.mokai.connector.jetty;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.gescobar.jmx.annotation.ManagedAttribute;
+
 import org.mokai.ui.annotation.Label;
 
 public class JettyConfiguration {
@@ -22,6 +24,7 @@ public class JettyConfiguration {
 	@Label("Mapper")
 	private Map<String,String> mapper = new HashMap<String,String>();
 
+	@ManagedAttribute
 	public int getPort() {
 		return port;
 	}
@@ -30,6 +33,7 @@ public class JettyConfiguration {
 		this.port = port;
 	}
 
+	@ManagedAttribute
 	public String getContext() {
 		return context;
 	}
@@ -39,6 +43,7 @@ public class JettyConfiguration {
 		this.context = context;
 	}
 
+	@ManagedAttribute
 	public boolean isUseBasicAuth() {
 		return useBasicAuth;
 	}
@@ -47,6 +52,7 @@ public class JettyConfiguration {
 		this.useBasicAuth = useBasicAuth;
 	}
 
+	@ManagedAttribute
 	public Map<String, String> getUsers() {
 		return users;
 	}
@@ -58,7 +64,8 @@ public class JettyConfiguration {
 	public void addUser(String username, String password) {
 		this.users.put(username, password);
 	}
-
+	
+	@ManagedAttribute
 	public Map<String, String> getMapper() {
 		return mapper;
 	}

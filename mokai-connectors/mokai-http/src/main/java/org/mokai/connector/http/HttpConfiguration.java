@@ -3,6 +3,8 @@ package org.mokai.connector.http;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.gescobar.jmx.annotation.ManagedAttribute;
+
 import org.mokai.ui.annotation.Label;
 import org.mokai.ui.annotation.Required;
 
@@ -42,6 +44,7 @@ public class HttpConfiguration {
 	@Label("Socket Timeout")
 	private int socketTimeout = 30000;
 	
+	@ManagedAttribute
 	public String getUrl() {
 		return url;
 	}
@@ -50,6 +53,7 @@ public class HttpConfiguration {
 		this.url = url;
 	}
 
+	@ManagedAttribute
 	public String getMethod() {
 		return method;
 	}
@@ -58,6 +62,7 @@ public class HttpConfiguration {
 		this.method = method;
 	}
 
+	@ManagedAttribute
 	public boolean isThrowExceptionOnFailure() {
 		return throwExceptionOnFailure;
 	}
@@ -66,14 +71,16 @@ public class HttpConfiguration {
 		this.throwExceptionOnFailure = throwExceptionOnFailure;
 	}
 
+	@ManagedAttribute
 	public Map<String, String> getAdditionalParams() {
 		return additionalParams;
 	}
-
+	
 	public void setAdditionalParams(Map<String, String> additionalParams) {
 		this.additionalParams = additionalParams;
 	}
 
+	@ManagedAttribute
 	public boolean isBasicAuth() {
 		return basicAuth;
 	}
@@ -82,6 +89,7 @@ public class HttpConfiguration {
 		this.basicAuth = basicAuth;
 	}
 
+	@ManagedAttribute
 	public String getUsername() {
 		return username;
 	}
@@ -90,6 +98,7 @@ public class HttpConfiguration {
 		this.username = username;
 	}
 
+	@ManagedAttribute(readable=false)
 	public String getPassword() {
 		return password;
 	}
@@ -98,6 +107,7 @@ public class HttpConfiguration {
 		this.password = password;
 	}
 
+	@ManagedAttribute
 	public Map<String, String> getMapper() {
 		return mapper;
 	}
@@ -106,6 +116,7 @@ public class HttpConfiguration {
 		this.mapper = mapper;
 	}
 
+	@ManagedAttribute
 	public String getEncoding() {
 		return encoding;
 	}
@@ -114,6 +125,7 @@ public class HttpConfiguration {
 		this.encoding = encoding;
 	}
 
+	@ManagedAttribute
 	public int getConnectionTimeout() {
 		return connectionTimeout;
 	}
@@ -122,6 +134,7 @@ public class HttpConfiguration {
 		this.connectionTimeout = connectionTimeout;
 	}
 
+	@ManagedAttribute
 	public int getSocketTimeout() {
 		return socketTimeout;
 	}

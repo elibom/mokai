@@ -1,5 +1,7 @@
 package org.mokai.connector.smpp;
 
+import net.gescobar.jmx.annotation.ManagedAttribute;
+
 import org.mokai.ui.annotation.Label;
 import org.mokai.ui.annotation.Required;
 
@@ -140,6 +142,7 @@ public class SmppConfiguration {
 	@Label("Discard Incoming Msgs")
 	private boolean discardIncomingMsgs = false;
 	
+	@ManagedAttribute
 	public final String getHost() {
 		return host;
 	}
@@ -148,6 +151,7 @@ public class SmppConfiguration {
 		this.host = host;
 	}
 
+	@ManagedAttribute
 	public final int getPort() {
 		return port;
 	}
@@ -156,6 +160,7 @@ public class SmppConfiguration {
 		this.port = port;
 	}
 
+	@ManagedAttribute
 	public final String getSystemId() {
 		return systemId;
 	}
@@ -164,6 +169,7 @@ public class SmppConfiguration {
 		this.systemId = user;
 	}
 
+	@ManagedAttribute
 	public final String getPassword() {
 		return password;
 	}
@@ -172,6 +178,7 @@ public class SmppConfiguration {
 		this.password = password;
 	}
 
+	@ManagedAttribute
 	public final String getSystemType() {
 		return systemType;
 	}
@@ -180,6 +187,7 @@ public class SmppConfiguration {
 		this.systemType = systemType;
 	}
 
+	@ManagedAttribute
 	public final int getEnquireLinkTimer() {
 		return enquireLinkTimer;
 	}
@@ -188,6 +196,7 @@ public class SmppConfiguration {
 		this.enquireLinkTimer = enquireLinkTimer;
 	}
 
+	@ManagedAttribute
 	public final BindType getBindType() {
 		return bindType;
 	}
@@ -196,6 +205,7 @@ public class SmppConfiguration {
 		this.bindType = bindType;
 	}
 
+	@ManagedAttribute
 	public final String getBindNPI() {
 		return bindNPI;
 	}
@@ -204,6 +214,7 @@ public class SmppConfiguration {
 		this.bindNPI = bindNPI;
 	}
 
+	@ManagedAttribute
 	public final String getBindTON() {
 		return bindTON;
 	}
@@ -212,6 +223,7 @@ public class SmppConfiguration {
 		this.bindTON = bindTON;
 	}
 
+	@ManagedAttribute
 	public final String getSourceNPI() {
 		return sourceNPI;
 	}
@@ -220,6 +232,7 @@ public class SmppConfiguration {
 		this.sourceNPI = sourceNPI;
 	}
 
+	@ManagedAttribute
 	public final String getSourceTON() {
 		return sourceTON;
 	}
@@ -228,6 +241,7 @@ public class SmppConfiguration {
 		this.sourceTON = sourceTON;
 	}
 
+	@ManagedAttribute
 	public final String getDestNPI() {
 		return destNPI;
 	}
@@ -236,6 +250,7 @@ public class SmppConfiguration {
 		this.destNPI = destNPI;
 	}
 
+	@ManagedAttribute
 	public final String getDestTON() {
 		return destTON;
 	}
@@ -244,6 +259,7 @@ public class SmppConfiguration {
 		this.destTON = destTON;
 	}
 
+	@ManagedAttribute
 	public boolean isRequestDeliveryReceipts() {
 		return requestDeliveryReceipts;
 	}
@@ -252,6 +268,7 @@ public class SmppConfiguration {
 		this.requestDeliveryReceipts = requestDeliveryReceipts;
 	}
 
+	@ManagedAttribute
 	public DlrIdConversion getDlrIdConversion() {
 		return dlrIdConversion;
 	}
@@ -260,6 +277,7 @@ public class SmppConfiguration {
 		this.dlrIdConversion = dlrIdConversion;
 	}
 
+	@ManagedAttribute
 	public final long getInitialReconnectDelay() {
 		return initialReconnectDelay;
 	}
@@ -268,6 +286,7 @@ public class SmppConfiguration {
 		this.initialReconnectDelay = initialReconnectDelay;
 	}
 
+	@ManagedAttribute
 	public final long getReconnectDelay() {
 		return reconnectDelay;
 	}
@@ -276,6 +295,7 @@ public class SmppConfiguration {
 		this.reconnectDelay = reconnectDelay;
 	}
 
+	@ManagedAttribute
 	public int getDataCoding() {
 		return dataCoding;
 	}
@@ -284,6 +304,7 @@ public class SmppConfiguration {
 		this.dataCoding = dataCoding;
 	}
 
+	@ManagedAttribute
 	public boolean isDiscardIncomingMsgs() {
 		return discardIncomingMsgs;
 	}

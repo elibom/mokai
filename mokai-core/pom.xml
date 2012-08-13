@@ -22,6 +22,11 @@
 			<groupId>org.apache.activemq</groupId>
 			<artifactId>activemq-camel</artifactId>
 		</dependency>
+		
+		<dependency>
+			<groupId>net.gescobar</groupId>
+			<artifactId>jmx-annotations</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>net.sf.jpf</groupId>

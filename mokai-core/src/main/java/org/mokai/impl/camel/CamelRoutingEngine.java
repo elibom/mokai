@@ -13,6 +13,10 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import javax.management.InstanceAlreadyExistsException;
+
+import net.gescobar.jmx.Management;
+
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.camel.CamelContext;
 import org.apache.camel.ExchangePattern;
@@ -26,6 +30,7 @@ import org.apache.commons.lang.Validate;
 import org.mokai.Connector;
 import org.mokai.ConnectorService;
 import org.mokai.ExecutionException;
+import org.mokai.ExposableConfiguration;
 import org.mokai.Message;
 import org.mokai.Message.Direction;
 import org.mokai.ObjectAlreadyExistsException;
@@ -161,6 +166,12 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 				
 			});
 			
+			try { 
+				Management.register( new RoutingEngineMBean(this), "org.mokai:type=RoutingEngine");
+			} catch (InstanceAlreadyExistsException e) {
+				log.warn("Couldn't register Routing Engine JMX MBean: " + e.getMessage(), e);
+			}
+			
 		} catch (Exception e) {
 			throw new ExecutionException(e);
 		}
@@ -294,6 +305,8 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 		
 		log.info("application with id " + fixedId + " added");
 		
+		registerConnector(applicationService, "org.mokai.applications");
+		
 		return applicationService;
 		
 	}
@@ -301,6 +314,7 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 	@Override
 	public final RoutingEngine removeApplication(String id) throws IllegalArgumentException, ObjectNotFoundException {
 		removeAndDestroyConnector(id, applications, "applications");
+		
 		return this;
 	}
 
@@ -340,6 +354,8 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 		
 		log.info("connection with id " + fixedId + " added");
 		
+		registerConnector(connectionService, "org.mokai.connections");
+		
 		return connectionService;
 		
 	}
@@ -358,6 +374,28 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 	@Override
 	public final List<ConnectorService> getConnections() {
 		return getConnectors(connections);
+	}
+	
+	private void registerConnector(AbstractCamelConnectorService connectorService, String namespace) {
+		
+		String objectName = namespace + ":id=" + connectorService.getId();
+		Connector connector = connectorService.getConnector();
+		
+		try {
+			Management.register( new ConnectorServiceMBean(connectorService), objectName);
+		} catch (Exception e) {
+			log.warn("Couldn't register JMX MBean '" + objectName + "': " + e.getMessage(), e);
+		}
+		
+		try {
+			if (ExposableConfiguration.class.isInstance(connector)) {
+				Management.register( ((ExposableConfiguration<?>) connector).getConfiguration(), 
+						namespace + ":id=" + connectorService.getId() + ",type=Config");
+			}
+		} catch (Exception e) {
+			log.warn("Couldn't register JMX MBean '" + objectName + "': " + e.getMessage(), e);
+		}
+		
 	}
 	
 	private void removeAndDestroyConnector(String id, Map<String,ConnectorService> map, String mapName) {

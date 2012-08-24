@@ -8,14 +8,19 @@
 	<connector id="test-1" priority="1" maxConcurrentMsgs="10" className="org.mokai.types.mock.MockConnector">
 		<acceptors>
 			<and>
+				<or>
+					<acceptor className="org.mokai.types.mock.MockAcceptor" />
+					<acceptor className="org.mokai.types.mock.MockAcceptorWithAcceptor" />
+				</or>
 				<acceptor className="org.mokai.types.mock.MockAcceptor" />
-				<acceptor className="org.mokai.types.mock.MockAcceptorWithAcceptor" />
 			</and>
-			<and>
+			<or>
+				<and>
+					<acceptor className="org.mokai.types.mock.MockAcceptor" />
+					<acceptor className="org.mokai.types.mock.MockAcceptorWithAcceptor" />
+				</and>
 				<acceptor className="org.mokai.types.mock.MockAcceptor" />
-				<acceptor className="org.mokai.types.mock.MockAcceptorWithAcceptor" />
-			</and>
-			<acceptor className="org.mokai.types.mock.MockAcceptor" />
+			</or>
 		</acceptors>
 	</connector>
 	

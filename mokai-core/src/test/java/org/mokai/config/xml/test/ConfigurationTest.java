@@ -29,6 +29,7 @@ import org.mokai.Connector;
 import org.mokai.ConnectorService;
 import org.mokai.Processor;
 import org.mokai.acceptor.AndAcceptor;
+import org.mokai.acceptor.OrAcceptor;
 import org.mokai.config.ConfigurationException;
 import org.mokai.config.xml.AbstractConfiguration;
 import org.mokai.plugin.PluginMechanism;
@@ -266,6 +267,67 @@ public class ConfigurationTest {
 		Acceptor acceptor2 = acceptors.get(2);
 		Assert.assertNotNull(acceptor2);
 		Assert.assertEquals(acceptor2.getClass(), MockAcceptor.class);
+	}
+	
+	@Test
+	public void shouldLoadFileWithNestedAndOrAcceptors() throws Exception {
+		String path = "src/test/resources/config-test/nested-and-or-connectors.xml";
+
+		ConfigDelegator delegator = new ConfigDelegatorImpl();
+		
+		MockConfiguration config = new MockConfiguration(delegator);
+		config.setPath(path);
+		
+		config.load();
+			
+		List<ConnectorService> connectorServices = delegator.getConnectors();
+		Assert.assertNotNull(connectorServices);
+		Assert.assertEquals(connectorServices.size(), 1);
+		
+		ConnectorService connectorService = connectorServices.iterator().next();
+		Assert.assertNotNull(connectorService);
+		
+		List<Acceptor> acceptors = connectorService.getAcceptors();
+		Assert.assertNotNull(acceptors);
+		Assert.assertEquals(acceptors.size(), 2);
+		
+		Acceptor acceptor0 = acceptors.get(0);
+		Assert.assertNotNull(acceptor0);
+		Assert.assertEquals(acceptor0.getClass(), AndAcceptor.class);
+		Assert.assertEquals(((AndAcceptor) acceptor0).getAcceptors().size(), 2); 
+		
+		Iterator<Acceptor> andAcceptors = ((AndAcceptor) acceptor0).getAcceptors().iterator();
+		boolean hasOrAcceptor = false;
+		while (andAcceptors.hasNext()) {
+			Acceptor a = andAcceptors.next();
+			Assert.assertTrue( OrAcceptor.class.isInstance(a) || MockAcceptor.class.isInstance(a));
+			
+			if (OrAcceptor.class.isInstance(a)) {
+				hasOrAcceptor = true;
+				Assert.assertEquals( ((OrAcceptor) a).getAcceptors().size(), 2);
+			}
+		}
+		Assert.assertTrue(hasOrAcceptor);
+		
+		Acceptor acceptor1 = acceptors.get(1);
+		Assert.assertNotNull(acceptor1);
+		Assert.assertEquals(acceptor1.getClass(), OrAcceptor.class);
+		Assert.assertEquals(((OrAcceptor) acceptor1).getAcceptors().size(), 2);
+		
+		Iterator<Acceptor> orAcceptors = ((OrAcceptor) acceptor1).getAcceptors().iterator();
+		boolean hasAndAcceptor = false;
+		while (orAcceptors.hasNext()) {
+			Acceptor a = orAcceptors.next();
+			Assert.assertTrue( AndAcceptor.class.isInstance(a) || MockAcceptor.class.isInstance(a) );
+			
+			if (AndAcceptor.class.isInstance(a)) {
+				hasAndAcceptor = true;
+				Assert.assertEquals( ((AndAcceptor) a).getAcceptors().size(), 2 );
+			}
+			
+		}
+		Assert.assertTrue(hasAndAcceptor);
+		
 	}
 	
 	@Test(expectedExceptions=ConfigurationException.class)

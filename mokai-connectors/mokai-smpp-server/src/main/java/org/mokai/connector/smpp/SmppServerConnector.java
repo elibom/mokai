@@ -1,9 +1,5 @@
 package org.mokai.connector.smpp;
 
-import ie.omk.smpp.message.Bind;
-import ie.omk.smpp.message.SMPPPacket;
-import ie.omk.smpp.message.SubmitSM;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -11,8 +7,14 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 
 import net.gescobar.smppserver.PacketProcessor;
+import net.gescobar.smppserver.Response;
+import net.gescobar.smppserver.ResponseSender;
 import net.gescobar.smppserver.SmppServer;
 import net.gescobar.smppserver.SmppServer.Status;
+import net.gescobar.smppserver.packet.Bind;
+import net.gescobar.smppserver.packet.SmppPacket;
+import net.gescobar.smppserver.packet.SmppRequest;
+import net.gescobar.smppserver.packet.SubmitSm;
 
 import org.mokai.Configurable;
 import org.mokai.ConnectorContext;
@@ -155,55 +157,60 @@ public class SmppServerConnector implements Processor, Configurable, Serviceable
 	private class CustomPacketProcessor implements PacketProcessor {
 
 		@Override
-		public Response processPacket(SMPPPacket packet) {
+		public void processPacket(SmppRequest packet, ResponseSender responseSender) {
 			
-			if (packet.getCommandId() == SMPPPacket.BIND_RECEIVER
-		   	 		|| packet.getCommandId() == SMPPPacket.BIND_TRANSCEIVER
-		   	 		|| packet.getCommandId() == SMPPPacket.BIND_TRANSMITTER) {
+			if (packet.isBind()) {
 				
 				Bind bind = (Bind) packet;
 				String systemId = bind.getSystemId();
 				String password = bind.getPassword();
 				
 				if (systemId == null || "".equals(systemId)) {
-					return Response.INVALID_PARAMETER_VALUE;
+					responseSender.send( Response.INVALID_PARAMETER_VALUE );
+					return;
 				}
 				
 				if (password == null || "".equals(password)) {
-					return Response.INVALID_PARAMETER_VALUE;
+					responseSender.send( Response.INVALID_PARAMETER_VALUE );
+					return;
 				}
 				
 				if (!configuration.getUsers().containsKey(systemId)) {
-					return Response.INVALID_SYSTEM_ID;
+					responseSender.send( Response.INVALID_SYSTEM_ID );
+					return;
 				}
 				
 				if (!password.equals(configuration.getUsers().get(systemId))) {
-					return Response.INVALID_PASSWORD;
+					responseSender.send( Response.INVALID_PASSWORD );
+					return;
 				}
 				
-				return Response.OK;
+				responseSender.send( Response.OK );
+				return;
 				
-			}  else if (packet.getCommandId() == SMPPPacket.SUBMIT_SM) {
+			}  else if (packet.getCommandId() == SmppPacket.SUBMIT_SM) {
 				
-				SubmitSM submitSm = (SubmitSM) packet;
+				SubmitSm submitSm = (SubmitSm) packet;
 				
 				Message message = new Message();
-				message.setProperty("to", submitSm.getDestination().getAddress());
-				message.setProperty("from", submitSm.getSource().getAddress());
-				message.setProperty("text", submitSm.getMessageText());
+				message.setProperty("to", submitSm.getDestAddress().getAddress());
+				message.setProperty("from", submitSm.getSourceAddress().getAddress());
+				message.setProperty("text", submitSm.getShortMessage());
 				message.setProperty("receiptDestination", context.getId());
 				
 				messageProducer.produce(message);
 				
 				try {
-					return Response.OK.withMessageId(nextMessageId() + "");
+					responseSender.send( Response.OK.withMessageId(nextMessageId() + "") );
+					return;
 				} catch (Exception e) {
-					return Response.SYSTEM_ERROR;
+					responseSender.send( Response.SYSTEM_ERROR );
+					return;
 				}
 				
 			}
 			
-			return Response.OK;
+			responseSender.send( Response.OK );
 		}
 		
 	}

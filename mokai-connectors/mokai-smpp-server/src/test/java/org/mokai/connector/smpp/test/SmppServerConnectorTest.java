@@ -18,7 +18,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.gescobar.smppserver.PacketProcessor.Response;
+import net.gescobar.smppserver.Response;
 
 import org.mockito.Mockito;
 import org.mokai.ConnectorContext;

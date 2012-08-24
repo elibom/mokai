@@ -22,6 +22,7 @@ import org.mokai.ExposableConfiguration;
 import org.mokai.Processor;
 import org.mokai.RoutingEngine;
 import org.mokai.acceptor.AndAcceptor;
+import org.mokai.acceptor.OrAcceptor;
 import org.mokai.config.Configuration;
 import org.mokai.config.ConfigurationException;
 import org.mokai.plugin.PluginMechanism;
@@ -217,51 +218,66 @@ public abstract class AbstractConfiguration implements Configuration {
 		while (iterator.hasNext()) {
 			Element acceptorElement = (Element) iterator.next();
 			
-			if (acceptorElement.getName().equals("and")) {
-				
-				// and is just a wrapper of the AndAcceptor
-				AndAcceptor andAcceptor = new AndAcceptor();
-				
-				Iterator acceptorIterator = acceptorElement.elementIterator();
-				while (acceptorIterator.hasNext()) {
-					Acceptor acceptor = buildAcceptor((Element) acceptorIterator.next());
-					andAcceptor.addAcceptor(acceptor);
-				}
-				
-				acceptors.add(andAcceptor);
-				
-			} else { // everything else is treated as an acceptor element, schema validation should take care of this
-				
-				Acceptor acceptor = buildAcceptor(acceptorElement);
-				acceptors.add(acceptor);
-				
-			}
+			Acceptor acceptor = buildAcceptor(acceptorElement);
+			acceptors.add(acceptor);
 		}
 		
 		return acceptors;
 	}	
 	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private Acceptor buildAcceptor(Element acceptorElement) throws ClassNotFoundException, InstantiationException, 
 			IllegalAccessException, SecurityException, IllegalArgumentException, NoSuchFieldException, NoSuchMethodException {
 		
-		// create acceptor instance
-		String className = acceptorElement.attributeValue("className");
-		Class<? extends Acceptor> acceptorClass = null;
-		if (pluginMechanism != null) {
-			acceptorClass = (Class<? extends Acceptor>) pluginMechanism.loadClass(className);
-		} 
+		Acceptor acceptor = null;
 		
-		if (acceptorClass == null) {
-			acceptorClass = (Class<? extends Acceptor>) Class.forName(className);
-		}
-		
-		Acceptor acceptor = acceptorClass.newInstance();
-		
-		if (ExposableConfiguration.class.isInstance(acceptor)) {
-			ExposableConfiguration<?> exposableAcceptor = (ExposableConfiguration<?>) acceptor;
+		if (acceptorElement.getName().equals("and")) {
 			
-			setConfigurationFields(acceptorElement, exposableAcceptor.getConfiguration());
+			// and is just a wrapper of the AndAcceptor
+			AndAcceptor andAcceptor = new AndAcceptor();
+			
+			Iterator acceptorIterator = acceptorElement.elementIterator();
+			while (acceptorIterator.hasNext()) {
+				Acceptor inner = buildAcceptor((Element) acceptorIterator.next());
+				andAcceptor.addAcceptor(inner);
+			}
+			
+			acceptor = andAcceptor;
+			
+		} else if (acceptorElement.getName().equals("or")) {
+			
+			// or is just a wrapper of the OrAcceptor
+			OrAcceptor orAcceptor = new OrAcceptor();
+			
+			Iterator acceptorIterator = acceptorElement.elementIterator();
+			while (acceptorIterator.hasNext()) {
+				Acceptor inner = buildAcceptor((Element) acceptorIterator.next());
+				orAcceptor.addAcceptor(inner);
+			}
+			
+			acceptor = orAcceptor;
+			
+		} else {
+		
+			// create acceptor instance
+			String className = acceptorElement.attributeValue("className");
+			Class<? extends Acceptor> acceptorClass = null;
+			if (pluginMechanism != null) {
+				acceptorClass = (Class<? extends Acceptor>) pluginMechanism.loadClass(className);
+			} 
+			
+			if (acceptorClass == null) {
+				acceptorClass = (Class<? extends Acceptor>) Class.forName(className);
+			}
+			
+			acceptor = acceptorClass.newInstance();
+			
+			if (ExposableConfiguration.class.isInstance(acceptor)) {
+				ExposableConfiguration<?> exposableAcceptor = (ExposableConfiguration<?>) acceptor;
+				
+				setConfigurationFields(acceptorElement, exposableAcceptor.getConfiguration());
+			}
+			
 		}
 		
 		return acceptor;
@@ -417,6 +433,7 @@ public abstract class AbstractConfiguration implements Configuration {
 	 * element. If it does, returns null. In any other case, it returns null.
 	 *  
 	 * @param element the Element from which we want to retrieve the value.
+	 * 
 	 * @return an Object value of the element or null if a <pre><null /></pre> element is
 	 * found or no value is found.
 	 * @throws NoSuchMethodException 
@@ -457,7 +474,8 @@ public abstract class AbstractConfiguration implements Configuration {
 			
 			return null;
 			
-		} else if (elementValue.getName().equals("acceptor")) {
+		} else if (elementValue.getName().equals("acceptor") || elementValue.getName().equals("and") 
+				|| elementValue.getName().equals("or")) {
 			
 			return buildAcceptor(elementValue);
 			

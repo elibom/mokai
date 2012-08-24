@@ -135,10 +135,9 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	private List<DeliveryReceipt> deliveryReceipts = Collections.synchronizedList(new ArrayList<DeliveryReceipt>());
 	
 	/**
-	 * Constructor. Creates an instance with the default configuration
-	 * information.
+	 * Constructor. Creates an instance with the default configuration information.
 	 * 
-	 * @see LogicaConfiguration
+	 * @see SmppConfiguration
 	 */
 	public SmppConnector() {
 		this(new SmppConfiguration());

@@ -22,6 +22,7 @@
 	<bean name="messages" class="org.mokai.web.admin.jogger.controllers.Messages">
 		<property name="routingEngine" ref="routingEngine" />
 	</bean>
+	<bean name="jmx" class="org.mokai.web.admin.jogger.controllers.Jmx"></bean>
 	
 	<bean name="securityInterceptor" class="org.mokai.web.admin.jogger.interceptors.SecurityInterceptor">
 		<property name="adminPasswordStore" ref="adminPasswordStore" />

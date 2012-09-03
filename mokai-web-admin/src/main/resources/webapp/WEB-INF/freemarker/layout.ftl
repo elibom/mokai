@@ -49,6 +49,11 @@
 			  					<#else>
 			  						<li><a href="/messages/connections">Connections Msgs</a></li>
 			  					</#if>
+			  					<#if tab = "jmx">
+			  						<li class="active"><a href="/jmx">Management</a></li>
+			  					<#else>
+			  						<li><a href="/jmx">Management</a></li>
+			  					</#if>
 							</ul>
 							
 							<ul class="nav pull-right">

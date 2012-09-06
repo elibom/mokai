@@ -1,9 +1,8 @@
 package org.mokai.boot;
 
-import org.mokai.RoutingEngine;
-import org.mokai.Service;
 import org.mokai.config.xml.ApplicationsConfiguration;
 import org.mokai.config.xml.ConnectionsConfiguration;
+import org.mokai.impl.camel.CamelRoutingEngine;
 
 /**
  * This class is configured in the core-context.xml file with dependencies to all the
@@ -14,7 +13,7 @@ import org.mokai.config.xml.ConnectionsConfiguration;
  */
 public class RoutingEngineLifecycle {
 
-	private RoutingEngine routingEngine;
+	private CamelRoutingEngine routingEngine;
 	
 	private ApplicationsConfiguration applicationsConfiguration;
 	private ConnectionsConfiguration connectionsConfiguration;
@@ -23,20 +22,14 @@ public class RoutingEngineLifecycle {
 		connectionsConfiguration.load();
 		applicationsConfiguration.load();
 		
-		if (Service.class.isInstance(routingEngine)) {
-			Service service = (Service) routingEngine;
-			service.start();
-		}
+		routingEngine.start();
 	}
 	
 	public void stop() {
-		if (Service.class.isInstance(routingEngine)) {
-			Service service = (Service) routingEngine;
-			service.stop();
-		}
+		routingEngine.shutdown();
 	}
 
-	public void setRoutingEngine(RoutingEngine routingEngine) {
+	public void setRoutingEngine(CamelRoutingEngine routingEngine) {
 		this.routingEngine = routingEngine;
 	}
 

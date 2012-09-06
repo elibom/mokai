@@ -21,14 +21,24 @@ import javax.management.ObjectName;
 import javax.management.openmbean.CompositeData;
 
 import org.jogger.http.Request;
+import org.jogger.http.Request.BodyParser;
 import org.jogger.http.Response;
-import org.jogger.http.Value;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.mokai.web.admin.jogger.annotations.Secured;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+/**
+ * JMX controller.
+ * 
+ * @author German Escobar
+ */
 @Secured
 public class Jmx {
+	
+	private Logger log = LoggerFactory.getLogger(Jmx.class);
 
 	public void index(Request request, Response response) throws MalformedObjectNameException {
 		
@@ -174,8 +184,6 @@ public class Jmx {
 		String mBean = URLDecoder.decode( request.getPathVariable("mbean").asString(), "UTF-8" );
 		String operationName = URLDecoder.decode( request.getPathVariable("operation").asString(), "UTF-8");
 		
-		List<Value> params = request.getParameter("params").asList();
-		
 		MBeanInfo mBeanInfo = null;
 		try {
 			mBeanInfo = mBeanServer.getMBeanInfo( new ObjectName(mBean) );
@@ -184,28 +192,102 @@ public class Jmx {
 			return;
 		}
 		
-		MBeanOperationInfo[] operationsInfo = mBeanInfo.getOperations();
-		for (MBeanOperationInfo operationInfo : operationsInfo) {
-			if (operationInfo.getName().equals(operationName)) {
-				
-				MBeanParameterInfo[] paramsInfo = operationInfo.getSignature();
-				
-				
-				
+		// find the operation info
+		MBeanOperationInfo operationInfo = null;
+		for (MBeanOperationInfo oi : mBeanInfo.getOperations()) {
+			if (oi.getName().equals(operationName)) {
+				operationInfo = oi;
 			}
 		}
 		
-		response.notFound();
+		if (operationInfo == null) {
+			response.notFound();
+			return;
+		}
+		
+		MBeanParameterInfo[] paramsInfo = operationInfo.getSignature();
+		JSONArray jsonParams = null;
+		try {
+			jsonParams = getJsonParams( request.getBody() );
+		} catch (JSONException e) {
+			response.badRequest().print( "{\"message\": \"" + e.getMessage() + "\"}" );
+			return;
+		}
+		
+		if (jsonParams.length() != paramsInfo.length) {
+			response.badRequest().print( "{\"message\": \"" + jsonParams.length() + " received, " + paramsInfo.length 
+					+ " expected\"}" );
+			return;
+		}
+		
+		Object[] params = new Object[paramsInfo.length];
+		String[] signature = new String[paramsInfo.length];
+		for (int i=0; i < paramsInfo.length; i++) {
+			MBeanParameterInfo paramInfo = paramsInfo[i];
+			signature[i] = paramInfo.getType();
+			params[i] = parseParam(jsonParams, i, paramInfo.getType());
+		}
+		
+		Object ret = mBeanServer.invoke( new ObjectName(mBean), operationName, params, signature);
+		if (ret != null) {
+			response.print( toJson(ret) );
+		}
+		
+		return;
 		
 	}
 	
-	private String getAttributeValue(MBeanServer mBeanServer, String mBean, String attributeName) throws Exception {
+	private JSONArray getJsonParams(BodyParser body) throws JSONException {
 		
-		Object object = mBeanServer.getAttribute( new ObjectName(mBean), attributeName );
-		
-		if (object == null) {
-			return null;
+		if (body == null) {
+			return new JSONArray();
 		}
+		
+		JSONArray jsonParams = new JSONArray();
+		String strParams = body.asString();
+		if (!"".equals(strParams)) {
+			jsonParams = new JSONArray(strParams);
+		}
+		
+		return jsonParams;
+		
+	}
+	
+	private Object parseParam(JSONArray jsonParams, int index, String type) throws JSONException {
+		
+		if ("int".equals(type) || "java.lang.Integer".equals(type)) {
+			return jsonParams.getInt(index);
+		} else if ("long".equals(type) || "java.lang.Long".equals(type)) {
+			return jsonParams.getLong(index);
+		} else if ("double".equals(type) || "java.lang.Double".equals(type)) {
+			return jsonParams.getDouble(index);
+		} else if ("boolean".equals(type) || "java.lang.Boolean".equals(type)) {
+			return jsonParams.getBoolean(index);
+		} else {
+			return jsonParams.getString(index);
+		}
+		
+	}
+	
+	private String getAttributeValue(MBeanServer mBeanServer, String mBean, String attributeName) {
+		
+		try {
+			Object object = mBeanServer.getAttribute( new ObjectName(mBean), attributeName );
+			
+			if (object == null) {
+				return null;
+			}
+			
+			return toJson(object);
+		} catch (Exception e) {
+			log.error("Exception while retreiving attribute '" + attributeName + "' from mbean '" + mBean + "':" + e.getMessage(), e);
+		}
+		
+		return null;
+		
+	}
+	
+	private String toJson(Object object) throws Exception {
 		
 		if (CompositeData.class.isInstance(object)) {
 			CompositeData data = (CompositeData) object;

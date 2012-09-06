@@ -37,8 +37,11 @@
 			<div id="mbean_info" class="panel"></div>
 		</div>
 	</div>
+	
+	<!-- Footer div -->
 	<div style="height:40px;"></div>
 	
+	<!-- Template: MBean -->
 	<script id="mbean_template" type="text/template">
 		<header>
 			<h1><%= name %></h1>
@@ -63,7 +66,7 @@
 				<% _.each(attributes, function(attribute) { %>
 					<tr>
 						<td><%= attribute.name %></td>
-						<td><%= attribute.type %></td>
+						<td><%= fixType(attribute.type) %></td>
 						<td><%= attribute.value %></td>
 						<td><%= attribute.description %></td>
 						
@@ -74,146 +77,82 @@
 			
 			<h3>Operations</h3>
 			
-			<% _.each(operations, function(operation) { %>
-			
-				<%
-					var params = "";
-					for (var i=0; i < operation.params.length; i++) {
-						var param = operation.params[i];
-						if (i === 0) {
-							params = param.type + ' <em>' + param.name + '</em>';
-						} else {
-							params += ', ' + param.type + ' <em>' + param.name + '</em>';
-						}
-						
-					}
-				%>
-			
-				<div class="operation">
-					<div>
-						<span class="name"><%= operation.name %></span>
-						<span class="return_type"><%= operation.returnType %></span>
-						<% if (params !== "") { %>
-							<span class="params"><%= params %></span>
-						<% } %>	
-						<span class="description"><%= operation.description %></span>
-					</div>
-					
-					<div class="actions">
-						<button class="btn btn-mini" type="button">Invoke</button>
-					</div>
-				</div>
-			<% }); %>
+			<div class="operations"></div>
 			
 		</section>
-		
 	</script>
 	
-	<script type="text/javascript" src="/js/backbone-min.js"></script>
-	<script type="text/javascript">
+	<!-- Template: Operation -->
+	<script id="operation_template" type="text/template">
+		
+		<div class="alert alert-info" style="display:none; margin-bottom: 10px;">
+  			<button type="button" class="close" data-dismiss="alert">×</button>
+  			<strong>Success!</strong> No data returned.
+		</div>
+		<div>
+			<span class="name"><%= operation.name %></span>
+			<span class="return_type"><%= fixType(operation.returnType) %></span>
+			<% if (params !== "") { %>
+				<span class="params"><%= params %></span>
+			<% } %>	
+			<span class="description"><%= operation.description %></span>
+		</div>
+					
+		<div class="actions">
+			<button id="<%= operation.name %>" class="invoke btn btn-mini" type="button">Invoke</button>
+		</div>
+			
+	</script>
 	
-		var mBeansView = Backbone.View.extend({
-		
-			initialize: function() {
-				
-				setInterval(function() {
-				
-					var request = $.ajax({
-						url: '/jmx/' + encodeURIComponent('java.lang:type=Memory') + "/attributes/HeapMemoryUsage",
-						dataType: 'json',
-						global: false
-					});
-					request.done(function(data) {
-						var value = $.parseJSON(data.value);
-
-						$("div.featured div#used_memory span.value").html( (value.used / (1024 * 1024)).toFixed(0) + "MB" );
-						$("div.featured div#max_memory span.value").html( (value.max / (1024 * 1024)).toFixed(0) + "MB" );
-						
-					});
-					request.fail(function(jqXHR, textStatus) {
-						
-					});
-					
-					request = $.ajax({
-						url: '/jmx/' + encodeURIComponent('java.lang:type=Threading') + "/attributes/ThreadCount",
-						dataType: 'json',
-						global: false
-					});
-					request.done(function(data) {
-						$("div.featured div#thread_count span.value").html( data.value);
-					});
-					request.fail(function(jqXHR, textStatus) {
-						
-					});
-					
-				
-				}, 2000);
-				
-				
-			},
-			
-			events: {
-				"click li.domain": "toggleDomain",
-				"click li.mbean" : "showMBean"
-			},
-			
-			toggleDomain: function(event) {
-				var li = $(event.currentTarget);
-				var innerUl = $(event.currentTarget).children('ul');
-				
-				if (!$(event.currentTarget).is("li")) {
-					li = $(event.currentTarget).parents('li');
-					innerUl = li.children('ul');
-				}
-				
-				li.toggleClass('item_open');
-				innerUl.toggle();
-				
-				return false;
-			},
-			
-			showMBean: function(event) {
-				var domain = $(event.currentTarget).parents('li.domain').attr('data');
-				var keysElem = $(event.currentTarget);
-				if ($(event.currentTarget).is("li")) {
-					keysElem = $(event.currentTarget).children('a');
-				}
-				
-				var keys = keysElem.html();
-				
-				var mbean = encodeURIComponent(domain + ':' + keys);
-				var request = $.ajax({
-					url: '/jmx/' + mbean,
-					dataType: 'json'
-				});
-				
-				request.done(function(data) {
-					stopTimers();
-					$('#fade').fadeOut();
-					
-					var template = _.template( $('#mbean_template').html() );
-					$('#mbean_info').html( template(data) );
-					
-				});
-				
-				request.fail(function(jqXHR, textStatus) {
-					stopTimers();
-					
-					if (jqXHR.status == 404) {
-						$('#fade').fadeOut();
-						alert("Not found!");
-					} else {
-						var output = App.errorTemplate({title: "Unexpected Error", body: "<strong>¡Sorry!</strong> Something went wrong. Please check Mokai's logs for more information." });
-						$('#fade').html( output );
-					}
-				});
-				
-				return false;
-			}
-		
-		});
-		
+	<script id="params_template" type="text/template">
+		<form class="form-horizontal">
+			<div class="modal-header">
+	    		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+	    		<h3><%= operation.name %></h3>
+	  		</div>
+	  		<div class="modal-body">
+	    		<% _.each(operation.params, function(param) { %>
+	    		
+	    			<div class="control-group">
+    					<label class="control-label" for="<%= param.name %>"><%= param.name %>:</label>
+    					<div class="controls">
+      						<input type="text" id="<%= param.name %>" placeholder="<%= param.type %>" class="input-small">
+    					</div>
+  					</div>
+				<% }); %>
+	  		</div>
+	  		<div class="modal-footer">
+	    		<a href="#" class="btn" data-dismiss="modal">Close</a>
+	    		<button class="submit btn btn-primary">Invoke</button>
+	  		</div>
+		</form>
+	</script>
+	
+	<!-- Operation returns modal -->
+	<div class="return_info modal hide fade">
+  		<div class="modal-header">
+    		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    		<h3></h3>
+  		</div>
+  		<div class="modal-body">
+    		<p></p>
+  		</div>
+  		<div class="modal-footer">
+    		<a href="#" class="btn" data-dismiss="modal">Close</a>
+  		</div>
+	</div>
+	
+	<script type="text/javascript" src="/js/backbone-min.js"></script>
+	<script type="text/javascript" src="/js/jmx.js"></script>
+	<script type="text/javascript">
+		new mainView();
 		new mBeansView( { el: $("#mbeans_list ul") } );
+		
+		if (location.hash.length > 0) {
+			var mbean = decodeURIComponent(location.hash.substring(1, location.hash.length));
+			var domain = mbean.substring(0, mbean.indexOf(':'));
+			$('#mbeans_list li.domain[data="' + domain + '"]').trigger('click');
+		}
 		
 	</script>
 

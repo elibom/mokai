@@ -668,7 +668,7 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 	@Test
 	public void testRouteNewMessageAction() throws Exception {
 		
-		MockEndpoint outboundEndpoint = getProcessedMessagesEndpoint(10);
+		MockEndpoint outboundEndpoint = getProcessedMessagesEndpoint(15);
 		MockEndpoint failedEndpoint = getFailedMessagesEndpoint(0);
 		
 		MockProcessor processor = new MockProcessor();
@@ -677,6 +677,7 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 		Action action1 = Mockito.mock(Action.class);
 		Action action2 = new SplitterAction(5, true);
 		Action action3 = Mockito.mock(Action.class);
+		// duplicates the messages that arrive and generates 5 more as it wont stop the ones that arrived
 		Action action4 = new SplitterAction(2, false);
 		Action action5 = Mockito.mock(Action.class);
 		
@@ -691,7 +692,7 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 
 		simulateMessage(new Message(), "activemq:mokai-test");
 		
-		outboundEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
+		outboundEndpoint.assertIsSatisfied(5000);
 		failedEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
 		
 		Mockito.verify(action1).execute(Mockito.any(Message.class));

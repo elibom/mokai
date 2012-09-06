@@ -59,13 +59,6 @@
 												</property>
 											</bean>
 											<bean class="org.eclipse.jetty.servlet.ServletHolder">
-												<property name="name" value="jolokia-agent" />
-												<property name="servlet">
-													<bean class="org.jolokia.http.AgentServlet" />
-												</property>
-												<property name="initOrder" value="1" />
-											</bean>
-											<bean class="org.eclipse.jetty.servlet.ServletHolder">
 												<property name="name" value="JoggerServlet" />
 												<property name="servlet">
 													<bean class="org.mokai.web.admin.jogger.MokaiJoggerServlet" />
@@ -97,43 +90,10 @@
 											<bean class="org.eclipse.jetty.servlet.ServletMapping">
 												<property name="pathSpecs">
 													<list>
-														<value>/jolokia/*</value>
-													</list>
-												</property>
-												<property name="servletName" value="jolokia-agent" />
-											</bean>
-											<bean class="org.eclipse.jetty.servlet.ServletMapping">
-												<property name="pathSpecs">
-													<list>
 														<value>/*</value>
 													</list>
 												</property>
 												<property name="servletName" value="JoggerServlet" />
-											</bean>
-										</list>
-									</property>
-									
-									<property name="filters">
-										<list>
-											<bean class="org.eclipse.jetty.servlet.FilterHolder">
-												<property name="name" value="JolokiaSecurityFilter" />
-												<property name="filter">
-													<bean class="org.mokai.web.admin.filter.JolokiaSecurityFilter">
-														<property name="adminPasswordStore" ref="adminPasswordStore" />
-													</bean>
-												</property>
-											</bean>
-										</list>
-									</property>
-									<property name="filterMappings">
-										<list>
-											<bean class="org.eclipse.jetty.servlet.FilterMapping">
-												<property name="pathSpecs">
-													<list>
-														<value>/jolokia/*</value>
-													</list>
-												</property>
-												<property name="filterName" value="JolokiaSecurityFilter" />
 											</bean>
 										</list>
 									</property>

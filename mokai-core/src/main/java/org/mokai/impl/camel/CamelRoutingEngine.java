@@ -21,6 +21,7 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.camel.CamelContext;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.ProducerTemplate;
+import org.apache.camel.ServiceStatus;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.impl.DefaultCamelContext;
@@ -36,7 +37,6 @@ import org.mokai.Message.Direction;
 import org.mokai.ObjectAlreadyExistsException;
 import org.mokai.ObjectNotFoundException;
 import org.mokai.RoutingEngine;
-import org.mokai.Service;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.MessageCriteria.OrderType;
 import org.mokai.persist.MessageStore;
@@ -49,7 +49,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author German Escobar
  */
-public class CamelRoutingEngine implements RoutingEngine, Service {
+public class CamelRoutingEngine implements RoutingEngine {
 	
 	private Logger log = LoggerFactory.getLogger(CamelRoutingEngine.class);
 	
@@ -62,8 +62,6 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 	private JmsComponent jmsComponent;
 	
 	private ResourceRegistry resourceRegistry;
-	
-	private State state = State.STOPPED;
 	
 	private ConnectorServiceChangeListener connectorServiceChangeListener; 
 	
@@ -166,38 +164,26 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 				
 			});
 			
+			// start the 
+			camelContext.start();
+			
 			try { 
 				Management.register( new RoutingEngineMBean(this), "org.mokai:type=RoutingEngine");
 			} catch (InstanceAlreadyExistsException e) {
 				log.warn("Couldn't register Routing Engine JMX MBean: " + e.getMessage(), e);
 			}
 			
+			log.info("<< Mokai is ready >>");
+			
 		} catch (Exception e) {
 			throw new ExecutionException(e);
 		}
 		
-	}
-	
-	@Override
-	public final State getState() {
-		return state;
 	}
 
-	@Override
 	public final synchronized void start() throws ExecutionException {
 		
-		log.debug("Mokai starting ... ");
-		
-		if (!state.isStartable()) {
-			log.warn("Mokai already started!");
-			return;
-		}
-		
-		try {
-			camelContext.start();
-		} catch (Exception e) {
-			throw new ExecutionException(e);
-		}
+		log.debug("starting all connectors ... ");
 		
 		// start applications in separate threads
 		for (final ConnectorService cs : applications.values()) {
@@ -233,21 +219,13 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 			});
 			
 		}
-			
-		state = State.STARTED;
 		
-		log.info("<<< Mokai started >>>");
+		log.info("all connectors started");
 	}
 
-	@Override
 	public final synchronized void stop() throws ExecutionException {
 		
-		log.debug("Mokai stopping ... ");
-		
-		if (!state.isStoppable()) {
-			log.warn("Mokai already stopped!");
-			return;
-		}
+		log.debug("stopping all connectors ... ");
 		
 		// stop applications
 		for (final ConnectorService cs : applications.values()) {
@@ -267,16 +245,19 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 				log.error("connection '" + cs.getId() + "' couldnt be destroyed: "  + e.getMessage(), e);
 			}
 		}
-			
-		try {	
-			camelContext.stop();
-			
-			state = State.STOPPED;
-		} catch (Exception e) {
-			throw new ExecutionException(e);
-		}
 		
-		log.info("<<< Mokai stopped >>>");
+		log.info("all connectors stopped");
+	}
+	
+	public final synchronized void shutdown() throws ExecutionException {
+		
+		stop();
+		
+		try {
+			camelContext.stop();
+		} catch (Exception e) {
+			log.error("Exception while shutting down Mokai: " + e.getMessage(), e);
+		}
 	}
 	
 	@Override
@@ -521,12 +502,22 @@ public class CamelRoutingEngine implements RoutingEngine, Service {
 	
 	@Override
 	public final int getNumQueuedInConnectionsRouter() {
+		
+		if (camelContext.getStatus() != ServiceStatus.Started) {
+			return -1;
+		}
+		
 		BrowsableEndpoint queueEndpoint = camelContext.getEndpoint(UriConstants.CONNECTIONS_ROUTER, BrowsableEndpoint.class);
 		return queueEndpoint.getExchanges().size();
 	}
 	
 	@Override
 	public final int getNumQueuedInApplicationsRouter() {
+		
+		if (camelContext.getStatus() != ServiceStatus.Started) {
+			return -1;
+		}
+		
 		BrowsableEndpoint queueEndpoint = camelContext.getEndpoint(UriConstants.APPLICATIONS_ROUTER, BrowsableEndpoint.class);
 		return queueEndpoint.getExchanges().size();
 	}

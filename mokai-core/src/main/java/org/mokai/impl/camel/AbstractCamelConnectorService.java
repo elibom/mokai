@@ -8,6 +8,7 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.CamelExecutionException;
 import org.apache.camel.Exchange;
 import org.apache.camel.ProducerTemplate;
+import org.apache.camel.ServiceStatus;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.spi.BrowsableEndpoint;
@@ -353,6 +354,10 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 	
 	@Override
 	public final int getNumQueuedMessages() {
+		
+		if (camelContext.getStatus() != ServiceStatus.Started) {
+			return -1;
+		}
 		
 		BrowsableEndpoint queueEndpoint = camelContext.getEndpoint(getOutboundUriPrefix() + id, BrowsableEndpoint.class);
 		int num = queueEndpoint.getExchanges().size();

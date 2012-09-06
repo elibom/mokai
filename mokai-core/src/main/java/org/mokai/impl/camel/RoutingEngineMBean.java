@@ -21,19 +21,14 @@ public class RoutingEngineMBean {
 		this.routingEngine = routingEngine;
 	}
 	
-	@ManagedOperation(description="Starts the Routing Engine", impact=Impact.ACTION)
+	@ManagedOperation(description="Starts all the applications and connections that are stopped.", impact=Impact.ACTION)
 	public void start() {
 		routingEngine.start();
 	}
 	
-	@ManagedOperation(description="Stops the Routing Engine", impact=Impact.ACTION)
+	@ManagedOperation(description="Stops all the applications and connections that are started.", impact=Impact.ACTION)
 	public void stop() {
 		routingEngine.stop();
-	}
-	
-	@ManagedAttribute(description="The state of the Routing Engine")
-	public String getState() {
-		return routingEngine.getState().name();
 	}
 	
 	@ManagedAttribute(description="Number of messages that failed or are being retried.")

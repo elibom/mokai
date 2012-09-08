@@ -38,13 +38,24 @@ var showBean = function(mbean) {
 		}
 	});
 }
+
+var paramsTypes = function(params) {
+	
+	var ret = [];
+	for (var i=0; i < params.length; i++) {
+		ret.push( params[i].type );
+	}
+	
+	return ret;
+}
 		
 var invokeOp = function(mbean, operation, jAlert, data) {
 			
 	App.request = $.ajax({
 		type: 'POST',
 		url: '/jmx/' + mbean + '/operations/' + operation.name,
-		data: '[' + data + ']'
+		data: '{ "params": ' + JSON.stringify(data) + ', "signature": ' + JSON.stringify(paramsTypes(operation.params)) + ' }',
+		contentType: "application/json; charset=utf-8"
 	});
 	App.request.done(function(resp) {
 		stopTimers();
@@ -173,10 +184,20 @@ var mBeanView = Backbone.View.extend({
 	},
 			
 	render: function() {
+		this.$el.parent().addClass("mbean_view");
 		this.$el.html( this.template(this.options) );
 		_.each(this.options.operations, function(operation) {
 			new mBeanOperation( { el: $('<div class="operation"></div>').appendTo( $('.operations', this.$el) ), operation: operation, mbean: this.options.name} );
 		}, this);
+		$("html, body, #content").animate({scrollTop:0}, 'slow');
+	},
+	
+	events: {
+		"click #cmdBack": "close"
+	},
+	
+	close: function() {
+		this.$el.parent().removeClass("mbean_view");
 	}
 		
 });

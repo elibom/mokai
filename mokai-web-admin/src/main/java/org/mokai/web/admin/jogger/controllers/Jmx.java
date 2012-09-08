@@ -21,7 +21,6 @@ import javax.management.ObjectName;
 import javax.management.openmbean.CompositeData;
 
 import org.jogger.http.Request;
-import org.jogger.http.Request.BodyParser;
 import org.jogger.http.Response;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -184,6 +183,27 @@ public class Jmx {
 		String mBean = URLDecoder.decode( request.getPathVariable("mbean").asString(), "UTF-8" );
 		String operationName = URLDecoder.decode( request.getPathVariable("operation").asString(), "UTF-8");
 		
+		String[] signature = new String[0];
+		Object[] params = new Object[0];
+		
+		// retrieve signature and params
+		String strJson = request.getBody().asString();
+		if ( !"".equals(strJson) ) {
+			
+			try {
+				
+				JSONObject jsonData = new JSONObject(strJson);
+				signature = getSignature(jsonData);
+				if (signature.length > 0) {
+					params = getParams(jsonData, signature);
+				}
+			} catch (Exception e) {
+				response.badRequest().print( "{\"message\": \"" + e.getMessage() + "\"}" );
+			}
+			
+		}
+		
+		// retrieve mbean
 		MBeanInfo mBeanInfo = null;
 		try {
 			mBeanInfo = mBeanServer.getMBeanInfo( new ObjectName(mBean) );
@@ -195,7 +215,7 @@ public class Jmx {
 		// find the operation info
 		MBeanOperationInfo operationInfo = null;
 		for (MBeanOperationInfo oi : mBeanInfo.getOperations()) {
-			if (oi.getName().equals(operationName)) {
+			if (oi.getName().equals(operationName) && isSameSignature(oi.getSignature(), signature)) {
 				operationInfo = oi;
 			}
 		}
@@ -203,29 +223,6 @@ public class Jmx {
 		if (operationInfo == null) {
 			response.notFound();
 			return;
-		}
-		
-		MBeanParameterInfo[] paramsInfo = operationInfo.getSignature();
-		JSONArray jsonParams = null;
-		try {
-			jsonParams = getJsonParams( request.getBody() );
-		} catch (JSONException e) {
-			response.badRequest().print( "{\"message\": \"" + e.getMessage() + "\"}" );
-			return;
-		}
-		
-		if (jsonParams.length() != paramsInfo.length) {
-			response.badRequest().print( "{\"message\": \"" + jsonParams.length() + " received, " + paramsInfo.length 
-					+ " expected\"}" );
-			return;
-		}
-		
-		Object[] params = new Object[paramsInfo.length];
-		String[] signature = new String[paramsInfo.length];
-		for (int i=0; i < paramsInfo.length; i++) {
-			MBeanParameterInfo paramInfo = paramsInfo[i];
-			signature[i] = paramInfo.getType();
-			params[i] = parseParam(jsonParams, i, paramInfo.getType());
 		}
 		
 		Object ret = mBeanServer.invoke( new ObjectName(mBean), operationName, params, signature);
@@ -237,19 +234,53 @@ public class Jmx {
 		
 	}
 	
-	private JSONArray getJsonParams(BodyParser body) throws JSONException {
+	private String[] getSignature(JSONObject jsonData) throws JSONException {
 		
-		if (body == null) {
-			return new JSONArray();
+		if (!jsonData.has("signature")) {
+			return new String[0];
 		}
 		
-		JSONArray jsonParams = new JSONArray();
-		String strParams = body.asString();
-		if (!"".equals(strParams)) {
-			jsonParams = new JSONArray(strParams);
+		JSONArray jsonSignature = jsonData.getJSONArray("signature");
+		String[] signature = new String[jsonSignature.length()];
+		for (int i=0; i < jsonSignature.length(); i++) {
+			signature[i] = jsonSignature.getString(i);
 		}
 		
-		return jsonParams;
+		return signature;
+		
+	}
+	
+	private Object[] getParams(JSONObject jsonData, String[] signature) throws JSONException {
+		
+		JSONArray jsonParams = jsonData.getJSONArray("params");
+		Object[] params = new Object[jsonParams.length()];
+		
+		if (params.length != signature.length) {
+			throw new RuntimeException("Params doesn't match signature, expecting " + signature.length 
+					+ " but there are " + params.length + " params.");
+		}
+		
+		for (int i=0; i < signature.length; i++) {
+			params[i] = parseParam(jsonParams, i, signature[i]);
+		}
+		
+		return params;
+		
+	}
+	
+	private boolean isSameSignature(MBeanParameterInfo[] paramsInfo, String[] signature) {
+		
+		if (paramsInfo.length != signature.length) {
+			return false;
+		}
+		
+		for (int i=0; i < paramsInfo.length; i++) {
+			if ( !paramsInfo[i].getType().equals(signature[i]) ) {
+				return false;
+			}
+		}
+		
+		return true;
 		
 	}
 	
@@ -324,20 +355,26 @@ public class Jmx {
 	        int[].class, float[].class, double[].class, boolean[].class, 
 	        byte[].class, short[].class, long[].class, char[].class };
 
-	private Object[] getArray(Object val){
-	    Class<?> valKlass = val.getClass();
+	private Object[] getArray(Object val) {
+		
+		Class<?> valKlass = val.getClass();
 	    Object[] outputArray = null;
 
-	    for(Class<?> arrKlass : ARRAY_PRIMITIVE_TYPES){
-	        if(valKlass.isAssignableFrom(arrKlass)){
-	            int arrlength = Array.getLength(val);
-	            outputArray = new Object[arrlength];
-	            for(int i = 0; i < arrlength; ++i){
-	                outputArray[i] = Array.get(val, i);
-	                            }
-	            break;
+	    for (Class<?> arrKlass : ARRAY_PRIMITIVE_TYPES) {
+	    	
+	    	if (valKlass.isAssignableFrom(arrKlass)) {
+	    		
+	    		int arrlength = Array.getLength(val);
+	    		outputArray = new Object[arrlength];
+	    		for(int i = 0; i < arrlength; ++i) {
+	    			outputArray[i] = Array.get(val, i);
+	    		}
+	    		break;
+	    		
 	        }
+	    	
 	    }
+	    
 	    if(outputArray == null) // not primitive type array
 	        outputArray = (Object[])val;
 

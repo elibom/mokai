@@ -43,11 +43,12 @@
 	
 	<!-- Template: MBean -->
 	<script id="mbean_template" type="text/template">
+		<div class="back" style="padding:5px; font-size: 14px;"><a id="cmdBack" href="#"><strong>&#8592;</strong> MBeans List</a></div>
 		<header>
 			<h1><%= name %></h1>
 			<h2><%= className %></h2>
 			
-			<p><%= description %>Test</p>
+			<p><%= description %></p>
 		</header>
 		
 		<section>

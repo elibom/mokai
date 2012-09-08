@@ -246,6 +246,9 @@ div#jmx .mbeans #mbean_info {
 	border-left: 1px solid #ccc; 
 	margin-left: -1px;
 }
+div#jmx .mbeans #mbean_info .back {
+	display: none;
+}
 
 div#jmx ul li a {
 	color:#666;
@@ -405,6 +408,31 @@ div#jmx #mbean_info section .operation .actions {
 	
 	.metrics {
 		margin-top: 0px;
+	}
+	
+	div#jmx ul li a {
+		font-size: 14px;
+	}
+	div#jmx .mbeans #mbeans_list {
+		width: 100%;
+	}
+	div#jmx .mbeans #mbeans_list ul > li {
+		padding-top: 4px;
+		padding-bottom: 4px;
+	}
+	
+	div#jmx .mbeans #mbean_info {
+		display: none;
+	}
+	div#jmx .mbeans #mbean_info .back {
+		display: block;
+	}
+	div#jmx .mbeans.mbean_view #mbean_info {
+		display: block;
+		width: 98%;
+	}
+	div#jmx .mbeans.mbean_view #mbeans_list {
+		display: none;
 	}
 }
 

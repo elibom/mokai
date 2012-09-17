@@ -89,6 +89,14 @@
 				
 		return valid;
 	}
+	
+	function isEmpty(value) {
+		if (value.length == 0 || value.replace(/\s/g, '').length == 0) {
+			return true;
+		}
+				
+		return false;
+	}
 			
 	function isNotEmpty(value) {
 		if (value.length == 0 || value.replace(/\s/g, '').length == 0) {
@@ -96,6 +104,26 @@
 		}
 				
 		return true;
+	}
+	
+	function isFloat (n) {
+		if (isEmpty(n) || isNaN(n)) {
+			return false;
+		}
+		
+		n = Number(n);
+		
+		return n===+n && n!==(n|0);
+	}
+
+	function isInteger (n) {
+		if (isEmpty(n) || isNaN(n)) {
+			return false;
+		}
+		
+		n = Number(n);
+		
+		return n===+n && n===(n|0);
 	}
 			
 	function isEmail(value) { 

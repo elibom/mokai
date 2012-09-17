@@ -203,6 +203,8 @@ var mBeanView = Backbone.View.extend({
 });
 		
 var mBeanOperation = Backbone.View.extend({
+	
+	paramsViews: [],
 			
 	template: _.template( $('#operation_template').html() ),
 			
@@ -247,15 +249,34 @@ var mBeanOperation = Backbone.View.extend({
 		
 // the view of the modal that allows users to invoke operations with parameters
 var invokeOperation = Backbone.View.extend({
+	
+	params: [],
 			
 	template: _.template( $('#params_template').html() ),
 			
 	initialize: function() {
+		this.params = [];
+		_.bindAll(this, ['invoke']);
 		this.render(this.options.operation);
 	},
 			
 	render: function(operation) {		
 		this.$el.addClass('modal hide fade').html( this.template({ operation: operation}) );
+		_.each(operation.params, function(param) {
+			
+			if (param.type === 'boolean') {
+				var p = new booleanParam( {param: param} );
+				p.render();
+				$('.modal-body', this.$el).append(p.el);
+			} else {
+				var p = new textParam( {param: param});
+				p.render();
+				$('.modal-body', this.$el).append(p.el);
+			}
+			
+			this.params.push(p);
+		}, this);
+		
 		this.$el.modal();
 	},
 			
@@ -267,19 +288,109 @@ var invokeOperation = Backbone.View.extend({
 			
 		var operation = this.options.operation;
 		var mbean = encodeURIComponent(this.options.mbean);
-				
-		var inputs = $('form input', this.$el);
+		
+		var valid = true;
 		var data = [];
-		for (var i=0; i < inputs.length; i++) {
-			var input = inputs[i];
-			data.push( $(input).val() );
+		for (var i=0; i < this.params.length; i++) {
+			var param = this.params[i];
+			
+			if (param.isValid()) {
+				var pVal = param.val();
+				data.push( pVal );
+			} else {
+				valid = false;
+			}
 		}
 				
-		invokeOp(mbean, operation, this.options.alert, data);
-					
-		this.$el.modal('hide');
+		if (valid) {
+			invokeOp(mbean, operation, this.options.alert, data);		
+			this.$el.modal('hide');
+		}
 			
 		return false;
 	}
 			
+});
+
+var textParam = Backbone.View.extend({
+	
+	tag: 'div',
+	className: 'control-group',
+	
+	initialize: function() {
+		_.bindAll(this, 'val', 'isValid');
+	},
+	
+	template: _.template( ['<label class="control-label" for="<%= param.name %>"><%= param.name %>:</label>',
+	                       '<div class="controls">',
+	                       '	<input type="text" id="<%= param.name %>" placeholder="<%= param.type %>" class="input-small">',
+	                       '	<span class="help-inline description"><%= param.description %></span>',
+	                       '</div>'].join('') ),
+	
+	render: function() {
+		this.$el.html( this.template({ param: this.options.param }) );
+	},
+
+	val: function() {
+		return this.$el.find('input').val();
+	},
+	
+	isValid: function() {
+		
+		var value = this.val();
+		var type = this.options.param.type;
+		
+		if (type === 'long' || type === 'int') {
+			if (!isInteger(value)) {
+				this.$el.addClass("error");
+				$('span.help-inline', this.$el).removeClass('description').html('Must be of type ' + type);
+				return false;
+			}
+		}
+		
+		if (type === 'double' || type === 'float') {
+			if (!isInteger(value) && !isFloat(value)) {
+				this.$el.addClass("error");
+				$('span.help-inline', this.$el).removeClass('description').html('Must be of type ' + type);
+				return false;
+			}
+		}
+		
+		return true;
+	}
+	
+});
+
+var booleanParam = Backbone.View.extend({
+	
+	tag: 'div',
+	className: 'control-group',
+	
+	initialize: function() {
+		_.bindAll(this, 'val', 'isValid');
+	},
+	
+	template: _.template( ['<label class="control-label" for="<%= param.name %>"><%= param.name %>:</label>',
+	                       '<div class="controls">',
+	                       '	<label class="checkbox" for="<%= param.name %>">',
+	                       '		<input type="checkbox" id="<%= param.name %>"> <span class="help-inline description"><%= param.description %></span>',
+	                       '	</label>',
+	                       '</div>'].join('') ),
+	
+	render: function() {
+		this.$el.html( this.template({ param: this.options.param }) );
+	},
+	
+	val: function() {
+		if (this.$el.find('input').is(':checked')) {
+			return "true";
+		}
+		
+		return "false";
+	},
+	
+	isValid: function() {
+		return true;
+	}
+	
 });

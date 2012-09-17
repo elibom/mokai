@@ -1,5 +1,8 @@
 package org.mokai.web.admin.jogger.controllers;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Array;
 import java.net.URLDecoder;
@@ -11,6 +14,7 @@ import java.util.Set;
 
 import javax.management.InstanceNotFoundException;
 import javax.management.MBeanAttributeInfo;
+import javax.management.MBeanException;
 import javax.management.MBeanInfo;
 import javax.management.MBeanOperationInfo;
 import javax.management.MBeanParameterInfo;
@@ -225,9 +229,16 @@ public class Jmx {
 			return;
 		}
 		
-		Object ret = mBeanServer.invoke( new ObjectName(mBean), operationName, params, signature);
-		if (ret != null) {
-			response.print( toJson(ret) );
+		try {
+			Object ret = mBeanServer.invoke( new ObjectName(mBean), operationName, params, signature);
+			if (ret != null) {
+				response.print( toJson(ret).toString() );
+			}
+		} catch (MBeanException e) {
+			Writer writer = new StringWriter();
+			PrintWriter printWriter = new PrintWriter(writer);
+			e.printStackTrace(printWriter);
+			response.print( writer.toString() );
 		}
 		
 		return;
@@ -309,7 +320,7 @@ public class Jmx {
 				return null;
 			}
 			
-			return toJson(object);
+			return toJson(object).toString();
 		} catch (Exception e) {
 			log.error("Exception while retreiving attribute '" + attributeName + "' from mbean '" + mBean + "':" + e.getMessage(), e);
 		}
@@ -318,7 +329,11 @@ public class Jmx {
 		
 	}
 	
-	private String toJson(Object object) throws Exception {
+	private Object toJson(Object object) throws Exception {
+		
+		if (object == null) {
+			return "null";
+		}
 		
 		if (CompositeData.class.isInstance(object)) {
 			CompositeData data = (CompositeData) object;
@@ -327,26 +342,26 @@ public class Jmx {
 			
 			Set<String> keys = data.getCompositeType().keySet();
 			for (String key : keys) {
-				json.put(key, data.get(key));
+				json.put(key, toJson(data.get(key)));
 			}
 			
-			return json.toString();
+			return json;
 			
 		} else if (object.getClass().isArray()) {
 			Object[] arr = (Object[]) getArray(object);
 			
 			JSONArray json = new JSONArray();
 			for (Object a : arr) {
-				json.put(a);
+				json.put( toJson(a) );
 			}
 			
-			return json.toString();
+			return json;
 			
 		} else if (ObjectName.class.isInstance(object)) {
 			ObjectName objectName = (ObjectName) object;
 			return objectName.getCanonicalName();
 		} else {
-			return object.toString();
+			return object;
 		}
 		
 	}

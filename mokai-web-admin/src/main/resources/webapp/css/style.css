@@ -392,6 +392,10 @@ div#jmx #mbean_info section .operation .actions {
 	text-align:center;
 }
 
+.description {
+	color: #ccc;
+}
+
 
 /* Landscape phones and down */
 @media (max-width: 480px) {

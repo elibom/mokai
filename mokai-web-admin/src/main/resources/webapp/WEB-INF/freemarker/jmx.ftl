@@ -112,15 +112,6 @@
 	    		<h3><%= operation.name %></h3>
 	  		</div>
 	  		<div class="modal-body">
-	    		<% _.each(operation.params, function(param) { %>
-	    		
-	    			<div class="control-group">
-    					<label class="control-label" for="<%= param.name %>"><%= param.name %>:</label>
-    					<div class="controls">
-      						<input type="text" id="<%= param.name %>" placeholder="<%= param.type %>" class="input-small">
-    					</div>
-  					</div>
-				<% }); %>
 	  		</div>
 	  		<div class="modal-footer">
 	    		<a href="#" class="btn" data-dismiss="modal">Close</a>

@@ -25,6 +25,7 @@ public class EmailToSmsActionTest {
 		Assert.assertEquals(message.getProperty("emailTo", String.class), "german.escobarc@gmail.com");
 		Assert.assertEquals(message.getProperty("from", String.class), "12345");
 		Assert.assertEquals(message.getProperty("emailFrom", String.class), "test@localhost.com");
+		Assert.assertEquals(message.getProperty("text", String.class), "574003222222 - This is a test");
 		
 	}
 	
@@ -47,6 +48,7 @@ public class EmailToSmsActionTest {
 		Assert.assertEquals(message.getProperty("emailTo", String.class), "german.escobarc@gmail.com");
 		Assert.assertEquals(message.getProperty("from", String.class), "54321");
 		Assert.assertEquals(message.getProperty("emailFrom", String.class), "test@localhost.com");
+		Assert.assertEquals(message.getProperty("text", String.class), "This is a test");
 		
 	}
 	

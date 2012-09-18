@@ -34,11 +34,10 @@ public class EmailToSmsAction implements Action, Configurable, ExposableConfigur
 		message.setProperty("emailTo", message.getProperty("to", String.class));
 		if (useSubjectAsTo) {
 			message.setProperty("to", message.getProperty("subject", String.class));
-			
+		} else {
 			String text = message.getProperty("subject", String.class) + " - " + message.getProperty("text", String.class);
 			message.setProperty("text", text);
 			
-		} else {
 			message.setProperty("to", smsTo);
 		}
 		

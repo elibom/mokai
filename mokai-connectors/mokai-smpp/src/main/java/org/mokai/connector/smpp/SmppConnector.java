@@ -275,7 +275,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		if (notEmpty(configuration.getSourceTON())) {
 			sourceAr.setTON(Byte.valueOf(configuration.getSourceTON()));
 		}
-		sourceAr.setAddress(message.getProperty("from", String.class));
+		sourceAr.setAddress(message.getProperty("from").toString());
 		request.setSource(sourceAr);
 		
 		Address destAr = new Address();

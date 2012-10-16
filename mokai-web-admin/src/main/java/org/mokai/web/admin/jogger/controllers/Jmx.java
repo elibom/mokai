@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.management.Attribute;
+import javax.management.AttributeNotFoundException;
 import javax.management.InstanceNotFoundException;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanException;
@@ -102,7 +104,8 @@ public class Jmx {
 			JSONObject jsonAttribute = new JSONObject()
 				.put("name", attributeInfo.getName())
 				.put("type", attributeInfo.getType())
-				.put("description", attributeInfo.getDescription());
+				.put("description", attributeInfo.getDescription())
+				.put("writable", attributeInfo.isWritable());
 			
 			if (attributeInfo.isReadable()) {
 				jsonAttribute.put( "value", getAttributeValue(mBeanServer, mBean, attributeInfo.getName()) );
@@ -168,6 +171,8 @@ public class Jmx {
 					.put("timestamp", System.currentTimeMillis())
 					.put("mbean", mBean)
 					.put("name", attributeName)
+					.put("type", attribute.getType())
+					.put("writable", attribute.isWritable())
 					.put("value", value);
 				
 				response.print( json.toString() );
@@ -177,6 +182,41 @@ public class Jmx {
 		}
 		
 		response.notFound();
+		
+	}
+	
+	public void updateAttribute(Request request, Response response) throws Exception {
+		
+		MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
+		
+		String mBean = URLDecoder.decode( request.getPathVariable("mbean").asString(), "UTF-8" );
+		String attributeName = URLDecoder.decode( request.getPathVariable("attribute").asString(), "UTF-8");
+		
+		String strJson = request.getBody().asString();
+		if ( "".equals(strJson) ) {
+			response.badRequest();
+			return;
+		}
+		
+		try {
+			
+			JSONObject jsonData = new JSONObject(strJson);
+			
+			// just for checking if the attribute exists
+			mBeanServer.getAttribute(new ObjectName(mBean), attributeName);
+			
+			Attribute attribute = new Attribute(attributeName, jsonData.get("value"));
+			mBeanServer.setAttribute(new ObjectName(mBean), attribute);
+			
+		} catch (JSONException e) {
+			response.badRequest().print( "{\"message\": \"" + e.getMessage() + "\"}" );
+		} catch (InstanceNotFoundException e) {
+			response.notFound();
+			return;
+		} catch (AttributeNotFoundException e) {
+			response.notFound();
+			return;
+		}
 		
 	}
 	

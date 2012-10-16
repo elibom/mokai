@@ -1,4 +1,4 @@
-var fixType = function(s) {
+fixType = function(s) {
 		
 	var lastPeriodPos = s.lastIndexOf(".");
 			
@@ -186,8 +186,11 @@ var mBeanView = Backbone.View.extend({
 	render: function() {
 		this.$el.parent().addClass("mbean_view");
 		this.$el.html( this.template(this.options) );
+		_.each(this.options.attributes, function(attribute) {
+			new mBeanAttribute( { el: $('<tr></tr>').appendTo( $('.attributes table', this.$el) ), attribute: attribute, mbean: this.options.name } );
+		}, this);
 		_.each(this.options.operations, function(operation) {
-			new mBeanOperation( { el: $('<div class="operation"></div>').appendTo( $('.operations', this.$el) ), operation: operation, mbean: this.options.name} );
+			new mBeanOperation( { el: $('<div class="operation"></div>').appendTo( $('.operations', this.$el) ), operation: operation, mbean: this.options.name } );
 		}, this);
 		$("html, body, #content").animate({scrollTop:0}, 'slow');
 	},
@@ -200,6 +203,92 @@ var mBeanView = Backbone.View.extend({
 		this.$el.parent().removeClass("mbean_view");
 	}
 		
+});
+
+var mBeanAttribute = Backbone.View.extend({
+	
+	template: _.template( $('#attribute_template').html() ),
+	
+	initialize: function() {
+		_.bindAll(this, 'show', 'edit', 'cancel');
+		this.render( this.options.attribute );
+	},
+	
+	render: function(attribute) {
+		this.$el.html( this.template({attribute: attribute}) );
+	},
+	
+	events: {
+		"dblclick .attr_value": "show",
+		"change .attr_value input": "edit",
+		"blur .attr_value input": "cancel",
+		"keyup .attr_value input": "keyup"
+		
+	},
+	
+	show: function(event) {
+		if (this.options.attribute.writable) {
+			var originalVal = this.options.attribute.value ? this.options.attribute.value : "";
+			
+			// support only boolean, int, long and String
+			if ( !(/^(int|long|boolean|java.lang.integer|java.lang.long|java.lang.boolean|java.lang.string)$/i).test(this.options.attribute.type) ) {
+				return;
+			}
+			
+			var width = 50;
+			if (this.options.attribute.type === 'java.lang.String') {
+				width = 150;
+			}
+			
+			$(event.currentTarget).html('<input type="text" value="' + originalVal + '" style="width: ' + width + 'px; height: 15px; line-height: 1em; padding: 2px 4px; margin-bottom: 0;">');
+			$('input', event.currentTarget).focus();
+		}
+	},
+	
+	keyup: function(e) {
+		if (e.keyCode == 27) {
+			this.cancel();
+		} else if (e.keyCode == 13) {
+			var originalVal = this.options.attribute.value ? this.options.attribute.value : "";
+			var val = $('td.attr_value input', this.$el).val();
+			if (val != originalVal) {
+				this.edit();
+			} else {
+				this.cancel();
+			}
+		}
+	},
+	
+	edit: function() {
+		var that = this;
+		
+		var val = $('td.attr_value input', this.$el).val();
+		$('td.attr_value', this.$el).html(val);		
+		
+		request = $.ajax({
+			url: '/jmx/' + encodeURIComponent(this.options.mbean) + "/attributes/" + this.options.attribute.name,
+			type: 'POST',
+			data: '{"value": ' + val + '}',
+			dataType: 'json'
+		});
+		request.done(function(data) {
+			$('#fade').fadeOut();
+			that.options.attribute.value = val;
+		});
+		request.fail(function(jqXHR, textStatus) {
+			$('#fade').fadeOut();
+			
+			var originalVal = this.options.attribute.value ? this.options.attribute.value : "";
+			$('td.attr_value', this.$el).html(originalVal);	
+			alert("Couldn't update attribute. Please try again.\nError: " + textStatus);			
+		});
+	},
+	
+	cancel: function() {
+		var originalVal = this.options.attribute.value ? this.options.attribute.value : "";
+		$('td.attr_value', this.$el).html( originalVal );
+	}
+	
 });
 		
 var mBeanOperation = Backbone.View.extend({
@@ -256,7 +345,7 @@ var invokeOperation = Backbone.View.extend({
 			
 	initialize: function() {
 		this.params = [];
-		_.bindAll(this, ['invoke']);
+		_.bindAll(this, 'invoke');
 		this.render(this.options.operation);
 	},
 			

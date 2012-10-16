@@ -64,15 +64,6 @@
 							<th>Description</th>
 						</tr>
 					</thead>
-				<% _.each(attributes, function(attribute) { %>
-					<tr>
-						<td><%= attribute.name %></td>
-						<td><%= fixType(attribute.type) %></td>
-						<td><%= attribute.value %></td>
-						<td><%= attribute.description %></td>
-						
-					</tr>
-				<% }); %>
 				</table>
 			</div>
 			
@@ -81,6 +72,14 @@
 			<div class="operations"></div>
 			
 		</section>
+	</script>
+	
+	<!-- Template: Attribute -->
+	<script id="attribute_template" type="text/template">
+		<td><%= attribute.name %></td>
+		<td><%= fixType(attribute.type) %></td>
+		<td class="attr_value"><%= attribute.value %></td>
+		<td><%= attribute.description %></td>
 	</script>
 	
 	<!-- Template: Operation -->

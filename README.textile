@@ -18,4 +18,4 @@ h2. Documentation
   
 h2. Download
 
-Current version: *0.8.0* - "Download":http://code.google.com/p/mokai/downloads/list
+Current version: *0.9.0* - "Download":http://code.google.com/p/mokai/downloads/list

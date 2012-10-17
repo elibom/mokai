@@ -33,12 +33,12 @@ public class SmppServerConnector implements Processor, Configurable, Serviceable
 	/**
 	 * The folder in which we will save the file with the sequence number.
 	 */
-	private final String SEQUENCE_NUMBER_FOLDER = "data/connectors/smpp-server/";
+	private static final String SEQUENCE_NUMBER_FOLDER = "data/connectors/smpp-server/";
 	
 	/**
 	 * The extension of the file that will store the sequence number.
 	 */
-	private final String SEQUENCE_NUMBER_EXT = ".seq";
+	private static final String SEQUENCE_NUMBER_EXT = ".seq";
 	
 	@Resource
 	private ConnectorContext context;

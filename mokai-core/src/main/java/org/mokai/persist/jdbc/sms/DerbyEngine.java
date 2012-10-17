@@ -36,8 +36,8 @@ public class DerbyEngine implements SqlEngine {
 	}
 
 	@Override
-	public String addLimitToQuery(String query, int offset, int numRows) {
-		return query + " OFFSET " + offset + " ROWS FETCH NEXT " + numRows + " ROWS ONLY";
+	public void addLimitToQuery(StringBuffer query, int offset, int numRows) {
+		query.append(" OFFSET " + offset + " ROWS FETCH NEXT " + numRows + " ROWS ONLY");
 	}
 	
 	public void setDataSource(DataSource dataSource) {

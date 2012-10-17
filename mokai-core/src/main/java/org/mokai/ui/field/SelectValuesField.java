@@ -20,7 +20,7 @@ public class SelectValuesField<T> extends InputField {
 	}
 
 	public final void setItems(T[] items) {
-		this.items = items;
+		this.items = items.clone();
 	}
 
 	@Override

@@ -88,7 +88,9 @@ public class JettyConnector implements Connector, Configurable, Serviceable, Exp
 
 	}
 	
-	private String fixContextPath(String contextPath) {
+	private String fixContextPath(String originalContextPath) {
+		
+		String contextPath = originalContextPath; // just to avoid assigning to the parameter
 		
 		if (contextPath == null || "".equals(contextPath)) {
 			contextPath = "/";
@@ -240,7 +242,7 @@ public class JettyConnector implements Connector, Configurable, Serviceable, Exp
 	private class CustomSecurityHandler extends ConstraintSecurityHandler {
 
 		@Override
-		protected boolean isAuthMandatory(Request baseRequest, Response base_response, Object constraintInfo) {
+		protected boolean isAuthMandatory(Request baseRequest, Response baseResponse, Object constraintInfo) {
 			return true;
 		}
 		

@@ -21,7 +21,7 @@ import org.mokai.Processor;
  * 
  * @author German Escobar
  */
-public class XmlConfigurationUtils {
+public final class XmlConfigurationUtils {
 	
 	/**
 	 * This class is not supposed to be instantiated.

@@ -25,9 +25,7 @@ public interface SqlEngine {
 	 * @param query the query to which we are adding the limit clause.
 	 * @param offset the offset from which we are showing the records.
 	 * @param numRows the number of rows to show from offset.
-	 * 
-	 * @return the query with the limit clause added. 
 	 */
-	String addLimitToQuery(String query, int offset, int numRows);
+	void addLimitToQuery(StringBuffer query, int offset, int numRows);
 	
 }

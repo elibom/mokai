@@ -34,19 +34,29 @@ public class MonitoringServlet extends HttpServlet implements ApplicationContext
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		PrintWriter out = resp.getWriter();
 	
-		String status = ""; // this is what we will return
+		StringBuffer status = new StringBuffer(); // this is what we will return
 		
 		RoutingEngine routingEngine = (RoutingEngine) applicationContext.getBean("routingEngine");
 		
 		for (ConnectorService application : routingEngine.getApplications()) {
-			status += application.getId() + "_" + application.getStatus() + "_" + application.getState() + " ";
+			status.append(application.getId())
+					.append("_")
+					.append(application.getStatus())
+					.append("_")
+					.append(application.getState())
+					.append(" ");
 		}
 		
 		for (ConnectorService connection : routingEngine.getConnections()) {
-			status += connection.getId() + "_" + connection.getStatus() + "_" + connection.getState() + " ";
+			status.append(connection.getId())
+					.append("_")
+					.append(connection.getStatus())
+					.append("_")
+					.append(connection.getState())
+					.append(" ");
 		}
 		
-		out.println(status);
+		out.println(status.toString());
 	}
 
 	@Override

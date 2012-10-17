@@ -65,7 +65,7 @@ public class RoundRobinProcessor implements Processor, ExposableConfiguration<Ro
 			
 			// try with the next processor
 			incrementIndex();
-			process(message, retry++);
+			process(message, retry + 1);
 			
 		}
 		

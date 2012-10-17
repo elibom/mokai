@@ -28,14 +28,15 @@ public class ConcatAction implements Action, ExposableConfiguration<ConcatAction
 			throw new IllegalArgumentException("destination field not provided");
 		}
 		
-		String concat = "";
+		StringBuffer buffer = new StringBuffer();
 		for (String field : fields) {
 			String value = message.getProperty(field) + "";
 			if (!"".equals(value)) {
-				concat += value + separator;
+				buffer.append(value).append(separator);
 			}
 		}
 		
+		String concat = buffer.toString();
 		if (!"".equals(concat)) {
 			concat = concat.substring(0, concat.length()-1);
 		}

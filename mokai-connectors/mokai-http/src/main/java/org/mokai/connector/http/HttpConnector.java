@@ -152,15 +152,17 @@ public class HttpConnector implements Processor, ExposableConfiguration<HttpConf
 		
 		if ("GET".equalsIgnoreCase(method)) {
 			
+			String urlWithProperties = url;
+			
 			// append the properties to the URL
 			String query = URI.create(url).getQuery();
 			if (query != null && !"".equals(query)) {
-				url += "&" + properties;
+				urlWithProperties += "&" + properties;
 			} else {
-				url += "?" + properties;
+				urlWithProperties += "?" + properties;
 			}
 			
-			request = new HttpGet(url);
+			request = new HttpGet(urlWithProperties);
 			
 		} else if ("POST".equalsIgnoreCase(method)) {
 			

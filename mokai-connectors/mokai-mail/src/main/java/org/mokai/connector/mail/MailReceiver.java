@@ -402,11 +402,12 @@ public class MailReceiver implements Connector, ExposableConfiguration<MailRecei
 			return "";
 		}
 		
-		String ret = "";
+		StringBuffer buffer = new StringBuffer();
 		for (Address address : addresses) {
-			ret += address.toString() + ",";
+			buffer.append(address.toString()).append(",");
 		}
 		
+		String ret = buffer.toString();
 		return ret.length() > 0 ? ret.substring(0, ret.length() - 1) : ret;
 	}
 	
@@ -431,17 +432,30 @@ public class MailReceiver implements Connector, ExposableConfiguration<MailRecei
 		String contentType = part.getContentType();
 		log.debug("Email contentType: " + contentType);
 
-		InputStream is = part.getInputStream();
-		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-		    
-		String text = "";
+		InputStream is = null;
+		BufferedReader reader = null;
+		try { 
+			is = part.getInputStream();
+			reader = new BufferedReader(new InputStreamReader(is));
+			    
+			StringBuffer text = new StringBuffer();
+				
+			String line = null;
+			while ((line = reader.readLine()) != null) {
+			    text.append(line);
+			}
 			
-		String line = null;
-		while ((line = reader.readLine()) != null) {
-		    text += line;
+			return text.toString();
+			
+		} finally {
+			if (reader != null) {
+				try { reader.close(); } catch (Exception e) {}
+			}
+			if (is != null) {
+				try { is.close(); } catch (Exception e) {}
+			}
 		}
-		    
-		return text;
+		
 	}
 	
 }

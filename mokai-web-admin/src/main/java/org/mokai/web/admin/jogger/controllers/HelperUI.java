@@ -13,6 +13,8 @@ import org.mokai.Connector;
 import org.mokai.ConnectorService;
 import org.mokai.ExposableConfiguration;
 import org.mokai.Processor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Helper class to reuse code that is used by multiples controllers, specially {@link Connections} and 
@@ -20,7 +22,11 @@ import org.mokai.Processor;
  * 
  * @author German Escobar
  */
-public class HelperUI {
+public final class HelperUI {
+	
+	private static final Logger log = LoggerFactory.getLogger(HelperUI.class); 
+	
+	private HelperUI() {}
 
 	/**
 	 * Helper method. Converts a list of {@link ConnectorService} objects to a list of {@link ConnectorUI} objects.
@@ -133,7 +139,7 @@ public class HelperUI {
 				field.setAccessible(true);
 				jsonConfig.put( field.getName(), field.get(config) );
 			} catch (IllegalAccessException e) {
-				e.printStackTrace();
+				log.error(e.getMessage(), e);
 			}
 		}
 		

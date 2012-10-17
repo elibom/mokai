@@ -14,7 +14,7 @@ import javax.sql.DataSource;
  * 
  * @author German Escobar
  */
-public class JdbcHelper {
+public final class JdbcHelper {
 	
 	/**
 	 * Hides the public constructor.
@@ -76,8 +76,7 @@ public class JdbcHelper {
 		try {
 			rsKeys = stmt.getGeneratedKeys();
 			if (rsKeys.next()) {
-				long id = rsKeys.getLong(1);
-				return id;
+				return rsKeys.getLong(1);
 			}
 			
 			return -1;

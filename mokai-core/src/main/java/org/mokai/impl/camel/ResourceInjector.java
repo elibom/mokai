@@ -11,7 +11,9 @@ import org.mokai.annotation.Resource;
  * 
  * @author German Escobar
  */
-public class ResourceInjector {
+public final class ResourceInjector {
+	
+	private ResourceInjector() {}
 	
 	public static void inject(Object object, Object resource) {
 		

@@ -19,7 +19,7 @@ public final class DefaultAdminPasswordStore implements AdminPasswordStore {
 	
 	private Logger log = LoggerFactory.getLogger(DefaultAdminPasswordStore.class);
 
-	private final String DEFAULT_PATH = "data/admin/.pwd";
+	private static final String DEFAULT_PATH = "data/admin/.pwd";
 	
 	private String path = DEFAULT_PATH;
 	

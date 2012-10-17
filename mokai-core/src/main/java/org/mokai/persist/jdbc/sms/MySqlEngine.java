@@ -40,8 +40,8 @@ public class MySqlEngine implements SqlEngine {
 	}
 
 	@Override
-	public String addLimitToQuery(String query, int offset, int numRows) {
-		return query + " LIMIT " + offset + "," + numRows;
+	public void addLimitToQuery(StringBuffer query, int offset, int numRows) {
+		query.append(" LIMIT " + offset + "," + numRows);
 	}
 	
 	public void setDataSource(DataSource dataSource) {

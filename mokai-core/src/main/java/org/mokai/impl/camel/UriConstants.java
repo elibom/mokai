@@ -5,7 +5,9 @@ package org.mokai.impl.camel;
  * 
  * @author German Escobar
  */
-public class UriConstants {
+public final class UriConstants {
+	
+	private UriConstants() {}
 
 	public static final String CONNECTIONS_PROCESSED_MESSAGES = "direct:connectionsProcessedMessages";
 	

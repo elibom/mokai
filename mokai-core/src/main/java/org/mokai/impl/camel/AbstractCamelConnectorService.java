@@ -47,13 +47,13 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 	 * The default number of consumers for this connector service. This is applied to the
 	 * maxConcurrentMsgs attribute of this class.
 	 */
-	private final int DEFAULT_MAX_CONCURRENT_MSGS = 1;
+	private static final int DEFAULT_MAX_CONCURRENT_MSGS = 1;
 	
 	/**
 	 * The default priority of the connector service. Applied to the priority attribute of 
 	 * this class.
 	 */
-	private final int DEFAULT_PRIORITY = 1000;
+	private static final int DEFAULT_PRIORITY = 1000;
 	
 	private String id;
 	
@@ -751,11 +751,8 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 					long delay = redeliveryPolicy.getMaxRedeliveryDelay();
 					try { this.wait(delay); } catch (Exception f) { }
 					
-					// retry
-					attempt++;
-					
 					// MOKAI-20 - return keyword was missing
-					return process(message, attempt);
+					return process(message, attempt + 1);
 				} else {
 					
 					// print the stack trace every 50 messages that fail consecutively

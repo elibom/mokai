@@ -8,7 +8,7 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
  * 
  * @author German Escobar
  */
-public class Main {
+public final class Main {
 	
 	/**
 	 * This class shouldn't be instantiated.

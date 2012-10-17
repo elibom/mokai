@@ -19,7 +19,7 @@ public class ConnectorServiceMBean {
 	}
 	
 	@ManagedAttribute(description="The unique id of the connector")
-	private String getId() {
+	public String getId() {
 		return connectorService.getId();
 	}
 	

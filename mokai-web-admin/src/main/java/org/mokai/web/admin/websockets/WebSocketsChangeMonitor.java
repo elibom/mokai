@@ -106,8 +106,8 @@ public class WebSocketsChangeMonitor implements Service {
 	 */
 	private class MonitorThread extends Thread {
 		
-		private final long DEFAULT_INTERVAL = 500;
-		private final long MAX_INTERVAL = 4000;
+		private static final long DEFAULT_INTERVAL = 500;
+		private static final long MAX_INTERVAL = 4000;
 		
 		/**
 		 * Holds the last state of the applications.

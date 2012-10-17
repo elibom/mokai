@@ -5,7 +5,9 @@ package org.mokai.connector.smpp;
  * 
  * @author German Escobar
  */
-public class SmppUtil {
+public final class SmppUtil {
+	
+	private SmppUtil() {}
 
 	/**
      * Converts a long value to a hex string.  E.g. 98765432101L to "16fee0e525".

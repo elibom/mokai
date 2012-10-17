@@ -68,12 +68,12 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	/**
 	 * The folder in which we will save the file with the sequence number.
 	 */
-	private final String SEQUENCE_NUMBER_FOLDER = "data/connectors/smpp/";
+	private static final String SEQUENCE_NUMBER_FOLDER = "data/connectors/smpp/";
 	
 	/**
 	 * The extension of the file that will store the sequence number.
 	 */
-	private final String SEQUENCE_NUMBER_EXT = ".seq";
+	private static final String SEQUENCE_NUMBER_EXT = ".seq";
 	
 	/**
 	 * Holds information about the processor like the assigned id. It is used to add a 
@@ -311,9 +311,9 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		AlphabetEncoding enc = getDataCoding();
 		byte[] encodedBytes = enc.encodeString(text);
 		
-		String strBytes = "";
+		StringBuffer strBytes = new StringBuffer();
 		for (int i=0; i < encodedBytes.length; i++) {
-			strBytes += " : " + encodedBytes[i];
+			strBytes.append(" : ").append(encodedBytes[i]);
 		}
 		log.trace("encoded bytes of the message: " + strBytes);
 		
@@ -801,7 +801,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			
 			for (DeliveryReceipt dr : deliveryReceiptsCopy) { 
 				
-				long idleTime = 900 * dr.retries; 
+				long idleTime = 900L * dr.retries; 
 				
 				if (dr.lastProcessedTime == null || (new Date().getTime() - dr.lastProcessedTime.getTime()) > idleTime) {
 					process(dr);
@@ -1138,12 +1138,14 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	        
 	    	String tmpAttr = attrName + ":";
 	        int startIndex = source.indexOf(tmpAttr);
-	        if (startIndex < 0)
+	        if (startIndex < 0) {
 	            return null;
+	        }
 	        startIndex = startIndex + tmpAttr.length();
 	        int endIndex = source.indexOf(" ", startIndex);
-	        if (endIndex > 0)
+	        if (endIndex > 0) {
 	            return source.substring(startIndex, endIndex);
+	        }
 	        
 	        return source.substring(startIndex);
 	    }

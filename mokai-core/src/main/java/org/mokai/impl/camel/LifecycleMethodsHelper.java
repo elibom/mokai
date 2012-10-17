@@ -9,7 +9,7 @@ import org.mokai.Serviceable;
  * 
  * @author German Escobar
  */
-public class LifecycleMethodsHelper {
+public final class LifecycleMethodsHelper {
 
 	private LifecycleMethodsHelper() {
 		

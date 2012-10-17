@@ -33,11 +33,12 @@ public class AddSpacesAction implements Action, ExposableConfiguration<AddSpaces
 		if (fieldValue.length() < length) {
 			int missing = length - fieldValue.length();
 			
+			StringBuffer buffer = new StringBuffer();
 			for (int i=0; i < missing; i++) {
-				fieldValue += " ";
+				buffer.append(" ");
 			}
 			
-			message.setProperty(field, fieldValue);
+			message.setProperty(field, fieldValue + buffer.toString());
 		}
 		
 	}

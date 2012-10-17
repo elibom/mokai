@@ -38,13 +38,13 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 	
 	private String tableName = getDefaultTableName();
 	
-	private final String[] KNOWN_PROPERTIES = { "to", "from", "text", "sequenceNumber", "messageId", "commandStatus", "receiptStatus", "receiptTime" };
+	private static final String[] KNOWN_PROPERTIES = { "to", "from", "text", "sequenceNumber", "messageId", "commandStatus", "receiptStatus", "receiptTime" };
 
 	@Override
 	public final long insertMessage(Connection conn, Message message) throws SQLException {
 		
 		// create the SQL
-		String strSQL = "INSERT INTO " + tableName + " (" +
+		final String strSQL = "INSERT INTO " + tableName + " (" +
 			"reference, " +
 			"source, " +
 			"destination, " +
@@ -61,17 +61,24 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 			"creation_time) " +
 			"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-		// create the prepared statement
-		PreparedStatement stmt = conn.prepareStatement(strSQL, Statement.RETURN_GENERATED_KEYS);
-
-		// populate the prepared statement
-		populateInsertStatement(stmt, message);
-
-		// execute the statement
-		stmt.executeUpdate();
-		
-		// retrieve and return the generated id
-		return JdbcHelper.retrieveGeneratedId(stmt);
+		PreparedStatement stmt = null;
+		try {
+			stmt = conn.prepareStatement(strSQL, Statement.RETURN_GENERATED_KEYS);
+	
+			// populate the prepared statement
+			populateInsertStatement(stmt, message);
+	
+			// execute the statement
+			stmt.executeUpdate();
+			
+			// retrieve and return the generated id
+			return JdbcHelper.retrieveGeneratedId(stmt);
+			
+		} finally {
+			if (stmt != null) {
+				try { stmt.close(); } catch (Exception e) {}
+			}
+		}
 	}
 
 	private void populateInsertStatement(PreparedStatement stmt, Message message) throws SQLException {
@@ -250,24 +257,36 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 		strSQL += addCommonCriteria(criteria, params);
 		log.trace("List messages SQL: " + strSQL);
 		
-		PreparedStatement stmt = conn.prepareStatement(strSQL);
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
 		
-		if (!params.isEmpty()) {
-			int index = 1;
-			for (Object param : params) {
-				stmt.setObject(index, param);
-				index++;
+		try {
+			stmt = conn.prepareStatement(strSQL);
+			
+			if (!params.isEmpty()) {
+				int index = 1;
+				for (Object param : params) {
+					stmt.setObject(index, param);
+					index++;
+				}
+			}
+			
+			rs = stmt.executeQuery();
+			return createMessages(rs);
+			
+		} finally {
+			if (rs != null) {
+				try { rs.close(); } catch (Exception e) {}
+			}
+			if (stmt != null) {
+				try { stmt.close(); } catch (Exception e) {}
 			}
 		}
-		
-		ResultSet rs = stmt.executeQuery();
-		
-		return createMessages(rs);
 	}
 	
 	private String addCommonCriteria(MessageCriteria criteria, List<Object> params) {
 		
-		String strSQL = "";
+		StringBuffer strSQL = new StringBuffer();
 		
 		if (criteria != null) {
 			boolean existsCriteria = false;
@@ -275,14 +294,14 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 			// status
 			List<Byte> status = criteria.getStatus();
 			if (status != null && !status.isEmpty()) {
-				strSQL += addOperator(existsCriteria);
+				strSQL.append(addOperator(existsCriteria));
 				
 				boolean existsStatusCriteria = false;
 				for (Byte st : status) {
 					if (!existsStatusCriteria) {
-						strSQL += " status = ?";
+						strSQL.append(" status = ?");
 					} else {
-						strSQL += " or status = ?";
+						strSQL.append(" or status = ?");
 					}
 					
 					params.add(st);
@@ -294,9 +313,9 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 			
 			// destination
 			if (criteria.getDestination() != null) {
-				strSQL += addOperator(existsCriteria);
+				strSQL.append(addOperator(existsCriteria));
 				
-				strSQL += " destination = ?";
+				strSQL.append(" destination = ?");
 				params.add(criteria.getDestination());
 				
 				existsCriteria = true;
@@ -304,9 +323,9 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 			
 			// add additional properties
 			for (Map.Entry<String,Object> entry : criteria.getProperties().entrySet()) {
-				strSQL += addOperator(existsCriteria);
+				strSQL.append(addOperator(existsCriteria));
 				
-				strSQL += " " + entry.getKey() + " = ?";
+				strSQL.append(" " + entry.getKey() + " = ?");
 				params.add(entry.getValue());
 				
 				existsCriteria = true;
@@ -315,12 +334,12 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 			// order by
 			if (criteria.getOrderBy() != null && !"".equals(criteria.getOrderBy())) {
 				String orderBy = criteria.getOrderBy();
-				strSQL += " ORDER BY " + orderBy;
+				strSQL.append(" ORDER BY ").append(orderBy);
 				
 				if (criteria.getOrderType() == OrderType.UPWARDS) {
-					strSQL += " ASC";
+					strSQL.append(" ASC");
 				} else {
-					strSQL += " DESC";
+					strSQL.append(" DESC");
 				}
 			}
 			
@@ -328,12 +347,12 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 			int lowerLimit = criteria.getLowerLimit();
 			int numRecords = criteria.getNumRecords();
 			if (numRecords > 0) {
-				strSQL = sqlEngine.addLimitToQuery(strSQL, lowerLimit, numRecords);
+				sqlEngine.addLimitToQuery(strSQL, lowerLimit, numRecords);
 			}
 			
 		}
 		
-		return strSQL;
+		return strSQL.toString();
 	}
 	
 	private String addOperator(boolean existsCriteria) {

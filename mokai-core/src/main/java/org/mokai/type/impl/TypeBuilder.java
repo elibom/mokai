@@ -13,7 +13,7 @@ import org.mokai.type.ConnectorType;
  * 
  * @author German Escobar
  */
-public class TypeBuilder {
+public final class TypeBuilder {
 	
 	private TypeBuilder() {}
 

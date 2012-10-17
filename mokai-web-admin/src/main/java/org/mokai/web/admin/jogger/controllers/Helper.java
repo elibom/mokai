@@ -6,7 +6,9 @@ import java.util.List;
 
 import org.mokai.annotation.Name;
 
-public class Helper {
+public final class Helper {
+	
+	private Helper() {}
 
 	/**
 	 * Helper method. Check if the field has a {@link Name} annotation and returns its value, otherwise, the name of 

@@ -7,7 +7,7 @@ import org.mokai.Monitorable.Status;
  * 
  * @author German Escobar
  */
-public class MonitorStatusBuilder {
+public final class MonitorStatusBuilder {
 	
 	/**
 	 * This class is not supposed to be instantiated.

@@ -5,13 +5,19 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
+import java.util.Collection;
+import java.util.Date;
 
 import net.gescobar.smppserver.PacketProcessor;
 import net.gescobar.smppserver.Response;
 import net.gescobar.smppserver.ResponseSender;
 import net.gescobar.smppserver.SmppServer;
 import net.gescobar.smppserver.SmppServer.Status;
+import net.gescobar.smppserver.SmppSession;
+import net.gescobar.smppserver.packet.Address;
 import net.gescobar.smppserver.packet.Bind;
+import net.gescobar.smppserver.packet.DeliverSm;
 import net.gescobar.smppserver.packet.SmppPacket;
 import net.gescobar.smppserver.packet.SmppRequest;
 import net.gescobar.smppserver.packet.SubmitSm;
@@ -26,6 +32,8 @@ import org.mokai.Serviceable;
 import org.mokai.annotation.Description;
 import org.mokai.annotation.Name;
 import org.mokai.annotation.Resource;
+
+import com.cloudhopper.commons.charset.CharsetUtil;
 
 @Name("SMPP Server Connector")
 @Description("Allows SMPP clients to connect, send and receive messages")
@@ -63,6 +71,51 @@ public class SmppServerConnector implements Processor, Configurable, Serviceable
 	@Override
 	public void process(Message message) throws Exception {
 		
+		DeliverSm deliverSm = new DeliverSm();
+		
+		boolean isDLR = message.getProperty("isDLR", Boolean.class) == null ? false : message.getProperty("isDLR", Boolean.class) == true;
+		if (isDLR) {
+			deliverSm.setEsmClass((byte) 0x04);
+			deliverSm.setSourceAddress(new Address().withAddress(message.getProperty("from", String.class)));
+			deliverSm.setDestAddress(new Address().withAddress(message.getProperty("to", String.class)));
+			
+			SimpleDateFormat sdf = new SimpleDateFormat("yyMMddhhmm");
+			
+			StringBuffer text = new StringBuffer();
+			text.append( "id:" + message.getProperty("messageId", String.class) + " " );
+			text.append( "sub:" + fixTo(message.getProperty("submitted", Integer.class), 3) + " " );
+			text.append( "dlvrd:" + fixTo(message.getProperty("delivered", Integer.class), 3) + " " );
+			String strSubmitDate = message.getProperty("submitDate", Date.class) == null ? "" : sdf.format(message.getProperty("submitDate", Date.class));
+			text.append( "submit date:" + strSubmitDate + " " );
+			String strDoneDate = message.getProperty("doneDate", Date.class) == null ? "" : sdf.format(message.getProperty("doneDate", Date.class));
+			text.append( "done date:" + strDoneDate + " " );
+			text.append( "stat:" + message.getProperty("finalStatus", String.class) + " " );
+			text.append( "err:0 ");
+			text.append( "text:                    " );
+			
+			deliverSm.setShortMessage(CharsetUtil.encode(text.toString(), CharsetUtil.CHARSET_GSM));
+			
+		} else {
+			deliverSm.setSourceAddress(new Address().withAddress(message.getProperty("from", String.class)));
+			deliverSm.setDestAddress(new Address().withAddress(message.getProperty("to", String.class)));
+			deliverSm.setShortMessage(CharsetUtil.encode(message.getProperty("text", String.class), CharsetUtil.CHARSET_GSM));
+		}
+		
+		Collection<SmppSession> sessions = smppServer.getSessions();
+		for (SmppSession session : sessions) {
+			session.sendRequest(deliverSm, 20000);
+		}
+		
+	}
+	
+	private String fixTo(int value, int length) {
+		
+		String strValue = value + "";
+		while (strValue.length() < 3) {
+			strValue = "0" + strValue;
+		}
+		
+		return strValue;
 	}
 
 	@Override

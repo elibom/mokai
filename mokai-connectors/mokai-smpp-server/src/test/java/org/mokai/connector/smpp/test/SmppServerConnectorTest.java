@@ -4,18 +4,22 @@ import ie.omk.smpp.Address;
 import ie.omk.smpp.AlreadyBoundException;
 import ie.omk.smpp.Connection;
 import ie.omk.smpp.message.BindResp;
+import ie.omk.smpp.message.DeliverSM;
 import ie.omk.smpp.message.InvalidParameterValueException;
 import ie.omk.smpp.message.SMPPPacket;
 import ie.omk.smpp.message.SMPPProtocolException;
 import ie.omk.smpp.message.SubmitSM;
 import ie.omk.smpp.message.SubmitSMResp;
 import ie.omk.smpp.net.TcpLink;
+import ie.omk.smpp.util.APIConfig;
 import ie.omk.smpp.version.VersionException;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import net.gescobar.smppserver.Response;
@@ -110,7 +114,115 @@ public class SmppServerConnectorTest {
 		
 	}
 	
+	@Test
+	public void shouldProduceDeliverSm() throws Exception {
+		
+		SmppServerConfiguration configuration = new SmppServerConfiguration();
+		configuration.addUser("test", "test");
+		
+		final SmppServerConnector connector = new SmppServerConnector(configuration);
+		injectResource(buildConnectorContext("test"), connector);
+		connector.configure();
+		connector.doStart();
+		
+		// open connection and bind
+		Connection connection = connect(4444);
+		bind(connection, Connection.TRANSMITTER, "test", "test", null);
+		
+		// send deliver_sm
+		new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				Message message = new Message();
+				message.setProperty("to", "1111");
+				message.setProperty("from", "2222");
+				message.setProperty("text", "This is a test");
+				
+				try {
+					connector.process(message);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			
+		}).start();
+		
+		SMPPPacket packet = connection.readNextPacket();
+		Assert.assertNotNull(packet);
+		Assert.assertEquals(packet.getCommandId(), SMPPPacket.DELIVER_SM);
+		
+		DeliverSM deliverSm = (DeliverSM) packet;
+		Assert.assertEquals(deliverSm.getEsmClass(), (byte) 0); 
+		Assert.assertEquals(deliverSm.getSource().getAddress(), "2222");
+		Assert.assertEquals(deliverSm.getDestination().getAddress(), "1111");
+		Assert.assertEquals(deliverSm.getMessageText(), "This is a test");
+		
+		connector.doStop();
+		
+	}
+	
+	@Test
+	public void shouldProduceDeliveryReceipt() throws Exception {
+		
+		SmppServerConfiguration configuration = new SmppServerConfiguration();
+		configuration.addUser("test", "test");
+		
+		final SmppServerConnector connector = new SmppServerConnector(configuration);
+		injectResource(buildConnectorContext("test"), connector);
+		connector.configure();
+		connector.doStart();
+		
+		// open connection and bind
+		Connection connection = connect(4444);
+		bind(connection, Connection.TRANSMITTER, "test", "test", null);
+		
+		final SimpleDateFormat sdf = new SimpleDateFormat("yyMMddhhmm");
+		final Date submitDate = sdf.parse("1201011023");
+		final Date doneDate = sdf.parse("1201011048");
+		
+		// send deliver_sm
+		new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				Message message = new Message();
+				
+				message.setProperty("isDLR", true);
+				message.setProperty("to", "1111");
+				message.setProperty("from", "2222");
+				message.setProperty("messageId", "12345");
+				message.setProperty("submitted", 1);
+				message.setProperty("submitDate", submitDate);
+				message.setProperty("delivered", 1);
+				message.setProperty("doneDate", doneDate);
+				message.setProperty("finalStatus", "DELIVRD");
+				
+				try {
+					connector.process(message);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			
+		}).start();
+		
+		SMPPPacket packet = connection.readNextPacket();
+		Assert.assertNotNull(packet);
+		Assert.assertEquals(packet.getCommandId(), SMPPPacket.DELIVER_SM);
+		
+		DeliverSM deliverSm = (DeliverSM) packet;
+		Assert.assertEquals(deliverSm.getEsmClass(), (byte) 0x04); 
+		Assert.assertEquals(deliverSm.getSource().getAddress(), "2222");
+		Assert.assertEquals(deliverSm.getDestination().getAddress(), "1111");
+		Assert.assertEquals(deliverSm.getMessageText(), "id:12345 sub:001 dlvrd:001 submit date:" + sdf.format(submitDate) + " done date:" + sdf.format(doneDate) + " stat:DELIVRD err:0 text:                    ");
+		
+	}
+	
 	private Connection connect(int port) throws UnknownHostException {
+		
+		APIConfig.getInstance().setProperty(APIConfig.BIND_TIMEOUT, 3000 + "");
+		APIConfig.getInstance().setProperty(APIConfig.LINK_TIMEOUT, 3000 + "");
 		
 		TcpLink link = new TcpLink("localhost", port);
 		Connection connection = new Connection(link, false);

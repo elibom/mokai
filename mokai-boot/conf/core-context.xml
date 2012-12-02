@@ -1,14 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-	xmlns:camel="http://camel.apache.org/schema/spring"
-	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans 
-			http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-			http://www.springframework.org/schema/jdbc
-			http://www.springframework.org/schema/jdbc/spring-jdbc-3.0.xsd
-			http://camel.apache.org/schema/spring 
-			http://camel.apache.org/schema/spring/camel-spring.xsd">
+			http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+			
+	<import resource="derby-context.xml" />
 			
 	<!-- Camel Routing Engine - Lifecycle -->
 	<bean id="routingEngineLifecyle" class="org.mokai.boot.RoutingEngineLifecycle" init-method="start" 
@@ -37,51 +33,6 @@
 		<property name="routingEngine"><ref bean="routingEngine" /></property>
 		<property name="pluginMechanism"><ref bean="pluginMechanism" /></property>
 	</bean> 
-	
-	<!-- MySQL Configuration -->
-	<!--  <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
-    	<property name="driverClassName" value="com.mysql.jdbc.Driver"/>
-    	<property name="url" value="jdbc:mysql://localhost:3306/mokai?autoReconnect=true"/>
-    	<property name="username" value="root"/>
-    	<property name="password" value="german"/>  
-	</bean>
-	
-	<bean id="sqlEngine" class="org.mokai.persist.jdbc.sms.MySqlEngine" init-method="init">
-		<property name="dataSource"><ref bean="dataSource" /></property>
-		<property name="schema" value="mokai" />
-	</bean> -->
-	
-	<!-- Derby Configuration -->
-	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
-    	<property name="driverClassName" value="org.apache.derby.jdbc.EmbeddedDriver"/>
-    	<property name="url" value="jdbc:derby:data/derby/messages;create=true"/>
-    	<property name="username" value=""/>
-    	<property name="password" value=""/> 
-	</bean>
-	
-	<bean id="sqlEngine" class="org.mokai.persist.jdbc.sms.DerbyEngine" init-method="init">
-		<property name="dataSource"><ref bean="dataSource" /></property>
-	</bean>
-	<!-- End of Derby Configuration -->
-	
-	<bean id="messageStore" class="org.mokai.persist.jdbc.JdbcMessageStore" depends-on="sqlEngine">
-		<property name="dataSource"><ref bean="dataSource" /></property>
-		<property name="messageHandler"><ref bean="smsHandler" /></property>
-	</bean>
-	<!-- <bean id="messageStore" class="org.mokai.persist.impl.DefaultMessageStore" /> -->
-	
-	<bean id="smsHandler" class="org.mokai.persist.jdbc.OutboundInboundHandler">
-		<property name="outboundHandler">
-			<bean class="org.mokai.persist.jdbc.sms.ConnectionsSmsHandler">
-				<property name="sqlEngine"><ref bean="sqlEngine" /></property>
-			</bean>
-		</property>
-		<property name="inboundHandler">
-			<bean class="org.mokai.persist.jdbc.sms.ApplicationsSmsHandler">
-				<property name="sqlEngine"><ref bean="sqlEngine" /></property>
-			</bean>
-		</property>
-	</bean>
 	
 	<bean id="faileMessagesMonitor" class="org.mokai.impl.camel.FailedMessagesMonitor" init-method="start" destroy-method="stop">
 		<property name="routingEngine"><ref bean="routingEngine" /></property>

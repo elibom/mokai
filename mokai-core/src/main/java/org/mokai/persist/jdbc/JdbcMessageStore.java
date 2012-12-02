@@ -66,7 +66,7 @@ public class JdbcMessageStore implements MessageStore {
 		Validate.notNull(message);
 		
 		long startTime = System.currentTimeMillis();
-		if (message.getId() == Message.NOT_PERSISTED) {
+		if (message.getId() == null) {
 			save(message);
 			log.trace("saving msg to db took " + (System.currentTimeMillis() - startTime) + " millis");
 		} else {
@@ -249,7 +249,7 @@ public class JdbcMessageStore implements MessageStore {
 	 */
 	private void checkDataSourceNotNull() throws IllegalStateException {
 		if (dataSource == null) {
-			throw new IllegalStateException();
+			throw new IllegalStateException("No dataSource specified");
 		}
 	}
 

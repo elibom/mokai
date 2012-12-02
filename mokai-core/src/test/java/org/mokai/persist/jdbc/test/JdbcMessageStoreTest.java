@@ -45,7 +45,7 @@ public class JdbcMessageStoreTest {
 		Message message = new Message();
 		messageStore.saveOrUpdate(message);
 		
-		Assert.assertEquals(10, message.getId());
+		Assert.assertEquals(10L, ((Long) message.getId()).longValue());
 		
 		verify(handler).insertMessage(any(Connection.class), any(Message.class));
 		verify(handler, never()).updateMessage(any(Connection.class), any(Message.class));

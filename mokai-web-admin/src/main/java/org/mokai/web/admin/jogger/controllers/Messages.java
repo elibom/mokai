@@ -85,7 +85,7 @@ public class Messages {
 			.numRecords( numRecords == null ? 2000 : numRecords.asInteger() );
 	
 		if (to != null) {
-			criteria.addProperty("smsc_to", to.asString());
+			criteria.addProperty("to", to.asString());
 		}
 		if (status != null) {
 			List<Value> statusList = status.asList();

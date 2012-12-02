@@ -19,8 +19,6 @@ public class Message implements Serializable {
 	 */
 	private static final long serialVersionUID = -2265738328900734732L;
 	
-	public static final long NOT_PERSISTED = -1;
-	
 	public static final String DIRECTION_PROPERTY = "MK_DIRECTION";
 	public static final String SOURCE_PROPERTY = "MK_SOURCE";
 	public static final String DESTINATION_PROPERTY = "MK_DESTINATION";
@@ -86,7 +84,7 @@ public class Message implements Serializable {
 	/**
 	 * Set and used by persistence mechanisms.
 	 */
-	private long id = NOT_PERSISTED;
+	private Object id;
 	
 	/**
 	 * The status of the message. It can be any byte.
@@ -113,11 +111,11 @@ public class Message implements Serializable {
 		properties.put(REFERENCE_PROPERTY, UUID.randomUUID().toString());
 	}
 
-	public final long getId() {
+	public final Object getId() {
 		return id;
 	}
 
-	public final void setId(long id) {
+	public final void setId(Object id) {
 		this.id = id;
 	}
 

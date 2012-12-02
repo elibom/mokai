@@ -168,7 +168,7 @@ public class ConnectionsSmsHandlerTest {
 	public void testUpdateNotFoundMessage() throws Exception {
 
 		final Message message = new Message();
-		message.setId(1);
+		message.setId(1L);
 		message.setStatus(Message.STATUS_RETRYING);
 		message.setDestination("test");
 		

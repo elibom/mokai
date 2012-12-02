@@ -34,7 +34,7 @@ public class PersistenceProcessor implements Processor {
 		try {
 			MessageStore messageStore = resourceRegistry.getResource(MessageStore.class);
 			
-			boolean insert = message.getId() == Message.NOT_PERSISTED;
+			boolean insert = message.getId() == null;
 			
 			long startTime = new Date().getTime();
 			messageStore.saveOrUpdate(message);

@@ -7,7 +7,7 @@ import org.mokai.Message;
 
 public class MessageUI {
 
-	private long id;
+	private Object id;
 	
 	private String date;
 	
@@ -36,7 +36,7 @@ public class MessageUI {
 	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 	
 	public MessageUI(Message message) {
-		this.id = message.getId();
+		this.id = message.getId().toString();
 		this.date = sdf.format( message.getCreationTime() );
 		this.source = message.getSource();
 		this.destination = message.getDestination();
@@ -74,11 +74,11 @@ public class MessageUI {
 		return "UNKNWON";
 	}
 
-	public long getId() {
+	public Object getId() {
 		return id;
 	}
 
-	public void setId(long id) {
+	public void setId(Object id) {
 		this.id = id;
 	}
 

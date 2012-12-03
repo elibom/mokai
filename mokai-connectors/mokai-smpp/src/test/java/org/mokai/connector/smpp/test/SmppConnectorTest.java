@@ -50,7 +50,7 @@ public class SmppConnectorTest {
 
 private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 	
-	private final long DEFAULT_TIMEOUT = 7000;
+	private final long DEFAULT_TIMEOUT = 10000;
 	
 	private final int SERVER_PORT = 4444;
 	
@@ -134,7 +134,7 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 		try {
 			
 			stopSimulator();
-			waitUntilStatus(connector, 20000, Status.FAILED);		
+			waitUntilStatus(connector, DEFAULT_TIMEOUT, Status.FAILED);		
 			
 			startSimulator();
 			waitUntilStatus(connector, DEFAULT_TIMEOUT, Status.OK);

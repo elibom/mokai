@@ -4,6 +4,15 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
+
+import javax.mail.Message.RecipientType;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 
 import org.mokai.ConnectorContext;
 import org.mokai.ExecutionException;
@@ -25,6 +34,7 @@ import com.icegreen.greenmail.util.ServerSetupTest;
  */
 public class MailReceiverTest {
 
+	@Test(enabled=false)
 	public void shouldReceiveImapEmail() throws Exception {
 		
 		GreenMail greenMail = new GreenMail(ServerSetupTest.ALL);
@@ -42,7 +52,7 @@ public class MailReceiverTest {
 		    MockMessageProducer messageProducer = new MockMessageProducer();
 		    
 		    MailReceiverConfig configuration = new MailReceiverConfig();
-		    configuration.setPort(3143);
+		    configuration.setPort(ServerSetupTest.IMAP.getPort());
 		    configuration.setUsername("test@localhost.com");
 		    configuration.setPassword("test@localhost.com");
 		    
@@ -52,7 +62,7 @@ public class MailReceiverTest {
 		    receiver.doStart();
 		    
 		    // wait max 5 secs for message to be received
-		    waitUntilMessageIsReceived(messageProducer, 5000);
+		    waitUntilMessageIsReceived(messageProducer, 180000);
 		    
 		    Assert.assertEquals(messageProducer.messageCount(), 1);
 		    
@@ -70,9 +80,77 @@ public class MailReceiverTest {
 		    
 		    // check that email is still there
 		    Assert.assertEquals(greenMail.getReceivedMessages().length, 1);
-		    /*MimeMessage m = greenMail.getReceivedMessages()[0];
-		    Assert.assertNotNull(m);
-		    Assert.assertTrue(m.getFlags().contains(Flags.Flag.SEEN));*/
+		    
+	    } finally {
+		    greenMail.stop();
+	    }
+
+	}
+	
+	@Test(enabled=false)
+	public void shouldRetrieveTextFromMultipartMessage() throws Exception {
+		
+		GreenMail greenMail = new GreenMail(ServerSetupTest.ALL);
+	    greenMail.start();
+	    
+	    try { 
+	    	
+		    //use random content to avoid potential residual lingering problems
+		    String subject = GreenMailUtil.random();
+		    String body = GreenMailUtil.random();
+		    
+		    Properties props = new Properties();
+		    props.setProperty("mail.transport.protocol", ServerSetupTest.IMAP.getProtocol());
+	        props.setProperty("mail.smtp.port", String.valueOf(ServerSetupTest.IMAP.getPort()));
+	        Session session = Session.getInstance(props, null);
+	        
+	        MimeMessage mimeMessage = new MimeMessage(session);
+            mimeMessage.setSubject(subject);
+            mimeMessage.setRecipient(RecipientType.TO, new InternetAddress("to@localhost.com"));
+            mimeMessage.setFrom(new InternetAddress("from@localhost.com"));
+            
+           
+
+		    MimeMultipart mp = new MimeMultipart("alternative");
+		    
+		    // html text part
+		    MimeBodyPart html = new MimeBodyPart();
+		    html.setText("<h1>prueba</h1>");
+		    mp.addBodyPart(html);
+
+		    // plain text part
+		    MimeBodyPart plain = new MimeBodyPart();
+		    plain.setText("text/plain");
+		    mp.addBodyPart(plain);
+		    
+		    mimeMessage.setContent(mp);
+		    
+		    Transport.send(mimeMessage);
+		    
+		    Assert.assertTrue( greenMail.waitForIncomingEmail(5000, 1) ); 
+		    
+		    MockMessageProducer messageProducer = new MockMessageProducer();
+		    
+		    MailReceiverConfig configuration = new MailReceiverConfig();
+		    configuration.setPort(ServerSetupTest.SMTP.getPort());
+		    configuration.setUsername("test@localhost.com");
+		    configuration.setPassword("test@localhost.com");
+		    
+		    MailReceiver receiver = new MailReceiver(configuration);
+		    injectResource(new MockConnectorContext(), receiver);
+		    injectResource(messageProducer, receiver);
+		    receiver.doStart();
+		    
+		    // wait max 5 secs for message to be received
+		    waitUntilMessageIsReceived(messageProducer, 5000);
+		    
+		    Assert.assertEquals(messageProducer.messageCount(), 1);
+		    
+		    receiver.doStop();
+		    
+		    Message message = messageProducer.getMessage(0);
+		    Assert.assertNotNull(message);
+		    Assert.assertEquals(message.getProperty("text", String.class), body);
 		    
 	    } finally {
 		    greenMail.stop();

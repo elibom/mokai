@@ -412,31 +412,64 @@ public class MailReceiver implements Connector, ExposableConfiguration<MailRecei
 	}
 	
 	/**
-	 * Helper Method. Retrieves the body of the email as a String.
+	 * Helper Method. Retrieves the text from an email message.
 	 * 
-	 * @param message the javax.mail.Message from which we are going to retrieve the body.
+	 * @param part the javax.mail.Message from which we are going to retrieve the text.
 	 * 
-	 * @return A String with the body of the email message.
+	 * @return A String with the text of the email message.
 	 * @throws MessagingException
 	 * @throws IOException
 	 */
 	private String retrieveText(javax.mail.Message message) throws MessagingException, IOException {
-		
-		Part part = message;
-		
-		if (Multipart.class.isInstance(message.getContent())) {
-			part = ((Multipart) message.getContent()).getBodyPart(0);
+		if (isMultipart(message)) {
+			return retrieveTextRecursive(message);
+		} else {
+			return retrieveTextFromInputStream(message.getInputStream());
 		}
+	}
+	
+	/**
+	 * Helper Method. Retrieves the text from an email message part. The text will consist of the concatenated parts 
+	 * that have content type "text/plain". 
+	 * 
+	 * @param part the javax.mail.Part from which we are going to retrieve the text.
+	 * 
+	 * @return A String with the text of the message part.
+	 * @throws MessagingException
+	 * @throws IOException
+	 */
+	private String retrieveTextRecursive(Part part) throws MessagingException, IOException {
+		
+		if (isMultipart(part)) {
+			
+			Multipart multipart = (Multipart) part.getContent();
+			
+			String text = null;
+			int count = multipart.getCount();
+			for (int i=0; i < count; i++) {
+				String partText = retrieveTextRecursive( multipart.getBodyPart(i) );
+				if (partText != null && !"".equals(partText)) {
+					text = text == null ? "" : text + "\n";
+					text += partText;
+				}
+			}
+			
+			return text;
+		}
+		
+		if (part.isMimeType("text/plain")) {
+			return retrieveTextFromInputStream(part.getInputStream());
+		} else {
+			return "";
+		}
+		
+	}
+	
+	private String retrieveTextFromInputStream(InputStream inputStream) throws IOException, MessagingException {
 
-		// get the content type
-		String contentType = part.getContentType();
-		log.debug("Email contentType: " + contentType);
-
-		InputStream is = null;
 		BufferedReader reader = null;
 		try { 
-			is = part.getInputStream();
-			reader = new BufferedReader(new InputStreamReader(is));
+			reader = new BufferedReader(new InputStreamReader(inputStream));
 			    
 			StringBuffer text = new StringBuffer();
 				
@@ -451,11 +484,12 @@ public class MailReceiver implements Connector, ExposableConfiguration<MailRecei
 			if (reader != null) {
 				try { reader.close(); } catch (Exception e) {}
 			}
-			if (is != null) {
-				try { is.close(); } catch (Exception e) {}
-			}
 		}
 		
+	}
+	
+	private boolean isMultipart(Part message) throws MessagingException, IOException {
+		return Multipart.class.isInstance(message.getContent());
 	}
 	
 }

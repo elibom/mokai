@@ -3,6 +3,7 @@ package org.mokai.connector.smpp;
 import ie.omk.smpp.Address;
 import ie.omk.smpp.Connection;
 import ie.omk.smpp.event.ConnectionObserver;
+import ie.omk.smpp.event.ReceiverExceptionEvent;
 import ie.omk.smpp.event.SMPPEvent;
 import ie.omk.smpp.message.BindResp;
 import ie.omk.smpp.message.DeliverSM;
@@ -227,8 +228,9 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	@Override
 	public void process(Message message) throws Exception {
 		
-		log.debug(getLogHead() + "processing message: " + message.getProperty("to", String.class) 
-				+ " - " + message.getProperty("text", String.class));
+		int sequenceNumber = getSequenceNumber();
+		log.debug(getLogHead() + "processing message with sequence '" + sequenceNumber + "', to '" + message.getProperty("to", String.class) 
+				+ "' and text '" + message.getProperty("text", String.class) + "'");
 		
 		if (!status.equals(Status.OK)) {
 			throw new IllegalStateException("SMPP client not connected.");
@@ -245,7 +247,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			
 			request.setMessage( getEncodedBytes(texts[i]) );
 			request.setDataCoding( getDataCoding().getDataCoding() );
-			request.setSequenceNum( getSequenceNumber() );
+			request.setSequenceNum( sequenceNumber );
 			
 			if (texts.length > 1) {
 				request.setOptionalParameter(Tag.SAR_TOTAL_SEGMENTS, texts.length);
@@ -717,6 +719,13 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		 */
 		private void process(SubmitSmResp response) {
 			
+			int sequenceNumber = response.submitSMResp.getSequenceNum();
+			String messageId = response.submitSMResp.getMessageId();
+			int commandStatus = response.submitSMResp.getCommandStatus();
+
+			log.debug(getLogHead() + "received submit_sm_response for sequence " + sequenceNumber 
+					+ " with messageId '" + messageId + "' and command status " + commandStatus);
+
 			// if no messageStore is set, we can't process this response
 			if (messageStore == null) {
 				submitSmResponses.remove(response);
@@ -743,11 +752,9 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			// if the message is found, update it, otherwise, try later
 			if (message != null) {
 				submitSmResponses.remove(response);
-				
-				String messageId = response.submitSMResp.getMessageId();
-				
+
 				message.setProperty("messageId", messageId);
-				message.setProperty("commandStatus", response.submitSMResp.getCommandStatus());
+				message.setProperty("commandStatus", commandStatus);
 					
 				startTime = new Date().getTime();
 				messageStore.saveOrUpdate(message);
@@ -997,6 +1004,10 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 				new Thread(
 					new ConnectionThread(Integer.MAX_VALUE, configuration.getInitialReconnectDelay())
 				).start();
+			} else if (event.getType() == SMPPEvent.RECEIVER_EXCEPTION) {
+				ReceiverExceptionEvent exceptionEvent = (ReceiverExceptionEvent) event;
+				log.error(getLogHead() + "Received ReceiverExceptionEvent with state " + exceptionEvent.getState() 
+						+ ": " + exceptionEvent.getException().getMessage(), exceptionEvent.getException());
 			}
 		}
 		

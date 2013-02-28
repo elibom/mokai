@@ -46,6 +46,13 @@
 							<generatorConfigurations>
 								<generatorConfiguration>
 									<generator>jsw</generator>
+									<includes>
+										<include>linux-x86-32</include>
+										<include>linux-x86-64</include>
+										<include>linux-ppc-64</include>
+										<include>macosx-x86-universal-32</include>
+										<include>windows-x86-32</include>
+									</includes>
 									
 									<configuration>
 										<property>

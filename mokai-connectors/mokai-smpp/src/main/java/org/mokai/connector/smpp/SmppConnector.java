@@ -756,6 +756,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 
 				message.setProperty("messageId", messageId);
 				message.setProperty("commandStatus", commandStatus);
+				message.setProperty("reponseTime", new Date());
 					
 				startTime = new Date().getTime();
 				messageStore.saveOrUpdate(message);

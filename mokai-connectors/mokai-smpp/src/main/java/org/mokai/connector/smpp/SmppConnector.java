@@ -735,6 +735,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 				
 			// try to find a message that matches the criteria
 			MessageCriteria criteria = new MessageCriteria()
+				.direction(context.getDirection())
 				.addProperty("destination", context.getId())
 				.addProperty("smsc_sequencenumber", response.submitSMResp.getSequenceNum());
 				
@@ -896,6 +897,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			String from = drMessage.getProperty("from", String.class);
 				
 			MessageCriteria criteria = new MessageCriteria()
+				.direction(context.getDirection())
 				.addProperty("destination", context.getId())
 				.addProperty("smsc_messageid", messageId);
 

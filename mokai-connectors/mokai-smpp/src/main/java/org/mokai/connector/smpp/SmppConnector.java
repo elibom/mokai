@@ -723,7 +723,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			String messageId = response.submitSMResp.getMessageId();
 			int commandStatus = response.submitSMResp.getCommandStatus();
 
-			log.debug(getLogHead() + "received submit_sm_response for sequence " + sequenceNumber 
+			log.debug(getLogHead() + "processing submit_sm_response for sequence " + sequenceNumber 
 					+ " with messageId '" + messageId + "' and command status " + commandStatus);
 
 			// if no messageStore is set, we can't process this response
@@ -1033,7 +1033,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		 */
 		private void handleSubmitSmResponse(SubmitSMResp response) {
 			
-			log.debug(getLogHead() + "submit_sm response: " + response.toString());
+			log.debug(getLogHead() + "received submit_sm response with sequence '" + response.getSequenceNum() + "' and status " + response.getCommandStatus());
 			
 			SubmitSmResp submitSmResponse = new SubmitSmResp();
 			submitSmResponse.submitSMResp = response;

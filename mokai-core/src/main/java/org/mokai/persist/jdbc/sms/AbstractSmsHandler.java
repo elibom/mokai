@@ -164,6 +164,9 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 	
 	@Override
 	public final boolean updateMessage(Connection conn, Message message) throws SQLException {
+		if (message.getModificationTime() == null) {
+			message.setModificationTime(new Date());
+		}
 		
 		String strSQL = "UPDATE " + tableName + " SET " +
 				"status = ?, " +
@@ -207,12 +210,7 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 		}
 		
 		stmt.setString(8, buildJSON(message));
-		
-		if (message.getModificationTime() != null) {
-			stmt.setTimestamp(9, new Timestamp(message.getModificationTime().getTime()));
-		} else {
-			stmt.setTimestamp(9, null);
-		}
+		stmt.setTimestamp(9, new Timestamp(message.getModificationTime().getTime()));
 			
 		stmt.setLong(10, message.getId());
 		

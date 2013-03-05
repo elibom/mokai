@@ -52,4 +52,49 @@ public class EmailToSmsActionTest {
 		
 	}
 	
+	@Test
+	public void shouldCutLongMessages() throws Exception {
+		
+		Message message = new Message()
+			.setProperty("to", "german.escobarc@gmail.com")
+			.setProperty("from", "test@localhost.com")
+			.setProperty("subject", "574003222222")
+			.setProperty("text", getText(201));
+		
+		EmailToSmsAction action = new EmailToSmsAction();
+		action.setUseSubjectAsTo(true);
+		action.setTextLength(200);
+		
+		action.execute(message);
+		
+		Assert.assertEquals(message.getProperty("text", String.class).length(), 200);
+	}
+	
+	@Test
+	public void shouldNotCutIfTextLengthLessThanMaxTextLength() throws Exception {
+		
+		Message message = new Message()
+			.setProperty("to", "german.escobarc@gmail.com")
+			.setProperty("from", "test@localhost.com")
+			.setProperty("subject", "574003222222")
+			.setProperty("text", getText(199));
+		
+		EmailToSmsAction action = new EmailToSmsAction();
+		action.setUseSubjectAsTo(true);
+		action.setTextLength(200);
+		
+		action.execute(message);
+		
+		Assert.assertEquals(message.getProperty("text", String.class).length(), 199);
+	}
+	
+	private String getText(int length) {
+		StringBuilder buffer = new StringBuilder();
+		for (int i=0; i < length; i++) {
+			buffer.append("a");
+		}
+		
+		return buffer.toString();
+	}
+	
 }

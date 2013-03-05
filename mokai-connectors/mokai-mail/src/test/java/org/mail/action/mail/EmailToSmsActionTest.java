@@ -63,7 +63,7 @@ public class EmailToSmsActionTest {
 		
 		EmailToSmsAction action = new EmailToSmsAction();
 		action.setUseSubjectAsTo(true);
-		action.setTextLength(200);
+		action.setMaxTextLength(200);
 		
 		action.execute(message);
 		
@@ -81,7 +81,7 @@ public class EmailToSmsActionTest {
 		
 		EmailToSmsAction action = new EmailToSmsAction();
 		action.setUseSubjectAsTo(true);
-		action.setTextLength(200);
+		action.setMaxTextLength(200);
 		
 		action.execute(message);
 		

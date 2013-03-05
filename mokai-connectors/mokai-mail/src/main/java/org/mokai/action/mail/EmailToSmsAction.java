@@ -22,8 +22,8 @@ public class EmailToSmsAction implements Action, Configurable, ExposableConfigur
 	@Label("SMS From")
 	private String smsFrom = "12345";
 	
-	@Label("Text Length")
-	private int textLength = 160;
+	@Label("Max Text Length")
+	private int maxTextLength = 160;
 
 	@Override
 	public void execute(Message message) throws Exception {
@@ -43,8 +43,8 @@ public class EmailToSmsAction implements Action, Configurable, ExposableConfigur
 		
 		// cut long texts
 		String text = message.getProperty("text", String.class);
-		if (textLength > 0 && text.length() > textLength) {
-			message.setProperty("text", text.substring(0, textLength));
+		if (maxTextLength > 0 && text.length() > maxTextLength) {
+			message.setProperty("text", text.substring(0, maxTextLength));
 		}
 		
 	}
@@ -91,12 +91,12 @@ public class EmailToSmsAction implements Action, Configurable, ExposableConfigur
 		this.smsFrom = smsFrom;
 	}
 
-	public int getTextLength() {
-		return textLength;
+	public int getMaxTextLength() {
+		return maxTextLength;
 	}
 
-	public void setTextLength(int textLength) {
-		this.textLength = textLength;
+	public void setMaxTextLength(int maxTextLength) {
+		this.maxTextLength = maxTextLength;
 	}
 
 }

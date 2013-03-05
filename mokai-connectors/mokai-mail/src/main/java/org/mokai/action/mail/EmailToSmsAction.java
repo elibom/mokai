@@ -43,7 +43,7 @@ public class EmailToSmsAction implements Action, Configurable, ExposableConfigur
 		
 		// cut long texts
 		String text = message.getProperty("text", String.class);
-		if (textLength > 0 && text.length() > 160) {
+		if (textLength > 0 && text.length() > textLength) {
 			message.setProperty("text", text.substring(0, textLength));
 		}
 		

@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.mokai</groupId>
 		<artifactId>mokai-connectors</artifactId>
-		<version>0.10.1-SNAPSHOT</version>
+		<version>0.10.1</version>
 	</parent>
 
 	<artifactId>mokai-mail</artifactId>

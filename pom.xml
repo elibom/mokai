@@ -4,7 +4,7 @@
 
 	<groupId>org.mokai</groupId>
 	<artifactId>mokai-parent</artifactId>
-	<version>0.10.0</version>
+	<version>0.10.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Mokai Parent</name>

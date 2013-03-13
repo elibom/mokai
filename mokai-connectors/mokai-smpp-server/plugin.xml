@@ -9,7 +9,7 @@
 		<library id="smpp-server" path="lib/smpp-server-0.4.1.jar" type="code" />
 		<library id="ch-smpp" path="lib/ch-smpp-4.1.2.jar" type="code" />
 		<library id="ch-util" path="lib/ch-commons-util-5.1.2.jar" type="code" />
-		<library id="ch-charset" path="lib/ch-commons-charset-2.3.1.jar" type="code" />
+		<library id="ch-charset" path="lib/ch-commons-charset-2.3.2.jar" type="code" />
 		<library id="netty" path="lib/netty-3.4.4.jar" type="code" />
 	</runtime>
 	

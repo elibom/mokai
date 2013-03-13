@@ -618,7 +618,7 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 	 * method.
 	 */
 	@Override
-	public final void start() throws ExecutionException {
+	public final synchronized void start() throws ExecutionException {
 		
 		if (!state.isStartable()) {
 			log.warn("Connector " + id + " is already started, ignoring call");
@@ -660,7 +660,7 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 	 * method.
 	 */
 	@Override
-	public final void stop() {
+	public final synchronized void stop() {
 		
 		if (!state.isStoppable()) {
 			log.warn("Connector " + id + " is already stopped, ignoring call");

@@ -184,23 +184,6 @@ public class CamelRoutingEngine implements RoutingEngine {
 	public final synchronized void start() throws ExecutionException {
 		
 		log.debug("starting all connectors ... ");
-		
-		// start applications in separate threads
-		for (final ConnectorService cs : applications.values()) {
-			
-			executor.execute(new Runnable() {
-
-				@Override
-				public void run() {
-					try {
-						cs.start();
-					} catch (Exception e) {
-						log.error("application '" + cs.getId() + "' couldn't be started: "  + e.getMessage(), e);
-					}
-				}
-				
-			});	
-		}
 			
 		// start connections in separate threads
 		for (final ConnectorService cs : connections.values()) {
@@ -218,6 +201,23 @@ public class CamelRoutingEngine implements RoutingEngine {
 				
 			});
 			
+		}
+		
+		// start applications in separate threads
+		for (final ConnectorService cs : applications.values()) {
+			
+			executor.execute(new Runnable() {
+
+				@Override
+				public void run() {
+					try {
+						cs.start();
+					} catch (Exception e) {
+						log.error("application '" + cs.getId() + "' couldn't be started: "  + e.getMessage(), e);
+					}
+				}
+				
+			});	
 		}
 		
 		log.info("all connectors started");

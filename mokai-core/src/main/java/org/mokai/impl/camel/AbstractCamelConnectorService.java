@@ -84,13 +84,10 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 	 * Used to send messages to Apache Camel endpoints.
 	 */
 	private ProducerTemplate camelProducer;
+
+	private List<RouteDefinition> inboundRoutes;
 	
-	/**
-	 * Maintains a list of Apache Camel routes that we can stop.
-	 * @see #start()
-	 * @see #stop()
-	 */
-	private List<RouteDefinition> routes;
+	private List<RouteDefinition> outboundRoutes;
 	
 	/**
 	 * The status of the connector service. Notice that this can differ from the
@@ -158,38 +155,38 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 		
 	}
 	
-	/**
-	 * Helper method. Called from the {@link #start()} method to initialize the Camel routes that we use 
-	 * internally to move messages (eg. outbound router -> acceptor -> pre actions -> connector -> post actions). 
-	 * Specifically, it creates outbound routes (if the connector is a processor) and inbound routes.
-	 * 
-	 * @throws ExecutionException wraps any exception thrown while creating the Camel routes.
-	 * 
-	 * @see #start()
-	 */
-	private void initRoutes() throws ExecutionException {
-		
-		try {
-
-			routes = new ArrayList<RouteDefinition>();
+	private void initInboundRoutes() throws Exception {
+		inboundRoutes = new ArrayList<RouteDefinition>();
 			
-			// only add the outbound routes if the connector implements Processor
-			if (Processor.class.isInstance(connector)) {
-			
-				RouteBuilder outboundRouteBuilder = createOutboundRouteBuilder();
-				camelContext.addRoutes(outboundRouteBuilder);
-				routes.addAll(outboundRouteBuilder.getRouteCollection().getRoutes());
-			}
-			
-			// always add the inbound routes
-			RouteBuilder inboundRouteBuilder = createInboundRouteBuilder();
-			camelContext.addRoutes(inboundRouteBuilder);
-			routes.addAll(inboundRouteBuilder.getRouteCollection().getRoutes());
-			
-		} catch (Exception e) {
-			throw new ExecutionException(e);
+		// add the inbound routes
+		RouteBuilder inboundRouteBuilder = createInboundRouteBuilder();
+		camelContext.addRoutes(inboundRouteBuilder);
+		inboundRoutes.addAll(inboundRouteBuilder.getRouteCollection().getRoutes());
+	}
+	
+	private void startInboundRoutes() throws Exception {
+		// start the routes
+		for (RouteDefinition route : inboundRoutes) {
+			camelContext.startRoute(route);
 		}
+	}
+	
+	private void initOutboundRoutes() throws Exception {
+		outboundRoutes = new ArrayList<RouteDefinition>();
 		
+		// only add the outbound routes if the connector implements Processor
+		if (Processor.class.isInstance(connector)) {
+			RouteBuilder outboundRouteBuilder = createOutboundRouteBuilder();
+			camelContext.addRoutes(outboundRouteBuilder);
+			outboundRoutes.addAll(outboundRouteBuilder.getRouteCollection().getRoutes());
+		}
+	}
+	
+	private void startOutboundRoutes() throws Exception {
+		// start the routes
+		for (RouteDefinition route : outboundRoutes) {
+			camelContext.startRoute(route);
+		}
 	}
 	
 	/**
@@ -625,30 +622,39 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 			return;
 		}
 		
-		// start the connector if is Serviceable
-		LifecycleMethodsHelper.start(connector);
-		
+		// we need to start the inbound routes before starting the connector
 		try {
-			
-			// create the routes
-			if (routes == null) {
-				initRoutes();				
+			if (inboundRoutes == null) {
+				initInboundRoutes();
 			} else {
-			
-				// start the routes
-				for (RouteDefinition route : routes) {
-					camelContext.startRoute(route);
-				}
-				
-			}
-			
-			state = State.STARTED;
-			
-			if (changeListener != null) {
-				changeListener.changed(this, getDirection());
+				startInboundRoutes();
 			}
 		} catch (Exception e) {
 			throw new ExecutionException(e);
+		}
+		
+		// start the connector if is Serviceable
+		LifecycleMethodsHelper.start(connector);
+		
+		// we need to start the outbound routes after starting the connector
+		try {
+			if (outboundRoutes == null) {
+				initOutboundRoutes();
+			} else {
+				startOutboundRoutes();
+			}
+		} catch (Exception e) {
+			throw new ExecutionException(e);
+		}
+		
+		state = State.STARTED;
+		
+		if (changeListener != null) {
+			try {
+				changeListener.changed(this, getDirection());
+			} catch (RuntimeException e) {
+				log.error("Exception calling ConnectorServiceChangeListener#changed for connector " + id, e);
+			}
 		}
 	}
 
@@ -666,24 +672,38 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 			log.warn("Connector " + id + " is already stopped, ignoring call");
 			return;
 		}
-			
-		// stop the processor if it implements Configurable
-		LifecycleMethodsHelper.stop(connector);
-			
+		
+		// stop the outbound routes before stopping the connector
 		try {
-			// stop the routes
-			for (RouteDefinition route : routes) {
+			for (RouteDefinition route : outboundRoutes) {
 				camelContext.stopRoute(route);
-			}
-			
-			state = State.STOPPED;
-			
-			if (changeListener != null) {
-				changeListener.changed(this, getDirection());
 			}
 		} catch (Exception e) {
 			throw new ExecutionException(e);
 		}
+			
+		// stop the processor if it implements Configurable
+		LifecycleMethodsHelper.stop(connector);
+			
+		// stop the inbound routes after stopping the connector
+		try {
+			for (RouteDefinition route : inboundRoutes) {
+				camelContext.stopRoute(route);
+			}
+		} catch (Exception e) {
+			throw new ExecutionException(e);
+		}
+			
+		state = State.STOPPED;
+			
+		if (changeListener != null) {
+			try {
+				changeListener.changed(this, getDirection());
+			} catch (RuntimeException e) {
+				log.error("Exception calling ConnectorServiceChangeListener#changed for connector " + id, e);
+			}
+		}
+		
 	}
 	
 	/**

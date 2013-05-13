@@ -25,7 +25,13 @@
 			<h3>Applications</h3>
 				
 			<#list applications as connector>
-    			<section class="connector" id="application-${connector.id}" data="${connector.id}">
+				<#if connector.status = "OK">
+					<section class="connector status-ok" id="application-${connector.id}" data="${connector.id}">
+				<#elseif connector.status = "FAILED">
+    				<section class="connector status-failed" id="application-${connector.id}" data="${connector.id}">
+    			<#else>
+    				<section class="connector" id="application-${connector.id}" data="${connector.id}">
+    			</#if>
 					<header>
 						<div class="left"><h5>${connector.id}</h5><small>${connector.type}</small></div>
 						<div class="right">
@@ -44,11 +50,7 @@
 								<div class="left queued"><span>${connector.queuedMessages}</span> queued</div>
 							</#if>
 							<div class="right">
-								<#if connector.status = "OK">
-									<span class="status status-success">Running</span>
-								<#elseif connector.status = "FAILED">
-									<span class="status status-failed">Failed</span>
-								</#if>
+								<span class="status"></span>
 							</div>
 						</div>
 					</div>

@@ -6,3 +6,4 @@ org.mokai.action.CopyAction
 org.mokai.action.ReplaceAction
 org.mokai.action.UpdateAction
 org.mokai.action.RemoveAction
+org.mokai.action.JsonParserAction

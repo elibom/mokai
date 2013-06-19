@@ -3,15 +3,9 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
 	xsi:schemaLocation="http://www.springframework.org/schema/beans 
 			http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
-
-	<bean id="mongo" class="com.mongodb.Mongo">
-		<constructor-arg value="127.0.0.1"/>
-		<constructor-arg value="27017"/>
-	</bean>
 	
 	<bean id="mongodb" class="org.mokai.persist.mongo.MongoFactory">
-		<property name="mongo" ref="mongo"/>
-		<property name="name" value="mokai"/>
+		<constructor-arg value="mongodb://test:test@127.0.0.1/mokai" />
 	</bean>
 	
 	<bean id="messageStore" class="org.mokai.persist.mongo.MongoMessageStore">

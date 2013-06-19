@@ -1,9 +1,11 @@
 package org.mokai.persist.mongo;
 
+import java.net.URISyntaxException;
+
 import org.springframework.beans.factory.FactoryBean;
 
 import com.mongodb.DB;
-import com.mongodb.Mongo;
+import com.mongodb.MongoURI;
 
 /**
  * Utility class used in the Spring context configuration.
@@ -12,12 +14,18 @@ import com.mongodb.Mongo;
  */
 public class MongoFactory implements FactoryBean<DB> {
 	
-	private Mongo mongo;
-	private String name;
+	private MongoURI mongoUri;
+	
+	public MongoFactory(String uri) throws URISyntaxException {
+        this.mongoUri = new MongoURI(uri);
+    }
 
 	@Override
 	public DB getObject() throws Exception {
-		return mongo.getDB(name);
+		DB db = mongoUri.connectDB();
+        db.authenticate(mongoUri.getUsername(), mongoUri.getPassword());
+
+        return db;
 	}
 
 	@Override
@@ -28,14 +36,6 @@ public class MongoFactory implements FactoryBean<DB> {
 	@Override
 	public boolean isSingleton() {
 		return true;
-	}
-
-	public void setMongo(Mongo mongo) {
-		this.mongo = mongo;
-	}
-
-	public void setName(String name) {
-		this.name = name;
 	}
 
 }

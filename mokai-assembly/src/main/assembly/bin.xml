@@ -6,13 +6,13 @@
 	<formats>
 		<format>zip</format>
 	</formats>
-	
+
 	<fileSets>
 		<fileSet>
 			<directory>target/generated-resources/appassembler/jsw/mokai</directory>
 			<outputDirectory></outputDirectory>
 		</fileSet>
-		
+
 		<fileSet>
 			<directory>../mokai-boot/conf</directory>
 			<outputDirectory>conf</outputDirectory>
@@ -20,7 +20,7 @@
 				<include>*</include>
 			</includes>
 		</fileSet>
-		
+
 		<fileSet>
 			<directory>../mokai-boot/src/main/resources</directory>
 			<outputDirectory>etc</outputDirectory>
@@ -28,7 +28,7 @@
 				<include>*</include>
 			</includes>
 		</fileSet>
-		
+
 		<fileSet>
 			<directory>logs</directory>
 			<outputDirectory>logs</outputDirectory>
@@ -36,7 +36,7 @@
 				<exclude>*</exclude>
 			</excludes>
 		</fileSet>
-		
+
 		<fileSet>
 			<directory>../mokai-connectors/mokai-smpp/target</directory>
 			<outputDirectory>plugins</outputDirectory>
@@ -44,7 +44,7 @@
 				<include>*.zip</include>
 			</includes>
 		</fileSet>
-		
+
 		<fileSet>
 			<directory>../mokai-connectors/mokai-smpp-server/target</directory>
 			<outputDirectory>plugins</outputDirectory>
@@ -52,7 +52,7 @@
 				<include>*.zip</include>
 			</includes>
 		</fileSet>
-		
+
 		<fileSet>
 			<directory>../mokai-connectors/mokai-jetty/target</directory>
 			<outputDirectory>plugins</outputDirectory>
@@ -60,7 +60,7 @@
 				<include>*.zip</include>
 			</includes>
 		</fileSet>
-		
+
 		<fileSet>
 			<directory>../mokai-connectors/mokai-http/target</directory>
 			<outputDirectory>plugins</outputDirectory>
@@ -68,9 +68,17 @@
 				<include>*.zip</include>
 			</includes>
 		</fileSet>
-		
+
 		<fileSet>
 			<directory>../mokai-connectors/mokai-mail/target</directory>
+			<outputDirectory>plugins</outputDirectory>
+			<includes>
+				<include>*.zip</include>
+			</includes>
+		</fileSet>
+
+		<fileSet>
+			<directory>../mokai-connectors/mokai-ironmq/target</directory>
 			<outputDirectory>plugins</outputDirectory>
 			<includes>
 				<include>*.zip</include>

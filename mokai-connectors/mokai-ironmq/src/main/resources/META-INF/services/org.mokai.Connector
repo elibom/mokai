@@ -1,1 +1,2 @@
-org.mokai.connector.ironmq.IronMqMessagesReceiverConnector
+org.mokai.connector.ironmq.IronMqReceiver
+org.mokai.connector.ironmq.IronMqProcessor

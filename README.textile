@@ -9,7 +9,7 @@ h2. Features
  * Deploy in standalone or embedded mode.
  * Use the provided connectors to receive and process messages (or build your own).
  * Handle any type of message.
- * Use any storage mechanism. Built-in support for MySQL and Apache Derby is provided.
+ * Use any storage mechanism. Built-in support for MongoDB, MySQL and Apache Derby is provided.
  * Manage and monitor the gateway using the Web Administration Console.
  
 h2. Documentation
@@ -18,4 +18,4 @@ h2. Documentation
   
 h2. Download
 
-Current version: *0.10.1* - "Download":http://code.google.com/p/mokai/downloads/list
+Current version: *0.11.0* - "Download":http://germanescobar.net/projects/mokai/releases/mokai-0.11.0.zip

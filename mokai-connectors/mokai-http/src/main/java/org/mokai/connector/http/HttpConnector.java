@@ -94,6 +94,7 @@ public class HttpConnector implements Processor, ExposableConfiguration<HttpConf
 
 	@Override
 	public final void process(Message message) throws Exception {
+		long startTime = System.currentTimeMillis();
 		
 		validateConfiguration();
 		
@@ -114,11 +115,14 @@ public class HttpConnector implements Processor, ExposableConfiguration<HttpConf
 		}
 		
 		// execute request
+		
 		HttpResponse httpResponse = httpClient.execute(request);
 		
 		// process response - set the response code in the commandStatus property
 		int responseCode = httpResponse.getStatusLine().getStatusCode();
 		message.setProperty("responseCode", responseCode);
+		
+		log.trace("HTTP request took " + (System.currentTimeMillis() - startTime) + " millis");
 		
 		if (configuration.isThrowExceptionOnFailure() && (responseCode < 100 || responseCode >= 300)) {
 			String uri = request.getURI().toString();

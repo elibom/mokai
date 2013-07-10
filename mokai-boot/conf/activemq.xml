@@ -8,6 +8,7 @@
         http://activemq.apache.org/schema/core/activemq-core-5.2.0.xsd">
 
 <amq:broker brokerName="mokai-broker" persistent="true" useShutdownHook="false" dataDirectory="data/activemq">
+
 	<amq:destinationPolicy>
 		<amq:policyMap>
 			<amq:policyEntries>
@@ -19,6 +20,14 @@
 	<amq:managementContext>
 		<amq:managementContext createConnector="true" connectorPort="1190" />
 	</amq:managementContext>
+	
+	<amq:systemUsage>
+		<amq:systemUsage>
+			<amq:memoryUsage>
+				<amq:memoryUsage limit="256mb"></amq:memoryUsage>
+			</amq:memoryUsage>
+		</amq:systemUsage>
+	</amq:systemUsage>
 </amq:broker>
 
  

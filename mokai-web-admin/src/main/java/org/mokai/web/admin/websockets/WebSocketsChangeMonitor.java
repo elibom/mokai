@@ -81,6 +81,7 @@ public class WebSocketsChangeMonitor implements Service {
 		synchronized (lock) {
 			lock.notify();
 		}
+		log.info("web sockets change monitor stopped");
 	}
 	
 	@Override

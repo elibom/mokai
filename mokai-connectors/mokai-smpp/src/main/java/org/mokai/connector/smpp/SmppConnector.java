@@ -116,12 +116,12 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	 * Tells if the processor is started so we keep trying to connect
 	 * in case of failure.
 	 */
-	private boolean started = false;
+	private volatile boolean started = false;
 	
 	/**
 	 * Tells if the session is bound.
 	 */
-	private boolean bound;
+	private volatile boolean bound;
 	
 	/**
 	 * Stores the submit responses until they are processed by the SubmitSmResponseThread 
@@ -204,10 +204,9 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			return;
 		}
 		
+		bound = false;
 		try { 
 			connection.unbind();
-			bound = false;
-		
 		} catch (Exception e) {
 			log.warn(getLogHead() + "Exception unbinding: " + e.getMessage(), e);
 		}
@@ -470,7 +469,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 
 		@Override
 		public void run() {
-			log.info("schedule connect after " + initialDelay + " millis");
+			log.info(getLogHead() + "schedule connect after " + initialDelay + " millis");
             try {
                 Thread.sleep(initialDelay);
             } catch (InterruptedException e) {
@@ -483,7 +482,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
             		&& !bound) {
             	
             	try {
-                    log.info("trying to connect to " + getConfiguration().getHost() + " - attempt #" + (++attempt) + "...");
+                    log.info(getLogHead() +  "trying to connect to " + getConfiguration().getHost() + " - attempt #" + (++attempt) + "...");
                     
                     // try to bind
                     connection = bind();
@@ -491,7 +490,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
                     // if bound, change the status and show log that we are connected
                     bound = true;
                     status = MonitorStatusBuilder.ok();
-                    log.info("connected to '" + configuration.getHost() + ":" + configuration.getPort() + "'");
+                    log.info(getLogHead() +  "connected to '" + configuration.getHost() + ":" + configuration.getPort() + "'");
                     
                 } catch (Exception e) {
                 	
@@ -656,7 +655,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 				EnquireLink request = new EnquireLink();
 				connection.sendRequest(request);
 				
-				log.info(getLogHead() + "Enquire Link: " + request.toString());
+				log.trace(getLogHead() + "Enquire Link: " + request.toString());
 				
 				return true;
 

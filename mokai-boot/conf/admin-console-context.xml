@@ -14,8 +14,7 @@
 	<bean name="webSocketsListener" class="org.mokai.web.admin.websockets.WebSocketsConnectorServiceChangeListener">
 		<property name="broadcaster" ref="webSocketsBroadcaster" />
 	</bean>
-	<bean name="webSocketsServer" class="org.mokai.web.admin.websockets.NettosphereServer" init-method="start" 
-			destroy-method="stop">
+	<bean name="webSocketsServer" class="org.mokai.web.admin.websockets.NettosphereServer" init-method="start">
 		<property name="port" value="8585" />
 		<property name="atmosphereHandler"><bean class="org.mokai.web.admin.websockets.MokaiAtmosphereHandler" /></property>
 	</bean>

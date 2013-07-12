@@ -1,5 +1,7 @@
 package org.mokai.boot;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
@@ -9,6 +11,8 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
  * @author German Escobar
  */
 public final class Main {
+	
+	private static Logger log = LoggerFactory.getLogger(Main.class);
 	
 	/**
 	 * This class shouldn't be instantiated.
@@ -26,9 +30,12 @@ public final class Main {
 		
 		// add a shutdown hook to close spring context
 		Runtime.getRuntime().addShutdownHook(new Thread(){
-		    public void run() {
-		    	springContext.close();
-		    }
+			public void run() {
+				log.info("stopping spring context ... ");
+				springContext.stop();
+				springContext.close();
+				log.info("<< spring context stopped >>");
+			}
 		});
 	}
 

@@ -3,6 +3,8 @@ package org.mokai.web.admin.websockets;
 import org.atmosphere.cpr.AtmosphereHandler;
 import org.atmosphere.nettosphere.Config;
 import org.atmosphere.nettosphere.Nettosphere;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Creates a <a href="https://github.com/Atmosphere/nettosphere">Nettosphere</a> server and provides methods to start/stop it.
@@ -10,6 +12,8 @@ import org.atmosphere.nettosphere.Nettosphere;
  * @author German Escobar
  */
 public class NettosphereServer {
+	
+	private Logger log = LoggerFactory.getLogger(NettosphereServer.class);
 	
 	private Nettosphere server;
 	
@@ -33,14 +37,15 @@ public class NettosphereServer {
             ).build();
 		
 		server.start();
-		
 	}
 	
 	/**
 	 * Stops the server.
 	 */
 	public void stop() {
+		log.info("stopping nettosphere server ...");
 		server.stop();
+		log.info("nettosphere stopped");
 	}
 
 	public void setHost(String host) {

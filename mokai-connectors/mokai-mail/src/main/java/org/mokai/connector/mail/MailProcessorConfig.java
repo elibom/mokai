@@ -5,34 +5,34 @@ import org.mokai.ui.annotation.Required;
 
 /**
  * Holds the information used to configure a {@link MailProcessor} instance.
- * 
+ *
  * @author German Escobar
  */
 public class MailProcessorConfig {
-	
+
 	@Required
 	@Label("Host")
 	private String host = "localhost";
-	
+
 	@Required
 	@Label("Port")
 	private int port = 25;
-	
+
 	@Label("Needs Authentication")
 	private boolean auth = true;
-	
+
 	@Label("Username")
 	private String username;
-	
+
 	@Label("Password")
 	private String password;
-	
+
 	@Label("Use TLS")
 	private boolean tls = false;
-	
+
 	@Label("From")
 	private String from = "mokai@localhost.com";
-	
+
 	@Label("Subject")
 	private String subject = "Mokai Message";
 

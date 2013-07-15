@@ -12,16 +12,16 @@ import org.mokai.Message;
 public class MockAcceptorWithAcceptor implements Acceptor, ExposableConfiguration<MockAcceptorWithAcceptor> {
 
 	private Acceptor acceptor;
-	
+
 	private Collection<Acceptor> listAcceptors = new ArrayList<Acceptor>();
-	
+
 	private Map<String, Acceptor> mapAcceptors = new HashMap<String, Acceptor>();
-	
+
 	@Override
 	public boolean accepts(Message message) {
 		return false;
 	}
-	
+
 	@Override
 	public MockAcceptorWithAcceptor getConfiguration() {
 		return this;

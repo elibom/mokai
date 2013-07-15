@@ -6,25 +6,24 @@ import org.mokai.impl.camel.CamelRoutingEngine;
 
 /**
  * This class is configured in the core-context.xml file with dependencies to all the
- * classes that need to be configured before starting the routing engine. See MOKAI-21 (Jira)
- * for more information.
+ * classes that need to be configured before starting the routing engine.
  * 
  * @author German Escobar
  */
 public class RoutingEngineLifecycle {
 
 	private CamelRoutingEngine routingEngine;
-	
+
 	private ApplicationsConfiguration applicationsConfiguration;
 	private ConnectionsConfiguration connectionsConfiguration;
-	
+
 	public void start() {
 		connectionsConfiguration.load();
 		applicationsConfiguration.load();
-		
+
 		routingEngine.start();
 	}
-	
+
 	public void stop() {
 		routingEngine.shutdown();
 	}
@@ -40,5 +39,5 @@ public class RoutingEngineLifecycle {
 	public void setConnectionsConfiguration(ConnectionsConfiguration connectionsConfiguration) {
 		this.connectionsConfiguration = connectionsConfiguration;
 	}
-	
+
 }

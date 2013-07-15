@@ -9,23 +9,23 @@ import com.mongodb.MongoURI;
 
 /**
  * Utility class used in the Spring context configuration.
- * 
+ *
  * @author German Escobar
  */
 public class MongoFactory implements FactoryBean<DB> {
-	
+
 	private MongoURI mongoUri;
-	
+
 	public MongoFactory(String uri) throws URISyntaxException {
-        this.mongoUri = new MongoURI(uri);
-    }
+		this.mongoUri = new MongoURI(uri);
+	}
 
 	@Override
 	public DB getObject() throws Exception {
 		DB db = mongoUri.connectDB();
-        db.authenticate(mongoUri.getUsername(), mongoUri.getPassword());
+		db.authenticate(mongoUri.getUsername(), mongoUri.getPassword());
 
-        return db;
+		return db;
 	}
 
 	@Override

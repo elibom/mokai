@@ -7,21 +7,21 @@ import org.mokai.Message.Direction;
 
 /**
  * Concrete {@link ConnectorService}. Defines the URI's of the endpoints used by applications.
- * 
+ *
  * @author German Escobar
  */
 public class CamelApplicationService extends AbstractCamelConnectorService {
 
 	/**
-	 * Constructor. 
-	 * 
+	 * Constructor.
+	 *
 	 * @param id
 	 * @param connector
 	 * @param resourceRegistry
 	 * @throws IllegalArgumentException
 	 * @throws ExecutionException
 	 */
-	public CamelApplicationService(String id, Connector connector, ResourceRegistry resourceRegistry) 
+	public CamelApplicationService(String id, Connector connector, ResourceRegistry resourceRegistry)
 			throws IllegalArgumentException, ExecutionException {
 		super(id, connector, resourceRegistry);
 	}

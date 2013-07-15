@@ -6,23 +6,22 @@ import org.mokai.persist.jdbc.JdbcHelper;
 import org.mokai.persist.jdbc.SqlEngine;
 
 public class MySqlEngine implements SqlEngine {
-	
+
 	private DataSource dataSource;
-	
+
 	private String schema = "mokai";
-	
+
 	private boolean initialized;
 
 	@Override
 	public void init() throws Exception {
-		
 		if (initialized) {
 			return;
 		}
-		
+
 		JdbcHelper.checkCreateTable(dataSource, getSchema(), ConnectionsSmsHandler.DEFAULT_TABLENAME, getConnectionsCreateScript());
 		JdbcHelper.checkCreateTable(dataSource, getSchema(), ApplicationsSmsHandler.DEFAULT_TABLENAME, getApplicationsCreateScript());
-		
+
 		initialized = true;
 	}
 
@@ -34,7 +33,7 @@ public class MySqlEngine implements SqlEngine {
 	public String getSchema() {
 		return schema;
 	}
-	
+
 	public void setSchema(String schema) {
 		this.schema = schema;
 	}
@@ -43,11 +42,11 @@ public class MySqlEngine implements SqlEngine {
 	public void addLimitToQuery(StringBuffer query, int offset, int numRows) {
 		query.append(" LIMIT " + offset + "," + numRows);
 	}
-	
+
 	public void setDataSource(DataSource dataSource) {
 		this.dataSource = dataSource;
 	}
-	
+
 	protected String getConnectionsCreateScript() {
 		return "CREATE TABLE " + ConnectionsSmsHandler.DEFAULT_TABLENAME + " (" +
 					"id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY, " +
@@ -67,7 +66,7 @@ public class MySqlEngine implements SqlEngine {
 					"creation_time DATETIME NOT NULL, " +
 					"modification_time DATETIME) ENGINE=MyISAM";
 	}
-	
+
 	protected String getApplicationsCreateScript() {
 		return "CREATE TABLE " + ApplicationsSmsHandler.DEFAULT_TABLENAME + " (" +
 					"id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY, " +

@@ -5,7 +5,7 @@ import org.mokai.ui.annotation.Required;
 
 /**
  * Holds the information used to configure a {@link MailReceiver} instance.
- * 
+ *
  * @author German Escobar
  */
 public class MailReceiverConfig {
@@ -13,36 +13,36 @@ public class MailReceiverConfig {
 	@Required
 	@Label("Host")
 	private String host = "localhost";
-	
+
 	@Required
 	@Label("Use TLS")
 	private boolean tls = false;
-	
+
 	/**
 	 * Overrides the default port of the specified protocol.
 	 */
 	@Label("Port")
 	private int port = -1;
-	
+
 	@Required
 	@Label("Username")
 	private String username;
-	
+
 	@Required
 	@Label("Password")
 	private String password;
-	
+
 	@Required
 	@Label("Folder")
 	private String folder = "Inbox";
-	
+
 	@Required
 	@Label("ReconnectDelay")
 	private int reconnectDelay = 5000;
-	
+
 	@Label("Process Unseen Messages")
 	private boolean unseen = true;
-	
+
 	@Label("Delete Messages")
 	private boolean delete = false;
 

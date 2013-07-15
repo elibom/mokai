@@ -24,5 +24,5 @@ public class ObjectAlreadyExistsException extends RuntimeException {
 	public ObjectAlreadyExistsException(Throwable cause) {
 		super(cause);
 	}
-	
+
 }

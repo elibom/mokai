@@ -6,33 +6,31 @@ import java.util.TimerTask;
 import org.mokai.Service;
 
 /**
- * 
- * 
+ *
+ *
  * @author German Escobar
  */
 public class FailedMessagesMonitor extends TimerTask implements Service {
 
-	//private Logger log = LoggerFactory.getLogger(FailedMessagesMonitor.class);
-	
 	private static final long DEFAULT_DELAY = 0;
 	private static final long DEFAULT_INTERVAL = 30000;
-	
+
 	private CamelRoutingEngine routingEngine;
-	
+
 	private State status = State.STOPPED;
-	
+
 	/**
 	 * The delay before the first execution in milliseconds
 	 */
 	private long delay = DEFAULT_DELAY;
-	
+
 	/**
 	 * The interval between executions in milliseconds
 	 */
 	private long interval = DEFAULT_INTERVAL;
-	
+
 	private Timer timer;
-	
+
 	@Override
 	public final State getState() {
 		return status;
@@ -43,10 +41,10 @@ public class FailedMessagesMonitor extends TimerTask implements Service {
 		if (!status.isStartable()) {
 			return;
 		}
-		
+
 		timer = new Timer(true);
 		timer.schedule(this, delay, interval);
-		
+
 		status = State.STARTED;
 	}
 
@@ -55,9 +53,9 @@ public class FailedMessagesMonitor extends TimerTask implements Service {
 		if (!status.isStoppable()) {
 			return;
 		}
-		
+
 		timer.cancel();
-		
+
 		status = State.STOPPED;
 	}
 
@@ -66,7 +64,7 @@ public class FailedMessagesMonitor extends TimerTask implements Service {
 		if (routingEngine == null) {
 			throw new IllegalStateException("no CamelRoutingContext provided");
 		}
-		
+
 		routingEngine.retryFailedMessages();
 	}
 

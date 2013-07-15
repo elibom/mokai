@@ -12,20 +12,19 @@ import org.java.plugin.standard.StandardPluginLifecycleHandler;
 
 /**
  * A custom PluginLifecycleHandler that ignores the services files from the
- * parent class loader. This way it will ONLY find the service files of the plugins. 
- * 
+ * parent class loader. This way it will ONLY find the service files of the plugins.
+ *
  * @author German Escobar
  */
 public class CustomPluginLifecycleHandler extends StandardPluginLifecycleHandler {
 
 	@Override
 	protected final PluginClassLoader createPluginClassLoader(final PluginDescriptor descr) {
-		
+
 		final ClassLoader parentClassLoader = new ClassLoader() {
 
 			@Override
 			public Enumeration<URL> getResources(String name) throws IOException {
-				
 				return new Enumeration<URL>() {
 
 					@Override
@@ -37,12 +36,12 @@ public class CustomPluginLifecycleHandler extends StandardPluginLifecycleHandler
 					public URL nextElement() {
 						return null;
 					}
-					
+
 				};
 			}
-			
+
 		};
-		
+
 		CustomPluginClassLoader result = AccessController
 				.doPrivileged(new PrivilegedAction<CustomPluginClassLoader>() {
 					public CustomPluginClassLoader run() {
@@ -55,5 +54,4 @@ public class CustomPluginLifecycleHandler extends StandardPluginLifecycleHandler
 		return result;
 	}
 
-	
 }

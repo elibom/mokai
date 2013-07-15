@@ -18,16 +18,15 @@ public class AndAcceptor implements Acceptor, ExposableConfiguration<AndAcceptor
 	@Label("Acceptors")
 	@AcceptorsList
 	private Collection<Acceptor> acceptors = new HashSet<Acceptor>();
-	
+
 	@Override
 	public boolean accepts(Message message) {
-		
 		for (Acceptor acceptor : acceptors) {
 			if (!acceptor.accepts(message)) {
 				return false;
 			}
 		}
-		
+
 		return true;
 	}
 
@@ -43,10 +42,10 @@ public class AndAcceptor implements Acceptor, ExposableConfiguration<AndAcceptor
 	public void setAcceptors(Collection<Acceptor> acceptors) {
 		this.acceptors = acceptors;
 	}
-	
+
 	public AndAcceptor addAcceptor(Acceptor acceptor) {
 		acceptors.add(acceptor);
-		
+
 		return this;
 	}
 

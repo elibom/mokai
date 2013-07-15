@@ -5,15 +5,15 @@ import org.mokai.ExposableConfiguration;
 import org.mokai.Message;
 
 public class MockConfigurableAcceptor implements Acceptor, ExposableConfiguration<MockConfigurableAcceptor> {
-	
+
 	private String config1;
-	
+
 	private int config2;
-	
+
 	public MockConfigurableAcceptor() {
-		
+
 	}
-	
+
 	public MockConfigurableAcceptor(String config1, int config2) {
 		this.config1 = config1;
 		this.config2 = config2;
@@ -47,13 +47,12 @@ public class MockConfigurableAcceptor implements Acceptor, ExposableConfiguratio
 
 	@Override
 	public boolean equals(Object obj) {
-		
 		if (MockConfigurableAcceptor.class.isInstance(obj)) {
 			MockConfigurableAcceptor acceptor = (MockConfigurableAcceptor) obj;
-			
+
 			return acceptor.getConfig1().equals(config1) && acceptor.getConfig2() == config2;
 		}
-		
+
 		return false;
 	}
 

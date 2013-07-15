@@ -7,7 +7,7 @@ import org.mokai.ConnectorService;
 
 /**
  * Loads applications from a XML file.
- * 
+ *
  * @author German Escobar
  */
 public class ApplicationsConfiguration extends AbstractConfiguration {
@@ -26,5 +26,5 @@ public class ApplicationsConfiguration extends AbstractConfiguration {
 	protected List<ConnectorService> getConnectors() {
 		return routingEngine.getApplications();
 	}
-	
+
 }

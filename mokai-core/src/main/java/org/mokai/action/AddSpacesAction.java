@@ -6,43 +6,42 @@ import org.mokai.Message;
 
 /**
  * An action that fills a string with spaces until the string is of the specified length.
- * 
+ *
  * @author German Escobar
  */
 public class AddSpacesAction implements Action, ExposableConfiguration<AddSpacesAction> {
-	
+
 	private String field;
-	
+
 	private int length;
 
 	@Override
 	public void execute(Message message) throws Exception {
-		
 		validateNotNull(field, "field");
-		
+
 		// validate length is positive
 		if (length < 1) {
 			throw new IllegalArgumentException("lenght must be positive");
 		}
-		
+
 		String fieldValue = message.getProperty(field, String.class);
 		if (fieldValue == null) {
 			fieldValue = "";
 		}
-		
+
 		if (fieldValue.length() < length) {
 			int missing = length - fieldValue.length();
-			
+
 			StringBuffer buffer = new StringBuffer();
 			for (int i=0; i < missing; i++) {
 				buffer.append(" ");
 			}
-			
+
 			message.setProperty(field, fieldValue + buffer.toString());
 		}
-		
+
 	}
-	
+
 	private void validateNotNull(Object object, String name) throws IllegalArgumentException {
 		if (object == null) {
 			throw new IllegalArgumentException(name + " not provided");

@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
 
 /**
  * Tells that the field is required.
- * 
+ *
  * @author German Escobar
  */
 @Documented
@@ -18,5 +18,5 @@ import java.lang.annotation.Target;
 @Target(value=FIELD)
 @Inherited
 public @interface Required {
-	
+
 }

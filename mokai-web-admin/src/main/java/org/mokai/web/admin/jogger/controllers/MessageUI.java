@@ -8,33 +8,33 @@ import org.mokai.Message;
 public class MessageUI {
 
 	private Object id;
-	
+
 	private String date;
-	
+
 	private String source;
-	
+
 	private String destination;
-	
+
 	private String status;
-	
+
 	private String to;
-	
+
 	private String from;
-	
+
 	private String sequence;
-	
+
 	private String messageId;
-	
+
 	private String cmdStatus;
-	
+
 	private String receipt;
-	
+
 	private String receiptDate;
-	
+
 	private String text;
-	
+
 	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-	
+
 	public MessageUI(Message message) {
 		this.id = message.getId().toString();
 		this.date = sdf.format( message.getCreationTime() );
@@ -56,9 +56,9 @@ public class MessageUI {
 		}
 		this.text = message.getProperty("text", String.class);
 	}
-	
+
 	private String formatStatus(byte status) {
-		
+
 		if (status == Message.STATUS_CREATED) {
 			return "CREATED";
 		} else if (status == Message.STATUS_FAILED) {
@@ -70,7 +70,7 @@ public class MessageUI {
 		} else if (status == Message.STATUS_UNROUTABLE) {
 			return "UNROUTABLE";
 		}
-		
+
 		return "UNKNWON";
 	}
 

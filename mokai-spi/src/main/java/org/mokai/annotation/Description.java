@@ -9,10 +9,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * Allows an extension (receiver, processor, action or acceptor) to have a 
- * description that can be retrieved at runtime. Useful for showing 
+ * Allows an extension (receiver, processor, action or acceptor) to have a
+ * description that can be retrieved at runtime. Useful for showing
  * information in GUI's.
- * 
+ *
  * @author German Escobar
  */
 @Documented
@@ -22,5 +22,5 @@ import java.lang.annotation.Target;
 public @interface Description {
 
 	String value();
-	
+
 }

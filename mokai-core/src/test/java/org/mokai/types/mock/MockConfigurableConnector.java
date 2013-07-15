@@ -5,25 +5,25 @@ import org.mokai.Message;
 import org.mokai.Processor;
 import org.mokai.Connector;
 
-public class MockConfigurableConnector implements Connector, Processor, 
+public class MockConfigurableConnector implements Connector, Processor,
 		ExposableConfiguration<MockConfigurableConnector> {
-	
+
 	private String config1;
 	private int config2;
-	
+
 	public MockConfigurableConnector() {
-		
+
 	}
-	
+
 	public MockConfigurableConnector(String config1, int config2) {
 		this.config1 = config1;
 		this.config2 = config2;
-			
+
 	}
 
 	@Override
 	public void process(Message message) {
-		
+
 	}
 
 	@Override
@@ -58,7 +58,7 @@ public class MockConfigurableConnector implements Connector, Processor,
 			MockConfigurableConnector conn = (MockConfigurableConnector) obj;
 			return conn.getConfig1().equals(config1) && conn.getConfig2() == config2;
 		}
-		
+
 		return false;
 	}
 
@@ -71,5 +71,5 @@ public class MockConfigurableConnector implements Connector, Processor,
 	public String toString() {
 		return "config1: " + config1 + " - config2: " + config2;
 	}
-	
+
 }

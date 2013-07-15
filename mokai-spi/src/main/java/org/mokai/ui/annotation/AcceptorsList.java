@@ -9,8 +9,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * Used to annotate an acceptor or a collection of acceptors. Tells the UI to show a list of acceptors. 
- * 
+ * Used to annotate an acceptor or a collection of acceptors. Tells the UI to show a list of acceptors.
+ *
  * @author German Escobar
  */
 @Documented

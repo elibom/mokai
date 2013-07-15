@@ -2,7 +2,7 @@ package org.mokai.config;
 
 /**
  * Exception thrown in the {@link Configuration} methods
- * 
+ *
  * @author German Escobar
  */
 public class ConfigurationException extends RuntimeException {

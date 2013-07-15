@@ -5,11 +5,11 @@ import net.gescobar.jmx.annotation.ManagedAttribute;
 import org.mokai.ui.annotation.Label;
 
 /**
- * 
+ *
  * @author German Escobar
  */
 public class IronMqProcessorConfig {
-	
+
 	@Label("Project Id")
     private String projectId;
 
@@ -21,7 +21,7 @@ public class IronMqProcessorConfig {
 
 	@Label("Field")
 	private String field = "body";
-	
+
 	@ManagedAttribute(writable=false)
     public String getProjectId() {
         return projectId;
@@ -57,5 +57,5 @@ public class IronMqProcessorConfig {
 	public void setField(String field) {
 		this.field = field;
 	}
-	
+
 }

@@ -1,10 +1,10 @@
 package org.mokai;
 
 /**
- * <p>This interface is implemented by the connectors that want to process 
- * messages. Processors usually send messages out of the framework to 
+ * <p>This interface is implemented by the connectors that want to process
+ * messages. Processors usually send messages out of the framework to
  * operators, integrators or other applications.</p>
- * 
+ *
  * @author German Escobar
  */
 public interface Processor extends Connector {
@@ -15,12 +15,12 @@ public interface Processor extends Connector {
 	 * @throws Exception
 	 */
 	void process(Message message) throws Exception;
-	
+
 	/**
 	 * Tells whether a message is supported by this processor or not.
 	 * @param message the {@link Message} to be tested
 	 * @return true if the message is supported, false otherwise.
 	 */
 	boolean supports(Message message);
-	
+
 }

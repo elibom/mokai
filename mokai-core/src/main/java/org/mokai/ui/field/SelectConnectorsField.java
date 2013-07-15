@@ -2,9 +2,9 @@ package org.mokai.ui.field;
 
 
 public class SelectConnectorsField extends InputField {
-	
+
 	public static final String TYPE = "selectConnectors";
-	
+
 	public SelectConnectorsField() {
 		super();
 	}
@@ -17,5 +17,5 @@ public class SelectConnectorsField extends InputField {
 	public final String getType() {
 		return TYPE;
 	}
-	
+
 }

@@ -10,7 +10,7 @@ import org.mokai.persist.MessageStore;
 /**
  * Default implementation of a {@link MessageStore} that does nothing and always
  * returns and empty collection of {@link Message}s
- * 
+ *
  * @author German Escobar
  */
 public class DefaultMessageStore implements MessageStore {
@@ -22,12 +22,12 @@ public class DefaultMessageStore implements MessageStore {
 
 	@Override
 	public void saveOrUpdate(Message message) {
-		
+
 	}
 
 	@Override
 	public void updateStatus(MessageCriteria criteria, byte newStatus) {
-		
+
 	}
 
 }

@@ -2,7 +2,7 @@ package org.mokai.plugin;
 
 /**
  * Wraps any exception in the {@link PluginMechanism} implementations.
- * 
+ *
  * @author German Escobar
  */
 public class PluginException extends RuntimeException {

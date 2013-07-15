@@ -1,8 +1,8 @@
 package org.mokai.persist;
 
 /**
- * 
- *  
+ *
+ *
  * @author German Escobar
  */
 public class StoreException extends RuntimeException {

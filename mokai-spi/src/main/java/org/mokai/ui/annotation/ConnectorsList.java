@@ -9,8 +9,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * Used to annotate a connector or a collection of connectors. Tells the UI to show a list of connectors. 
- * 
+ * Used to annotate a connector or a collection of connectors. Tells the UI to show a list of connectors.
+ *
  * @author German Escobar
  */
 @Documented

@@ -11,22 +11,21 @@ import org.springframework.web.context.support.GenericWebApplicationContext;
 /**
  * Extends the JoggerServlet to set the Spring ApplicationContext into the ServletContext (this is what Spring
  * actually does when you bootstrap from a Servlet environment).
- * 
+ *
  * @author German Escobar
  */
 public class MokaiJoggerServlet extends JoggerServlet implements ApplicationContextAware {
-	
+
 	private static final long serialVersionUID = 1L;
-	
+
 	private ApplicationContext applicationContext;
 
 	@Override
 	protected void doInit() {
-		
 		WebApplicationContext webApplicationContext = new GenericWebApplicationContext(
 				 new DefaultListableBeanFactory(applicationContext), getServletContext());
-		
-		getServletContext().setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, 
+
+		getServletContext().setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE,
 				webApplicationContext);
 	}
 
@@ -34,6 +33,6 @@ public class MokaiJoggerServlet extends JoggerServlet implements ApplicationCont
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
 	}
-	
-	
+
+
 }

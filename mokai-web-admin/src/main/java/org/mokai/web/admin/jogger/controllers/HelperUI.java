@@ -17,57 +17,55 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Helper class to reuse code that is used by multiples controllers, specially {@link Connections} and 
+ * Helper class to reuse code that is used by multiples controllers, specially {@link Connections} and
  * {@link Applications}.
- * 
+ *
  * @author German Escobar
  */
 public final class HelperUI {
-	
-	private static final Logger log = LoggerFactory.getLogger(HelperUI.class); 
-	
+
+	private static final Logger log = LoggerFactory.getLogger(HelperUI.class);
+
 	private HelperUI() {}
 
 	/**
 	 * Helper method. Converts a list of {@link ConnectorService} objects to a list of {@link ConnectorUI} objects.
-	 * 
+	 *
 	 * @param connectorServices the connector services that we want to convert into {@link ConnectorUI}
-	 * 
+	 *
 	 * @return a list of {@link ConnectorUI} objects.
 	 */
 	public static List<ConnectorUI> buildConnectorUIs(List<ConnectorService> connectorServices) {
-		
 		List<ConnectorUI> connectorUIs = new ArrayList<ConnectorUI>();
 		for (ConnectorService connectorService : connectorServices) {
 			connectorUIs.add( new ConnectorUI(connectorService) );
 		}
-		
+
 		return connectorUIs;
 	}
-	
+
 	/**
-	 * Helper method. Generates the JSON representation of a {@link ConnectorService} with configuration, acceptors 
+	 * Helper method. Generates the JSON representation of a {@link ConnectorService} with configuration, acceptors
 	 * (if it is a {@link Processor}) and actions.
-	 * 
+	 *
 	 * @param connectorService the connector service from which we are generating the JSON representation.
-	 * 
+	 *
 	 * @return a JSONObject that holds the information of the connector service.
 	 * @throws JSONException
 	 */
 	public static JSONObject getConnectorJSON(ConnectorService connectorService) throws JSONException {
-		
 		JSONObject jsonConnector = new ConnectorUI(connectorService).toJSON();
-		
+
 		// include configuration
 		Connector connector = connectorService.getConnector();
 		if ( ExposableConfiguration.class.isInstance(connector) ) {
 			jsonConnector.put( "configuration", getConfigJSON((ExposableConfiguration<?>) connector) );
 		}
-		
+
 		// include acceptors
 		if ( Processor.class.isInstance(connector) ) {
 			JSONArray jsonAcceptors = new JSONArray();
-			
+
 			List<Acceptor> acceptors = connectorService.getAcceptors();
 			for (Acceptor acceptor : acceptors) {
 				JSONObject jsonAcceptor = new JSONObject().put( "name", Helper.getComponentName(acceptor) );
@@ -76,38 +74,37 @@ public final class HelperUI {
 				}
 				jsonAcceptors.put(jsonAcceptor);
 			}
-			
+
 			jsonConnector.put( "acceptors", jsonAcceptors );
 		}
-		
+
 		// include post-receiving-actions
 		JSONArray jsonActions = getActionsJSON(connectorService.getPostReceivingActions());
 		jsonConnector.put( "post-receiving-actions", jsonActions );
-		
+
 		// include pre-processing-actions
 		if ( Processor.class.isInstance(connector) ) {
 			jsonActions = getActionsJSON(connectorService.getPreProcessingActions());
 			jsonConnector.put( "pre-processing-actions", jsonActions );
-			
+
 			jsonActions = getActionsJSON(connectorService.getPostProcessingActions());
 			jsonConnector.put( "post-processing-actions", jsonActions );
 		}
-		
+
 		return jsonConnector;
 	}
-	
+
 	/**
-	 * Helper method. Generates the JSON representation of a list of {@link Action} objects. 
-	 * 
+	 * Helper method. Generates the JSON representation of a list of {@link Action} objects.
+	 *
 	 * @param actions a list of actions from which we are generating the JSON representation.
-	 * 
+	 *
 	 * @return a JSONArray that holds the information of the actions.
 	 * @throws JSONException
 	 */
 	public static JSONArray getActionsJSON(List<Action> actions) throws JSONException {
-		
 		JSONArray jsonActions = new JSONArray();
-		
+
 		for (Action action : actions) {
 			JSONObject jsonAction = new JSONObject().put( "name", Helper.getComponentName(action) );
 			if ( ExposableConfiguration.class.isInstance(action) ) {
@@ -115,34 +112,33 @@ public final class HelperUI {
 			}
 			jsonActions.put(jsonAction);
 		}
-		
+
 		return jsonActions;
 	}
-	
+
 	/**
 	 * Helper method. Generates the JSON representation of the configuration of connector/acceptor/action.
-	 * 
-	 * @param o an object that implements {@link ExposableConfiguration} and from which we are generating the JSON 
+	 *
+	 * @param o an object that implements {@link ExposableConfiguration} and from which we are generating the JSON
 	 * representation.
-	 * 
+	 *
 	 * @return a JSONObject that holds the information of the configuration.
 	 * @throws JSONException
 	 */
 	public static <T extends ExposableConfiguration<?>> JSONObject getConfigJSON(T o) throws JSONException {
-
 		Object config = o.getConfiguration();
 		List<Field> fields = Helper.getConfigurationFields(config.getClass());
-		
+
 		JSONObject jsonConfig = new JSONObject();
 		for (Field field : fields) {
-			try { 
+			try {
 				field.setAccessible(true);
 				jsonConfig.put( field.getName(), field.get(config) );
 			} catch (IllegalAccessException e) {
 				log.error(e.getMessage(), e);
 			}
 		}
-		
+
 		return jsonConfig;
 	}
 }

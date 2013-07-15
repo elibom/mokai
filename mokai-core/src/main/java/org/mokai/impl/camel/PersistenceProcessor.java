@@ -12,17 +12,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Camel Processor implementation used by the {@link CamelRoutingEngine} to 
+ * Camel Processor implementation used by the {@link CamelRoutingEngine} to
  * save or update messages.
- * 
+ *
  * @author German Escobar
  */
 public class PersistenceProcessor implements Processor {
-	
+
 	private Logger log = LoggerFactory.getLogger(PersistenceProcessor.class);
-	
+
 	private ResourceRegistry resourceRegistry;
-	
+
 	public PersistenceProcessor(ResourceRegistry resourceRegistry) {
 		this.resourceRegistry = resourceRegistry;
 	}
@@ -33,19 +33,18 @@ public class PersistenceProcessor implements Processor {
 
 		try {
 			MessageStore messageStore = resourceRegistry.getResource(MessageStore.class);
-			
+
 			boolean insert = message.getId() == null;
-			
+
 			long startTime = new Date().getTime();
 			messageStore.saveOrUpdate(message);
 			long endTime = new Date().getTime();
-			
+
 			if (insert) {
 				log.trace("insert message with id " + message.getId() + " took " + (endTime - startTime) + " milis");
 			} else {
 				log.trace("update message with id " + message.getId() + " took " + (endTime - startTime) + " milis");
 			}
-			
 		} catch (RejectedException e) {
 			log.warn("the message can't be persisted: " + e.getMessage());
 		} catch (StoreException e) {

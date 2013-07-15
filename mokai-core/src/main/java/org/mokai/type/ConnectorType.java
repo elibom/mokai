@@ -5,7 +5,7 @@ import java.io.Serializable;
 import org.mokai.Connector;
 
 /**
- * 
+ *
  * @author German Escobar
  */
 public class ConnectorType implements Serializable {
@@ -13,11 +13,11 @@ public class ConnectorType implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private String name;
-	
+
 	private String description;
-	
+
 	private Class<? extends Connector> connectorClass;
-	
+
 	public ConnectorType(String name, String description, Class<? extends Connector> connectorClass) {
 		this.name = name;
 		this.description = description;
@@ -40,10 +40,10 @@ public class ConnectorType implements Serializable {
 	public final boolean equals(Object obj) {
 		if (ConnectorType.class.isInstance(obj)) {
 			ConnectorType pt = (ConnectorType) obj;
-			
+
 			return pt.getConnectorClass().equals(connectorClass);
 		}
-		
+
 		return false;
 	}
 
@@ -51,7 +51,7 @@ public class ConnectorType implements Serializable {
 	public final int hashCode() {
 		return connectorClass.hashCode();
 	}
-	
-	
-	
+
+
+
 }

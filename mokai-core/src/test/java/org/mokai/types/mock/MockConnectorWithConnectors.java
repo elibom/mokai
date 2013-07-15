@@ -9,11 +9,11 @@ import org.mokai.Connector;
 import org.mokai.ExposableConfiguration;
 
 public class MockConnectorWithConnectors implements Connector, ExposableConfiguration<MockConnectorWithConnectors> {
-	
+
 	private Connector connector;
-	
+
 	private Collection<Connector> listConnectors = new ArrayList<Connector>();
-	
+
 	private Map<String,Connector> mapConnectors = new HashMap<String,Connector>();
 
 	@Override

@@ -18,43 +18,43 @@ import org.mokai.ui.field.TextField;
 
 /**
  * Helper class for creating fields from a class using the annotations.
- * 
+ *
  * @author German Escobar
  */
 public class InputFields {
-	
+
 	private Map<Class<?>,List<InputField>> inputFields = new HashMap<Class<?>,List<InputField>>();
 
 	public final List<InputField> createFields(Class<?> clazz) {
-		List<InputField> fields = inputFields.get(clazz); 
+		List<InputField> fields = inputFields.get(clazz);
 		if (fields != null) {
 			return fields;
 		}
-		
+
 		fields = new ArrayList<InputField>();
-		
+
 		Field[] classFields = clazz.getDeclaredFields();
 		for (Field classField : classFields) {
 			String name = classField.getName();
 			String label = name;
-			
+
 			Label labelAnnotation = classField.getAnnotation(Label.class);
 			if (labelAnnotation != null) {
 				label = labelAnnotation.value();
 			}
-			
+
 			boolean fieldCreated = false;
-			
+
 			// SelectValuesField
 			org.mokai.ui.annotation.List listAnnotation = classField.getAnnotation(org.mokai.ui.annotation.List.class);
 			if (listAnnotation != null) {
 				fieldCreated = true;
-				
+
 				SelectValuesField<String> svf = new SelectValuesField<String>(name, label);
 				svf.setItems(listAnnotation.value());
 				fields.add(svf);
 			}
-			
+
 			// SelectConnectorsField
 			ConnectorsList connectorsAnnotation = classField.getAnnotation(ConnectorsList.class);
 			if (connectorsAnnotation != null) {
@@ -63,7 +63,7 @@ public class InputFields {
 				SelectConnectorsField scf = new SelectConnectorsField(name, label);
 				fields.add(scf);
 			}
-			
+
 			// TextField
 			if (!fieldCreated) {
 				if (classField.getType().equals(boolean.class) ||
@@ -76,18 +76,19 @@ public class InputFields {
 				}
 			}
 		}
-		
+
 		inputFields.put(clazz, fields);
-		
+
 		return fields;
 	}
-	
+
 	@SuppressWarnings("rawtypes")
 	public static Class<?> getConfigurationClass(Class<? extends ExposableConfiguration> clazz) throws Exception {
 		Method method = clazz.getMethod("getConfiguration");
-		
+
 		Class<?> returnClass = (Class<?>) method.getGenericReturnType();
-		
+
 		return returnClass;
 	}
+
 }

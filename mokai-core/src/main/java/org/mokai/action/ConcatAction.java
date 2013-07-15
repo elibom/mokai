@@ -9,25 +9,24 @@ import org.mokai.Message;
 
 /**
  * An action that concats multiple fields in a new field.
- * 
+ *
  * @author German Escobar
  */
 public class ConcatAction implements Action, ExposableConfiguration<ConcatAction> {
 
 	private List<String> fields = new ArrayList<String>();
-	
+
 	private String separator = "-";
-	
+
 	private String destField;
 
 	@Override
 	public void execute(Message message) throws Exception {
-		
 		// check that field is not null
 		if (destField == null) {
 			throw new IllegalArgumentException("destination field not provided");
 		}
-		
+
 		StringBuffer buffer = new StringBuffer();
 		for (String field : fields) {
 			String value = message.getProperty(field) + "";
@@ -35,12 +34,12 @@ public class ConcatAction implements Action, ExposableConfiguration<ConcatAction
 				buffer.append(value).append(separator);
 			}
 		}
-		
+
 		String concat = buffer.toString();
 		if (!"".equals(concat)) {
 			concat = concat.substring(0, concat.length()-1);
 		}
-		
+
 		message.setProperty(destField, concat);
 	}
 
@@ -72,7 +71,5 @@ public class ConcatAction implements Action, ExposableConfiguration<ConcatAction
 	public void setDestField(String destField) {
 		this.destField = destField;
 	}
-	
-	
 
 }

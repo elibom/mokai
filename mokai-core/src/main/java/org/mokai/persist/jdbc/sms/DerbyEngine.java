@@ -6,27 +6,26 @@ import org.mokai.persist.jdbc.JdbcHelper;
 import org.mokai.persist.jdbc.SqlEngine;
 
 public class DerbyEngine implements SqlEngine {
-	
+
 	private DataSource dataSource;
-	
+
 	private boolean initialized;
-	
+
 	public DerbyEngine() {}
-	
+
 	public DerbyEngine(DataSource dataSource) {
 		this.dataSource = dataSource;
 	}
 
 	@Override
 	public void init() throws Exception {
-		
 		if (initialized) {
 			return;
 		}
-		
+
 		JdbcHelper.checkCreateTable(dataSource, null, ConnectionsSmsHandler.DEFAULT_TABLENAME, getConnectionsCreateScript());
 		JdbcHelper.checkCreateTable(dataSource, null, ApplicationsSmsHandler.DEFAULT_TABLENAME, getApplicationsCreateScript());
-		
+
 		initialized = true;
 	}
 
@@ -39,11 +38,11 @@ public class DerbyEngine implements SqlEngine {
 	public void addLimitToQuery(StringBuffer query, int offset, int numRows) {
 		query.append(" OFFSET " + offset + " ROWS FETCH NEXT " + numRows + " ROWS ONLY");
 	}
-	
+
 	public void setDataSource(DataSource dataSource) {
 		this.dataSource = dataSource;
 	}
-	
+
 	protected String getConnectionsCreateScript() {
 		return "CREATE TABLE " + ConnectionsSmsHandler.DEFAULT_TABLENAME + " (" +
 					"id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1), " +
@@ -63,7 +62,7 @@ public class DerbyEngine implements SqlEngine {
 					"creation_time TIMESTAMP NOT NULL, " +
 					"modification_time TIMESTAMP)";
 	}
-	
+
 	protected String getApplicationsCreateScript() {
 		return "CREATE TABLE " + ApplicationsSmsHandler.DEFAULT_TABLENAME + " (" +
 					"id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1), " +

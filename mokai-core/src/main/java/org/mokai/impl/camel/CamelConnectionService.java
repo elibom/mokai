@@ -7,12 +7,12 @@ import org.mokai.Message.Direction;
 
 /**
  * Concrete {@link ConnectorService}. Defines the URI's of the endpoints used by connections.
- * 
+ *
  * @author German Escobar
  */
 public class CamelConnectionService extends AbstractCamelConnectorService {
 
-	public CamelConnectionService(String id, Connector connector, ResourceRegistry resourceRegistry) 
+	public CamelConnectionService(String id, Connector connector, ResourceRegistry resourceRegistry)
 			throws IllegalArgumentException, ExecutionException {
 		super(id, connector, resourceRegistry);
 	}
@@ -41,10 +41,10 @@ public class CamelConnectionService extends AbstractCamelConnectorService {
 	protected String getMessagesRouterUri() {
 		return UriConstants.APPLICATIONS_ROUTER;
 	}
-	
+
 	@Override
 	protected Direction getDirection() {
 		return Direction.TO_CONNECTIONS;
 	}
-	
+
 }

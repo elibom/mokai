@@ -137,7 +137,7 @@ public class IronMqReceiver implements Connector, Serviceable, ExposableConfigur
 
 	/**
 	 * Helper method that returns the header that should be appended to all log messages.
-	 * 
+	 *
 	 * @return the log header.
 	 */
 	private String getLogHead() {

@@ -1,7 +1,7 @@
 package org.mokai.ui.field;
 
 public class TextField extends InputField {
-	
+
 	public static final String TYPE = "text";
 
 	public TextField() {
@@ -16,5 +16,5 @@ public class TextField extends InputField {
 	public final String getType() {
 		return TYPE;
 	}
-	
+
 }

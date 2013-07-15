@@ -5,7 +5,7 @@ import org.java.plugin.registry.PluginDescriptor;
 import org.java.plugin.standard.StandardPluginClassLoader;
 
 /**
- * 
+ *
  * @author German Escobar
  */
 public class CustomPluginClassLoader extends StandardPluginClassLoader {
@@ -19,6 +19,5 @@ public class CustomPluginClassLoader extends StandardPluginClassLoader {
 	public final void setProbeParentLoaderLast(boolean value) {
 		super.setProbeParentLoaderLast(value);
 	}
-	
-	
+
 }

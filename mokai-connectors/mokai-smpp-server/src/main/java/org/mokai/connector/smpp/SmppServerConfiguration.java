@@ -6,7 +6,7 @@ import java.util.Map;
 public class SmppServerConfiguration {
 
 	private int port = 4444;
-	
+
 	private Map<String,String> users = new HashMap<String,String>();
 
 	public int getPort() {
@@ -24,10 +24,10 @@ public class SmppServerConfiguration {
 	public void setUsers(Map<String, String> users) {
 		this.users = users;
 	}
-	
+
 	public SmppServerConfiguration addUser(String systemId, String password) {
 		users.put(systemId, password);
-		
+
 		return this;
 	}
 }

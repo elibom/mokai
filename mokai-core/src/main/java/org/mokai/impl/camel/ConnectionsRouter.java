@@ -6,7 +6,7 @@ import org.mokai.ConnectorService;
 
 /**
  * Decides which connection will handle a message. It is used in the {@link CamelRoutingEngine} class.
- * 
+ *
  * @author German Escobar
  */
 public class ConnectionsRouter extends AbstractRouter {
@@ -30,6 +30,5 @@ public class ConnectionsRouter extends AbstractRouter {
 	protected String getUnroutableMessagesUri() {
 		return UriConstants.CONNECTIONS_UNROUTABLE_MESSAGES;
 	}
-	
-	
+
 }

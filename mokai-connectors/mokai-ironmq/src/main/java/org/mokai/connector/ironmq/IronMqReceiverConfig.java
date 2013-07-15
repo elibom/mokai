@@ -5,11 +5,11 @@ import net.gescobar.jmx.annotation.ManagedAttribute;
 import org.mokai.ui.annotation.Label;
 
 /**
- * 
+ *
  * @author German Escobar
  */
 public class IronMqReceiverConfig {
-	
+
 	@Label("Project Id")
     private String projectId;
 
@@ -24,7 +24,7 @@ public class IronMqReceiverConfig {
 
     @Label("Fetch Interval")
     private long fetchInterval = 1000;
-    
+
     @ManagedAttribute(writable=false)
     public String getProjectId() {
         return projectId;
@@ -51,7 +51,7 @@ public class IronMqReceiverConfig {
     public void setQueueName(String queueName) {
         this.queueName = queueName;
     }
-    
+
     @ManagedAttribute(writable=false)
     public int getNumConsumerThreads() {
         return numConsumerThreads;

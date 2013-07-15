@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
 
 /**
  * Specifies a custom label for the field.
- * 
+ *
  * @author German Escobar
  */
 @Documented
@@ -20,5 +20,5 @@ import java.lang.annotation.Target;
 public @interface Label {
 
 	String value();
-	
+
 }

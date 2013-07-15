@@ -8,13 +8,13 @@ import org.mokai.annotation.Resource;
 import org.mokai.persist.MessageStore;
 
 /**
- * 
+ *
  * @author German Escobar
  */
 @Name("MockAcceptor") // do not change, this is validated in the tests
 @Description("Mock Acceptor Description") // do not change
 public class MockAcceptor implements Acceptor {
-	
+
 	/**
 	 * This field is here to test inject resources
 	 */
@@ -28,7 +28,7 @@ public class MockAcceptor implements Acceptor {
 
 	/**
 	 * This method is here to test inject resources
-	 * 
+	 *
 	 * @return
 	 */
 	public MessageStore getMessageStore() {

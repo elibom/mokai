@@ -11,16 +11,16 @@ public class JettyConfiguration {
 
 	@Label("Port")
 	private int port = 9080;
-	
+
 	@Label("Context")
 	private String context = "/";
-	
+
 	@Label("Use Basic Auth")
 	private boolean useBasicAuth = false;
-	
+
 	@Label("Users")
 	private Map<String,String> users = new HashMap<String,String>();
-	
+
 	@Label("Mapper")
 	private Map<String,String> mapper = new HashMap<String,String>();
 
@@ -39,7 +39,7 @@ public class JettyConfiguration {
 	}
 
 	public void setContext(String context) {
-		
+
 		this.context = context;
 	}
 
@@ -60,11 +60,11 @@ public class JettyConfiguration {
 	public void setUsers(Map<String, String> users) {
 		this.users = users;
 	}
-	
+
 	public void addUser(String username, String password) {
 		this.users.put(username, password);
 	}
-	
+
 	@ManagedAttribute
 	public Map<String, String> getMapper() {
 		return mapper;
@@ -73,5 +73,5 @@ public class JettyConfiguration {
 	public void setMapper(Map<String, String> mapper) {
 		this.mapper = mapper;
 	}
-	
+
 }

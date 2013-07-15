@@ -6,9 +6,9 @@ import java.util.List;
 public class Domain {
 
 	private String name;
-	
+
 	private List<String> mBeans = new ArrayList<String>();
-	
+
 	public Domain(String name) {
 		this.name = name;
 	}
@@ -32,5 +32,5 @@ public class Domain {
 	public void addmBean(String mBean) {
 		mBeans.add(mBean);
 	}
-	
+
 }

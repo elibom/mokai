@@ -8,25 +8,24 @@ import org.mokai.ui.annotation.Required;
 
 /**
  * Copies the value of a property into another property
- * 
+ *
  * @author German Escobar
  */
 public class CopyAction implements Action, ExposableConfiguration<CopyAction> {
-	
+
 	@Required
 	@Label("From Field")
 	private String from;
-	
+
 	@Required
 	@Label("To Field")
 	private String to;
-	
+
 	@Label("Delete From Field")
 	private boolean deleteFrom = false;
 
 	@Override
 	public void execute(Message message) throws Exception {
-		
 		// validate input
 		if (from == null) {
 			throw new IllegalArgumentException("from property not provided");
@@ -34,15 +33,14 @@ public class CopyAction implements Action, ExposableConfiguration<CopyAction> {
 		if (to == null) {
 			throw new IllegalArgumentException("to property not provided");
 		}
-		
+
 		if (message.getProperty(from) != null) {
 			message.setProperty(to, message.getProperty(from));
-			
+
 			if (deleteFrom) {
 				message.removeProperty(from);
 			}
 		}
-		
 	}
 
 	@Override

@@ -7,28 +7,28 @@ import org.mokai.Processor;
 
 /**
  * DTO used to pass connectors to the view.
- * 
+ *
  * @author German Escobar
  */
 public class ConnectorUI {
 
 	private String id;
-	
+
 	private String type;
-	
+
 	private String state;
-	
+
 	private String status;
-	
+
 	private int queuedMessages;
-	
+
 	private boolean processor;
-	
+
 	private int priority;
-	
+
 	public ConnectorUI() {
 	}
-	
+
 	public ConnectorUI(ConnectorService connectorService) {
 		this.id = connectorService.getId();
 		this.type = Helper.getComponentName(connectorService.getConnector());
@@ -46,7 +46,7 @@ public class ConnectorUI {
 	public void setId(String id) {
 		this.id = id;
 	}
-	
+
 	public ConnectorUI withId(String id) {
 		setId(id);
 		return this;
@@ -59,7 +59,7 @@ public class ConnectorUI {
 	public void setType(String type) {
 		this.type = type;
 	}
-	
+
 	public ConnectorUI withType(String type) {
 		setType(type);
 		return this;
@@ -72,7 +72,7 @@ public class ConnectorUI {
 	public void setState(String state) {
 		this.state = state;
 	}
-	
+
 	public ConnectorUI withState(String state) {
 		setState(state);
 		return this;
@@ -85,7 +85,7 @@ public class ConnectorUI {
 	public void setStatus(String status) {
 		this.status = status;
 	}
-	
+
 	public ConnectorUI withStatus(String status) {
 		setStatus(status);
 		return this;
@@ -98,7 +98,7 @@ public class ConnectorUI {
 	public void setQueuedMessages(int queuedMessages) {
 		this.queuedMessages = queuedMessages;
 	}
-	
+
 	public ConnectorUI withQueuedMessages(int queuedMessages) {
 		setQueuedMessages(queuedMessages);
 		return this;
@@ -111,7 +111,7 @@ public class ConnectorUI {
 	public void setProcessor(boolean processor) {
 		this.processor = processor;
 	}
-	
+
 	public ConnectorUI withProcessor(boolean processor) {
 		setProcessor(processor);
 		return this;
@@ -124,7 +124,7 @@ public class ConnectorUI {
 	public void setPriority(int priority) {
 		this.priority = priority;
 	}
-	
+
 	public JSONObject toJSON() throws JSONException {
 		return new JSONObject()
 			.put("id", id)
@@ -135,5 +135,5 @@ public class ConnectorUI {
 			.put("isProcessor", processor)
 			.put("priority", priority);
 	}
-	
+
 }

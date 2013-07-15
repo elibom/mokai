@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 /**
  * This class is used to inject resources to the types (receivers, processors,
  * acceptors or actions).
- * 
+ *
  * @author German Escobar
  */
 @Documented

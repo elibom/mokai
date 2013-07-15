@@ -13,37 +13,37 @@ public class HttpConfiguration {
 	@Required
 	@Label("Url")
 	private String url;
-	
+
 	@Label("Http Method")
 	private String method = "GET";
-	
+
 	@Label("Encoding")
 	private String encoding = "ISO-8859-1";
-	
+
 	@Label("Throw Exception on Failure")
 	private boolean throwExceptionOnFailure = true;
-	
+
 	@Label("Additional Params")
 	private Map<String,String> additionalParams = new HashMap<String,String>();
-	
+
 	@Label("Basic Auth")
 	private boolean basicAuth;
-	
+
 	@Label("Basic - Username")
 	private String username;
-	
+
 	@Label("Basic - Password")
 	private String password;
-	
+
 	@Label("Mapper")
 	private Map<String,String> mapper = new HashMap<String,String>();
-	
+
 	@Label("Connection Timeout")
 	private int connectionTimeout = 30000;
-	
+
 	@Label("Socket Timeout")
 	private int socketTimeout = 30000;
-	
+
 	@ManagedAttribute
 	public String getUrl() {
 		return url;
@@ -75,7 +75,7 @@ public class HttpConfiguration {
 	public Map<String, String> getAdditionalParams() {
 		return additionalParams;
 	}
-	
+
 	public void setAdditionalParams(Map<String, String> additionalParams) {
 		this.additionalParams = additionalParams;
 	}
@@ -142,5 +142,5 @@ public class HttpConfiguration {
 	public void setSocketTimeout(int socketTimeout) {
 		this.socketTimeout = socketTimeout;
 	}
-	
+
 }

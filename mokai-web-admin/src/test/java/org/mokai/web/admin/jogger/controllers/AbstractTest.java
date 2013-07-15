@@ -14,13 +14,11 @@ public class AbstractTest extends SpringJoggerTest {
 
 	@Override
 	protected Interceptors getInterceptors() {
-		
 		AppInterceptors interceptors = new AppInterceptors();
 		interceptors.setApplicationContext( getSpringContext() );
 		interceptors.initialize();
-		
+
 		return interceptors;
-		
 	}
 
 	@Override
@@ -33,7 +31,7 @@ public class AbstractTest extends SpringJoggerTest {
 		MockJoggerServlet joggerServlet = new MockJoggerServlet();
 		joggerServlet.setInterceptors( getInterceptors() );
 		joggerServlet.setTemplatesPath("src/main/resources/webapp/WEB-INF/freemarker");
-		
+
 		return joggerServlet;
 	}
 

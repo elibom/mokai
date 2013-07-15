@@ -13,27 +13,27 @@ import org.mokai.ObjectAlreadyExistsException;
 import org.mokai.ObjectNotFoundException;
 
 public class MockConnectorService implements ConnectorService {
-	
+
 	private String id;
-	
+
 	private int priority;
-	
+
 	private State state = State.STOPPED;
-	
+
 	private Status status = Status.OK;
-	
+
 	private int maxConcurrentMsgs;
-	
+
 	private Connector connector;
-	
+
 	private List<Acceptor> acceptors = new ArrayList<Acceptor>();
-	
+
 	private List<Action> preProcessingActions = new ArrayList<Action>();
-	
+
 	private List<Action> postProcessingActions = new ArrayList<Action>();
-	
+
 	private List<Action> postReceivingActions = new ArrayList<Action>();
-	
+
 	public MockConnectorService(String id, Connector connector) {
 		this.id = id;
 		this.connector = connector;

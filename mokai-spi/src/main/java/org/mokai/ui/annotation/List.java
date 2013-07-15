@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
 @Target(value=FIELD)
 @Inherited
 public @interface List {
-	
+
 	String[] value();
-	
+
 }

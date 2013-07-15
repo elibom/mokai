@@ -11,40 +11,39 @@ import org.mokai.ui.annotation.List;
 
 /**
  * Acceptor that matches a {@link Message} property to a regular expression.
- * 
+ *
  * @author German Escobar
  */
 public class RegExpAcceptor implements Acceptor, ExposableConfiguration<RegExpAcceptor> {
-	
+
 	@Label("Field")
 	@List({"to", "from", "text"})
 	private String field;
-	
+
 	@Label("Regular Expression")
 	private String regexp;
-	
+
 	public RegExpAcceptor() {
-		
+
 	}
-	
+
 	public RegExpAcceptor(String regexp) {
 		this.regexp = regexp;
 	}
 
 	@Override
 	public final boolean accepts(Message message) {
-			
 		String value = message.getProperty(field, String.class);
-			
+
 		if (value != null) {
 			Pattern pattern = Pattern.compile(regexp);
 			Matcher matcher = pattern.matcher(value);
-				
+
 			if (matcher.matches()) {
 				return true;
 			}
 		}
-		
+
 		return false;
 	}
 
@@ -74,5 +73,5 @@ public class RegExpAcceptor implements Acceptor, ExposableConfiguration<RegExpAc
 		return "RegExpAcceptor [field=" + field + ",regexp=" + regexp + "]";
 	}
 
-	
+
 }

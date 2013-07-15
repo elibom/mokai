@@ -6,7 +6,7 @@ import org.mokai.ConnectorService;
 
 /**
  * Decides which application will handle a message. It is used in the {@link CamelRoutingEngine} class.
- * 
+ *
  * @author German Escobar
  */
 public class ApplicationsRouter extends AbstractRouter {
@@ -15,7 +15,7 @@ public class ApplicationsRouter extends AbstractRouter {
 	protected List<ConnectorService> getConnectorServices() {
 		return routingEngine.getApplications();
 	}
-	
+
 	@Override
 	protected ConnectorService getConnectorService(String id) {
 		return routingEngine.getApplication(id);
@@ -31,5 +31,4 @@ public class ApplicationsRouter extends AbstractRouter {
 		return UriConstants.APPLICATIONS_UNROUTABLE_MESSAGES;
 	}
 
-	
 }

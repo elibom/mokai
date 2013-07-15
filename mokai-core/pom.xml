@@ -17,12 +17,17 @@
 			<groupId>org.apache.camel</groupId>
 			<artifactId>camel-core</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.apache.activemq</groupId>
 			<artifactId>activemq-camel</artifactId>
 		</dependency>
-		
+
+		<dependency>
+			<groupId>org.apache.activemq</groupId>
+			<artifactId>activemq-kahadb-store</artifactId>
+		</dependency>
+
 		<dependency>
 			<groupId>net.gescobar</groupId>
 			<artifactId>jmx-annotations</artifactId>
@@ -93,19 +98,19 @@
 			<artifactId>mokai-spi</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
+
 		<dependency>
-    		<groupId>de.flapdoodle.embed</groupId>
-    		<artifactId>de.flapdoodle.embed.mongo</artifactId>
-    		<version>1.27</version>
-    		<scope>test</scope>
+			<groupId>de.flapdoodle.embed</groupId>
+			<artifactId>de.flapdoodle.embed.mongo</artifactId>
+			<version>1.27</version>
+			<scope>test</scope>
 		</dependency>
-		
+
 	</dependencies>
 
 	<build>
 		<plugins>
-		
+
 			<!-- generate sources -->
 			<plugin>
 				<artifactId>maven-source-plugin</artifactId>
@@ -120,7 +125,7 @@
 					</execution>
 				</executions>
 			</plugin>
-		
+
 			<!-- generate zip file -->
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
@@ -157,8 +162,8 @@
 							<includeDependencySources>true</includeDependencySources>
 							
 							<dependencySourceIncludes>
-                				<dependencySourceInclude>org.mokai:mokai-spi</dependencySourceInclude>
-              				</dependencySourceIncludes>
+								<dependencySourceInclude>org.mokai:mokai-spi</dependencySourceInclude>
+							</dependencySourceIncludes>
 						</configuration>
 					</execution>
 				</executions>

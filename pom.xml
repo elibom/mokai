@@ -69,6 +69,11 @@
 				<version>${activemq.version}</version>
 			</dependency>
 			<dependency>
+				<groupId>org.apache.activemq</groupId>
+				<artifactId>activemq-kahadb-store</artifactId>
+				<version>${activemq.version}</version>
+			</dependency>
+			<dependency>
 				<groupId>org.apache.camel</groupId>
 				<artifactId>camel-jetty</artifactId>
 				<version>${camel.version}</version>

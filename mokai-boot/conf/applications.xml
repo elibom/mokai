@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <connectors xmlns="http://mokai.googlecode.com/connectors" 
-		   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		   xsi:schemaLocation=
-		   	"http://mokai.googlecode.com/connectors http://mokai.googlecode.com/svn/schema/connectors-0.8.xsd">
-  
-  <connector id="jetty-test" className="org.mokai.connector.jetty.JettyConnector">
-  	<configuration>
-   		<property name="port">9081</property>
-    </configuration>
-  </connector>
-  
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation=
+			"http://mokai.googlecode.com/connectors http://mokai.googlecode.com/svn/schema/connectors-0.8.xsd">
+
+	<connector id="jetty-test" className="org.mokai.connector.jetty.JettyConnector">
+		<configuration>
+			<property name="port">9081</property>
+		</configuration>
+	</connector>
+
 </connectors>

@@ -7,7 +7,7 @@ import org.mokai.impl.camel.CamelRoutingEngine;
 /**
  * This class is configured in the core-context.xml file with dependencies to all the
  * classes that need to be configured before starting the routing engine.
- * 
+ *
  * @author German Escobar
  */
 public class RoutingEngineLifecycle {

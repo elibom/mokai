@@ -33,8 +33,8 @@ public class NettosphereServer {
 				.host(host)
 				.resource("/*", atmosphereHandler)
 				.port(port)
-                .build()
-            ).build();
+				.build()
+				).build();
 
 		server.start();
 	}

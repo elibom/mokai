@@ -7,7 +7,7 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 /**
  * Boots the gateway using Spring configuration files.
- * 
+ *
  * @author German Escobar
  */
 public final class Main {

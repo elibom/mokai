@@ -46,7 +46,7 @@
     	<property name="start" value="true" />
   	</bean>
 	
-	<bean id="activeMQConnectionFactory" class="org.apache.activemq.pool.PooledConnectionFactory" depends-on="broker">
+	<bean id="activeMQConnectionFactory" class="org.apache.activemq.pool.PooledConnectionFactory" depends-on="broker" destroy-method="stop">
 		<constructor-arg value="vm://mokai-broker" />
 		<property name="maxConnections" value="8" />
 		<property name="maximumActive" value="500" />

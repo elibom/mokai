@@ -238,6 +238,14 @@ public class CamelRoutingEngine implements RoutingEngine {
 			}
 		}
 
+		executor.shutdown();
+		try {
+			boolean terminated = executor.awaitTermination(5, TimeUnit.SECONDS);
+			if (!terminated) {
+				log.info("connectors didn't stop after 5 seconds");
+			}
+		} catch (Exception e) {}
+
 		log.info("all connectors stopped");
 	}
 

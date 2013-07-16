@@ -166,7 +166,7 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 	private void startInboundRoutes() throws Exception {
 		// start the routes
 		for (RouteDefinition route : inboundRoutes) {
-			camelContext.startRoute(route);
+			camelContext.startRoute(route.getId());
 		}
 	}
 
@@ -184,7 +184,7 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 	private void startOutboundRoutes() throws Exception {
 		// start the routes
 		for (RouteDefinition route : outboundRoutes) {
-			camelContext.startRoute(route);
+			camelContext.startRoute(route.getId());
 		}
 	}
 
@@ -667,7 +667,7 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 		// stop the outbound routes before stopping the connector
 		try {
 			for (RouteDefinition route : outboundRoutes) {
-				camelContext.stopRoute(route);
+				camelContext.stopRoute(route.getId());
 			}
 		} catch (Exception e) {
 			throw new ExecutionException(e);
@@ -679,7 +679,7 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 		// stop the inbound routes after stopping the connector
 		try {
 			for (RouteDefinition route : inboundRoutes) {
-				camelContext.stopRoute(route);
+				camelContext.stopRoute(route.getId());
 			}
 		} catch (Exception e) {
 			throw new ExecutionException(e);
@@ -706,6 +706,7 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 		// stop and destroy
 		stop();
 		LifecycleMethodsHelper.destroy(connector);
+
 	}
 
 	@Override

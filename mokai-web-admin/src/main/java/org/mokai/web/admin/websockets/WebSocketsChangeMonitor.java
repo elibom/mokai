@@ -121,19 +121,14 @@ public class WebSocketsChangeMonitor implements Service {
 		private Map<String,ConnectorMonitor> connections = new HashMap<String,ConnectorMonitor>();
 
 		/**
-		 * The number of messages queued in the applications router.
-		 */
-		private int queuedInApplications;
-
-		/**
-		 * The number of messages queued in the connections router.
-		 */
-		private int queuedInConnections;
-
-		/**
 		 * The number of messages that failed.
 		 */
 		private int failed;
+
+		/**
+		 * The number of messages that are unroutable.
+		 */
+		private int unroutable;
 
 		/**
 		 * The interval between executions.
@@ -142,26 +137,19 @@ public class WebSocketsChangeMonitor implements Service {
 
 		@Override
 		public void run() {
-
 			while ( Service.State.STARTED.equals(state) ) {
 				monitor();
 			}
-
 		}
 
 		/**
 		 * Helper method that actually checks if there are changes and notifies them.
 		 */
 		private void monitor() {
-
 			boolean changed = monitorConnectors(routingEngine.getApplications(), applications,
 					Direction.TO_APPLICATIONS);
 			changed = monitorConnectors(routingEngine.getConnections(), connections,
 					Direction.TO_CONNECTIONS) ? true : changed;
-
-			changed = monitorQueuedInApplications(routingEngine.getNumQueuedInApplicationsRouter()) ?
-					true : changed;
-			changed = monitorQueuedInConnections(routingEngine.getNumQueuedInConnectionsRouter()) ? true : changed;
 
 			MessageCriteria criteria = new MessageCriteria()
 				.addStatus(Message.STATUS_FAILED)
@@ -172,6 +160,20 @@ public class WebSocketsChangeMonitor implements Service {
 				try {
 					JSONObject json = new JSONObject().put("eventType", "FAILED_CHANGED")
 							.put( "data", new JSONObject().put("value", failed) );
+					broadcaster.broadcast(json.toString());
+				} catch (JSONException e) {
+					log.error("JSONException while notifying failed: " + e.getMessage(), e);
+				}
+				changed = true;
+			}
+
+			criteria = new MessageCriteria().addStatus(Message.STATUS_UNROUTABLE);
+			int actualUnroutable =  routingEngine.getMessageStore().list(criteria).size();
+			if (unroutable != actualUnroutable) {
+				unroutable = actualUnroutable;
+				try {
+					JSONObject json = new JSONObject().put("eventType", "UNROUTABLE_CHANGED")
+							.put( "data", new JSONObject().put("value", unroutable) );
 					broadcaster.broadcast(json.toString());
 				} catch (JSONException e) {
 					log.error("JSONException while notifying failed: " + e.getMessage(), e);
@@ -191,45 +193,6 @@ public class WebSocketsChangeMonitor implements Service {
 					lock.wait(interval);
 				}
 			} catch (InterruptedException e) {}
-
-		}
-
-		private boolean monitorQueuedInApplications(int actuallyQueuedInApplications) {
-
-			if (queuedInApplications != actuallyQueuedInApplications) {
-				queuedInApplications = actuallyQueuedInApplications;
-
-				try {
-					JSONObject json = new JSONObject().put("eventType", "TO_APPLICATIONS_CHANGED")
-							.put( "data", new JSONObject().put("value", queuedInApplications) );
-					broadcaster.broadcast(json.toString());
-				} catch (JSONException e) {
-					log.error("JSONException while notifying queued messages in applications: " + e.getMessage(), e);
-				}
-
-				return true;
-			}
-
-			return false;
-		}
-
-		private boolean monitorQueuedInConnections(int actuallyQueuedInConnections) {
-
-			if (queuedInConnections != actuallyQueuedInConnections) {
-				queuedInConnections = actuallyQueuedInConnections;
-
-				try {
-					JSONObject json = new JSONObject().put("eventType", "TO_CONNECTIONS_CHANGED")
-							.put( "data", new JSONObject().put("value", queuedInConnections) );
-					broadcaster.broadcast(json.toString());
-				} catch (JSONException e) {
-					log.error("JSONException while notifying queued messages in connections: " + e.getMessage(), e);
-				}
-
-				return true;
-			}
-
-			return false;
 
 		}
 

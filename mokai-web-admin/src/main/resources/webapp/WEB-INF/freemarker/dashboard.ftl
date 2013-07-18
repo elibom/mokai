@@ -7,17 +7,10 @@
 			<span class="number red">${failedMsgs}</span>
 			<span class="tag">Failed</span>
 		</div>
-			
-		<div id="toApplications" class="metric">
-			<span class="number">${toApplications}</span>
-			<span class="tag">To Applications</span>
+		<div id="unroutableMessages" class="metric">
+			<span class="number red">${unroutableMsgs}</span>
+			<span class="tag">Unroutable</span>
 		</div>
-			
-		<div id="toConnections" class="metric">
-			<span class="number">${toConnections}</span>
-			<span class="tag">To Connections</span>
-		</div>
-			
 	</div>
 	
 	<div id="body" class="row">
@@ -286,12 +279,10 @@
  				connectorServiceChanged(json, "application");
  			} else if (json.eventType === "CONNECTION_CHANGED") {
  				connectorServiceChanged(json, "connection");
- 			} else if (json.eventType === "TO_APPLICATIONS_CHANGED") {
- 				$('#toApplications span.number').html(json.data.value);
- 			} else if (json.eventType === "TO_CONNECTIONS_CHANGED") {
- 				$('#toConnections span.number').html(json.data.value);
  			} else if (json.eventType === "FAILED_CHANGED") {
  				$('#failedMessages span.number').html(json.data.value);
+ 			} else if (json.eventType == 'UNROUTABLE_CHANGED') {
+ 				$('#unroutableMessages span.number').html(json.data.value);
  			}
  			
  			//alert(message);

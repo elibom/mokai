@@ -803,10 +803,7 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 		ConnectorService processorService = new MockConnectorService("test", processor, resourceRegistry);
 
 		simulateMessage(new Message(), "activemq:mokai-test");
-
 		Thread.sleep(3000);
-
-		Assert.assertEquals(1, processorService.getNumQueuedMessages());
 
 		Assert.assertEquals(0, processor.getCount());
 
@@ -818,8 +815,6 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 		failedEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
 
 		Assert.assertEquals(2, processor.getCount());
-
-		Assert.assertEquals(0, processorService.getNumQueuedMessages());
 	}
 
 	@Test
@@ -947,6 +942,11 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 		@Override
 		protected String getOutboundUriPrefix() {
 			return "activemq:mokai-";
+		}
+
+		@Override
+		protected String getOutboundIntUriPrefix() {
+			return "direct:mokai-int-";
 		}
 
 		@Override

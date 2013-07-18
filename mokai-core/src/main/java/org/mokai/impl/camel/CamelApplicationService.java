@@ -32,6 +32,11 @@ public class CamelApplicationService extends AbstractCamelConnectorService {
 	}
 
 	@Override
+	protected String getOutboundIntUriPrefix() {
+		return "direct:application-int-";
+	}
+
+	@Override
 	protected String getInboundUriPrefix() {
 		return "direct:application-";
 	}

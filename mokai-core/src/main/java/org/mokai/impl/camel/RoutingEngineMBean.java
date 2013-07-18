@@ -40,14 +40,4 @@ public class RoutingEngineMBean {
 		return routingEngine.getMessageStore().list(criteria).size();
 	}
 
-	@ManagedAttribute(description="Number of messages queued in the connections router.")
-	public int getNumQueuedInConnectionsRouter() {
-		return routingEngine.getNumQueuedInConnectionsRouter();
-	}
-
-	@ManagedAttribute(description="Number of messages queued in the connections router.")
-	public int getNumQueuedInApplicationsRouter() {
-		return routingEngine.getNumQueuedInApplicationsRouter();
-	}
-
 }

@@ -1,17 +1,21 @@
 package org.mokai.impl.camel;
 
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import javax.management.InstanceNotFoundException;
+import javax.management.MBeanServer;
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelExecutionException;
 import org.apache.camel.Exchange;
 import org.apache.camel.ProducerTemplate;
-import org.apache.camel.ServiceStatus;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.RouteDefinition;
-import org.apache.camel.spi.BrowsableEndpoint;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.mokai.Acceptor;
@@ -210,15 +214,17 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 
 				}).to(getFailedMessagesUri());
 
+				// from the internal queue to the post-processing actions which puts the message in the processed URI
+				// added first, although this is the second part of the route ... otherwise we could lose messages
+				// because this is a direct endpoint
+				from(getOutboundInternalUri())
+					.process(new ConnectorProcessor()) // execute the connector
+					.process(new ActionsProcessor(postProcessingActions, getProcessedMessagesUri()));
+
 				// from the connector queue to the pre-processing actions which puts the message(s) in an internal queue
 				from(getOutboundUri())
 					.process(new OutboundMessageProcessor()) // sets the destination
 					.process(new ActionsProcessor(preProcessingActions, getOutboundInternalUri())); // pre-processing actions
-
-				// fromt the internal queue to the post-processing actions which puts the message in the processed URI
-				from(getOutboundInternalUri())
-					.process(new ConnectorProcessor()) // execute the connector
-					.process(new ActionsProcessor(postProcessingActions, getProcessedMessagesUri()));
 
 			}
 
@@ -346,16 +352,48 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 
 	@Override
 	public final int getNumQueuedMessages() {
-		if (camelContext.getStatus() != ServiceStatus.Started) {
+		MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
+
+		try {
+			ObjectName name = buildObjectName(getDirection());
+			if (name == null) {
+				return -1;
+			}
+
+			Object object = mBeanServer.getAttribute(name, "QueueSize");
+			if (object == null) {
+				return -1;
+			}
+
+			return ((Long) object).intValue();
+		} catch (InstanceNotFoundException e) {
+			return -1;
+		} catch (Exception e) {
+			log.error("Exception getting num queued messages: " + e.getMessage(), e);
 			return -1;
 		}
+	}
 
-		BrowsableEndpoint queueEndpoint = camelContext.getEndpoint(getOutboundUriPrefix() + id, BrowsableEndpoint.class);
-		int num = queueEndpoint.getExchanges().size();
+	/**
+	 * Helper method. Builds the object name we use to retrieve the queue size.
+	 *
+	 * @param direction
+	 *
+	 * @return
+	 * @throws NullPointerException
+	 * @throws MalformedObjectNameException
+	 */
+	private ObjectName buildObjectName(Direction direction) throws MalformedObjectNameException, NullPointerException {
+		String name = "org.apache.activemq:type=Broker,brokerName=mokai-broker,destinationType=Queue,destinationName=";
+		if (direction == Direction.TO_APPLICATIONS) {
+			name += "application";
+		} else if (direction == Direction.TO_CONNECTIONS) {
+			name += "connection";
+		} else {
+			return null;
+		}
 
-		num += camelContext.getEndpoint(getOutboundInternalUri(), BrowsableEndpoint.class).getExchanges().size();
-
-		return num;
+		return new ObjectName(name + "-" + getId());
 	}
 
 	@Override
@@ -545,7 +583,6 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 
 	@Override
 	public final Status getStatus() {
-
 		Status retStatus = status; // the status we are returning
 
 		// check if the processor is monitorable
@@ -577,7 +614,7 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 	 * @see ConnectionsRouter
 	 */
 	private String getOutboundUri() {
-		return getOutboundUriPrefix() + id;
+		return getOutboundUriPrefix() + id + "?maxConcurrentConsumers=" + maxConcurrentMsgs + "&consumer.prefetchSize=1";
 	}
 
 	/**
@@ -588,7 +625,7 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 	 * actions.
 	 */
 	private String getOutboundInternalUri() {
-		return getOutboundUriPrefix() + "int-" + id + "?maxConcurrentConsumers=" + maxConcurrentMsgs;
+		return getOutboundIntUriPrefix() + id;
 	}
 
 	/**
@@ -664,9 +701,10 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 			return;
 		}
 
-		// stop the outbound routes before stopping the connector
+		// stop the outbound routes before stopping the connector (in reverse order to avoid lost message)
 		try {
-			for (RouteDefinition route : outboundRoutes) {
+			List<RouteDefinition> reversedOutboundRoutes = reverse(outboundRoutes);
+			for (RouteDefinition route : reversedOutboundRoutes) {
 				camelContext.stopRoute(route.getId());
 			}
 		} catch (Exception e) {
@@ -694,6 +732,16 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 				log.error("Exception calling ConnectorServiceChangeListener#changed for connector " + id, e);
 			}
 		}
+	}
+
+	private List<RouteDefinition> reverse(List<RouteDefinition> routes) {
+		List<RouteDefinition> reversedRoutes = new ArrayList<RouteDefinition>();
+
+		for (int i=(routes.size()-1); i >= 0; i--) {
+			reversedRoutes.add(routes.get(i));
+		}
+
+		return reversedRoutes;
 	}
 
 	/**
@@ -858,6 +906,13 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 	 * @return a string with the outbound uri prefix.
 	 */
 	protected abstract String getOutboundUriPrefix();
+
+	/**
+	 * The <strong>outbound uri internal</strong> is the endpoint between the pre-processing actions and the connector.
+	 *
+	 * @return a string with the outbound uri internal prefix.
+	 */
+	protected abstract String getOutboundIntUriPrefix();
 
 	/**
 	 * The inbound uri is the enpoint where messages are received from a {@link MessageProducer}) and handled

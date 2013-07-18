@@ -80,7 +80,6 @@ public class ActionsProcessor implements Processor {
 			stopped = true;
 		}
 
-
 		@Override
 		public void route(Message message) throws Exception {
 			index = initialIndex; // reset index just in case it is called a second time

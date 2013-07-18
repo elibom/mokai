@@ -21,11 +21,9 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.camel.CamelContext;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.ProducerTemplate;
-import org.apache.camel.ServiceStatus;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.impl.DefaultCamelContext;
-import org.apache.camel.spi.BrowsableEndpoint;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.mokai.Connector;
@@ -487,26 +485,6 @@ public class CamelRoutingEngine implements RoutingEngine {
 
 	public final CamelContext getCamelContext() {
 		return camelContext;
-	}
-
-	@Override
-	public final int getNumQueuedInConnectionsRouter() {
-		if (camelContext.getStatus() != ServiceStatus.Started) {
-			return -1;
-		}
-
-		BrowsableEndpoint queueEndpoint = camelContext.getEndpoint(UriConstants.CONNECTIONS_ROUTER, BrowsableEndpoint.class);
-		return queueEndpoint.getExchanges().size();
-	}
-
-	@Override
-	public final int getNumQueuedInApplicationsRouter() {
-		if (camelContext.getStatus() != ServiceStatus.Started) {
-			return -1;
-		}
-
-		BrowsableEndpoint queueEndpoint = camelContext.getEndpoint(UriConstants.APPLICATIONS_ROUTER, BrowsableEndpoint.class);
-		return queueEndpoint.getExchanges().size();
 	}
 
 	public ConnectorServiceChangeListener getConnectorServiceChangeListener() {

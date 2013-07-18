@@ -7,7 +7,7 @@
 
 	<connector id="fake-1" className="org.mokai.connector.FakeProcessor">
 		<configuration>
-			<property name="delay" value="20000" />
+			<property name="delay" value="100" />
 		</configuration>
 		<acceptors>
 			<acceptor className="org.mokai.acceptor.AcceptAllAcceptor" />

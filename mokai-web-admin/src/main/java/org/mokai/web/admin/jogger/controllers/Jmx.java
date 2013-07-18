@@ -188,10 +188,27 @@ public class Jmx {
 		try {
 			JSONObject jsonData = new JSONObject(strJson);
 
-			// just for checking if the attribute exists
-			mBeanServer.getAttribute(new ObjectName(mBean), attributeName);
+			MBeanAttributeInfo[] attributesInfo = mBeanServer.getMBeanInfo(new ObjectName(mBean)).getAttributes();
+			MBeanAttributeInfo attributeInfo = null;
+			for (MBeanAttributeInfo ai : attributesInfo) {
+				if (ai.getName().equals(attributeName)) {
+					attributeInfo = ai;
+				}
+			}
 
-			Attribute attribute = new Attribute(attributeName, jsonData.get("value"));
+			if (attributeInfo == null) {
+				throw new AttributeNotFoundException(attributeName);
+			}
+
+			String type = attributeInfo.getType();
+			Object value = null;
+			if (type.contains("long")) {
+				value = jsonData.getLong("value");
+			} else {
+				value = jsonData.get("value");
+			}
+
+			Attribute attribute = new Attribute(attributeName, value);
 			mBeanServer.setAttribute(new ObjectName(mBean), attribute);
 		} catch (JSONException e) {
 			response.badRequest().print( "{\"message\": \"" + e.getMessage() + "\"}" );

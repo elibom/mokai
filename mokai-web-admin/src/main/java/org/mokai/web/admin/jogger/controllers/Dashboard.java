@@ -25,20 +25,19 @@ public class Dashboard {
 		List<ConnectorUI> connections = HelperUI.buildConnectorUIs( routingEngine.getConnections() );
 		List<ConnectorUI> applications = HelperUI.buildConnectorUIs( routingEngine.getApplications() );
 
-		int toConnections = routingEngine.getNumQueuedInConnectionsRouter();
-		int toApplications = routingEngine.getNumQueuedInApplicationsRouter();
-
 		MessageCriteria criteria = new MessageCriteria()
 			.addStatus(Message.STATUS_FAILED)
 			.addStatus(Message.STATUS_RETRYING);
 		int failed = routingEngine.getMessageStore().list(criteria).size();
 
+		criteria = new MessageCriteria().addStatus(Message.STATUS_UNROUTABLE);
+		int unroutable = routingEngine.getMessageStore().list(criteria).size();
+
 		Map<String,Object> root = new HashMap<String,Object>();
 		root.put("connections", connections);
 		root.put("applications", applications);
 		root.put("failedMsgs", failed);
-		root.put("toApplications", toApplications);
-		root.put("toConnections", toConnections);
+		root.put("unroutableMsgs", unroutable);
 		root.put("tab", "dashboard");
 
 		response.render("dashboard.ftl", root);

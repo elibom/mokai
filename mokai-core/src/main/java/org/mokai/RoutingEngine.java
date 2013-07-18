@@ -101,16 +101,4 @@ public interface RoutingEngine {
 	 */
 	MessageStore getMessageStore();
 
-	/**
-	 *
-	 * @return the number of queued messages in the applications router.
-	 */
-	int getNumQueuedInApplicationsRouter();
-
-	/**
-	 *
-	 * @return the number of queued messages in the connections router.
-	 */
-	int getNumQueuedInConnectionsRouter();
-
 }

@@ -15,7 +15,7 @@ public final class UriConstants {
 
 	public static final String CONNECTIONS_UNROUTABLE_MESSAGES = "activemq:connectionsUnroutableMessages";
 
-	public static final String CONNECTIONS_ROUTER = "activemq:connectionsRouter";
+	public static final String CONNECTIONS_ROUTER = "direct:connectionsRouter";
 
 	public static final String APPLICATIONS_PROCESSED_MESSAGES = "direct:applicationsProcessedMessages";
 
@@ -23,5 +23,5 @@ public final class UriConstants {
 
 	public static final String APPLICATIONS_UNROUTABLE_MESSAGES = "activemq:applicationsUnroutableMessages";
 
-	public static final String APPLICATIONS_ROUTER = "activemq:applicationsRouter";
+	public static final String APPLICATIONS_ROUTER = "direct:applicationsRouter";
 }

@@ -3,6 +3,8 @@ package org.mokai.connector;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import net.gescobar.jmx.annotation.ManagedAttribute;
+
 import org.mokai.ExposableConfiguration;
 import org.mokai.Message;
 import org.mokai.Processor;
@@ -43,6 +45,15 @@ public class FakeProcessor implements Processor, ExposableConfiguration<FakeProc
 	@Override
 	public FakeProcessor getConfiguration() {
 		return this;
+	}
+
+	@ManagedAttribute
+	public long getDelay() {
+		return delay;
+	}
+
+	public void setDelay(long delay) {
+		this.delay = delay;
 	}
 
 }

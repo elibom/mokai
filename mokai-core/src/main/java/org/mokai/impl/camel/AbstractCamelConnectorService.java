@@ -379,7 +379,7 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 	 *
 	 * @param direction
 	 *
-	 * @return
+	 * @return an ObjectName instance or null if the <code>direction</code> is null.
 	 * @throws NullPointerException
 	 * @throws MalformedObjectNameException
 	 */

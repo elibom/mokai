@@ -24,8 +24,14 @@
 	<amq:systemUsage>
 		<amq:systemUsage>
 			<amq:memoryUsage>
-				<amq:memoryUsage limit="256mb"></amq:memoryUsage>
+				<amq:memoryUsage limit="64mb"></amq:memoryUsage>
 			</amq:memoryUsage>
+			<amq:storeUsage>
+				<amq:storeUsage limit="10gb"></amq:storeUsage>
+			</amq:storeUsage>
+			<amq:tempUsage>
+				<amq:tempUsage limit="5gb"></amq:tempUsage>
+			</amq:tempUsage>
 		</amq:systemUsage>
 	</amq:systemUsage>
 </amq:broker>

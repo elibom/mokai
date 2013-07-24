@@ -318,7 +318,7 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 					key = "smsc_to";
 				}
 
-				strSQL.append(" " + entry.getKey() + " = ?");
+				strSQL.append(" " + key + " = ?");
 				params.add(entry.getValue());
 
 				existsCriteria = true;

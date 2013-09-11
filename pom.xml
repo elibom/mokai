@@ -199,11 +199,7 @@
 			</snapshots>
 		</repository>
 		
-		<repository>
-			<id>jboss</id>
-			<name>JBoss Nexus Repository</name>
-			<url>http://repository.jboss.org/nexus/content/repositories/releases</url>
-		</repository>
+		
 		
 		<repository>  
   			<id>elibom</id>  

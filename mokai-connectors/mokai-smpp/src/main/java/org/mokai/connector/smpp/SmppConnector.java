@@ -4,6 +4,7 @@ import ie.omk.smpp.Address;
 import ie.omk.smpp.Connection;
 import ie.omk.smpp.event.ConnectionObserver;
 import ie.omk.smpp.event.ReceiverExceptionEvent;
+import ie.omk.smpp.event.ReceiverExitEvent;
 import ie.omk.smpp.event.SMPPEvent;
 import ie.omk.smpp.message.BindResp;
 import ie.omk.smpp.message.DeliverSM;
@@ -933,12 +934,13 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			log.info(getLogHead() + "an SMPPEvent was received: " + event.toString());
 
 			if (event.getType() == SMPPEvent.RECEIVER_EXIT && started) {
-				bound = false;
-				status = MonitorStatusBuilder.failed("enquire link failed");
+				ReceiverExitEvent exitEvent = (ReceiverExitEvent) event;
 
-				new Thread(
-					new ConnectionThread(Integer.MAX_VALUE, configuration.getInitialReconnectDelay())
-				).start();
+				String msg = getLogHead() + "Received ReceiverExceptionEvent with state " + exitEvent.getState();
+				if (exitEvent.getException() != null) {
+					msg += ": " + exitEvent.getException().getMessage();
+				}
+				log.error(msg, exitEvent.getException());
 			} else if (event.getType() == SMPPEvent.RECEIVER_EXCEPTION) {
 				ReceiverExceptionEvent exceptionEvent = (ReceiverExceptionEvent) event;
 				log.error(getLogHead() + "Received ReceiverExceptionEvent with state " + exceptionEvent.getState()

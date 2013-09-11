@@ -936,8 +936,9 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			if (event.getType() == SMPPEvent.RECEIVER_EXIT && started) {
 				ReceiverExitEvent exitEvent = (ReceiverExitEvent) event;
 
-				String msg = getLogHead() + "Received ReceiverExceptionEvent with state " + exitEvent.getState();
-				if (exitEvent.getException() != null) {
+				String msg = getLogHead() + "Received ReceiverExceptionEvent with reason " + exitEvent.getReason()
+						+ ", state is " + exitEvent.getState();
+				if (exitEvent.getReason() == ReceiverExitEvent.EXCEPTION) {
 					msg += ": " + exitEvent.getException().getMessage();
 				}
 				log.error(msg, exitEvent.getException());

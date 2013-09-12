@@ -513,7 +513,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 				connection.bind(getConnectionType(configuration), configuration.getSystemId(), configuration.getPassword(), configuration.getSystemType(),
 						getBindTON(), getBindNPI(), null);
 
-				BindResp bindResp = messageListener.getBindResponse(5000);
+				BindResp bindResp = messageListener.getBindResponse(configuration.getBindTimeout());
 				if (bindResp == null || bindResp.getCommandStatus() != 0) {
 					throw new Exception("Bind Response failed: " + bindResp);
 				}

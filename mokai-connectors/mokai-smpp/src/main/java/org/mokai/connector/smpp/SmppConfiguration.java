@@ -142,6 +142,9 @@ public class SmppConfiguration {
 	@Label("Discard Incoming Msgs")
 	private boolean discardIncomingMsgs = false;
 
+	@Label("Bind Timeout")
+	private long bindTimeout = 5000;
+
 	@ManagedAttribute
 	public final String getHost() {
 		return host;
@@ -311,6 +314,14 @@ public class SmppConfiguration {
 
 	public void setDiscardIncomingMsgs(boolean discardIncomingMsgs) {
 		this.discardIncomingMsgs = discardIncomingMsgs;
+	}
+
+	public long getBindTimeout() {
+		return bindTimeout;
+	}
+
+	public void setBindTimeout(long bindTimeout) {
+		this.bindTimeout = bindTimeout;
 	}
 
 }

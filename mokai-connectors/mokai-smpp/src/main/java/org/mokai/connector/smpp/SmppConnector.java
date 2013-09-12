@@ -606,6 +606,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 							bound = false;
 							status = MonitorStatusBuilder.failed("enquire link failed");
 
+							log.info("creating new ConnectionThread after a enquire link failed");
 							new Thread(
 								new ConnectionThread(Integer.MAX_VALUE, configuration.getInitialReconnectDelay())
 							).start();
@@ -936,12 +937,23 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			if (event.getType() == SMPPEvent.RECEIVER_EXIT && started) {
 				ReceiverExitEvent exitEvent = (ReceiverExitEvent) event;
 
-				String msg = getLogHead() + "Received ReceiverExceptionEvent with reason " + exitEvent.getReason()
+				String msg = getLogHead() + "Received an exit event (ReceiverExitEvent) with reason " + exitEvent.getReason()
 						+ ", state is " + exitEvent.getState();
 				if (exitEvent.getReason() == ReceiverExitEvent.EXCEPTION) {
 					msg += ": " + exitEvent.getException().getMessage();
 				}
 				log.error(msg, exitEvent.getException());
+
+				// restart the connection if there was an exception
+				if (exitEvent.getReason() == ReceiverExitEvent.EXCEPTION) {
+					bound = false;
+					status = MonitorStatusBuilder.failed("received an exit event");
+
+					log.info("creating new ConnectionThread after a ReceiverExitEvent");
+					new Thread(
+						new ConnectionThread(Integer.MAX_VALUE, configuration.getInitialReconnectDelay())
+					).start();
+				}
 			} else if (event.getType() == SMPPEvent.RECEIVER_EXCEPTION) {
 				ReceiverExceptionEvent exceptionEvent = (ReceiverExceptionEvent) event;
 				log.error(getLogHead() + "Received ReceiverExceptionEvent with state " + exceptionEvent.getState()

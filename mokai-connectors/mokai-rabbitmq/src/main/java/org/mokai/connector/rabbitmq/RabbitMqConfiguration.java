@@ -1,4 +1,4 @@
-package org.mokai.connector.cloudamqp;
+package org.mokai.connector.rabbitmq;
 
 import net.gescobar.jmx.annotation.ManagedAttribute;
 import org.mokai.ui.annotation.Label;
@@ -7,7 +7,7 @@ import org.mokai.ui.annotation.Label;
  *
  * @author Alejandro Riveros Cruz <lariverosc@gmail.com>
  */
-public class CloudAmqpConfiguration {
+public class RabbitMqConfiguration {
 
     @Label("host")
     private String host;
@@ -131,6 +131,6 @@ public class CloudAmqpConfiguration {
 
     @Override
     public String toString() {
-        return "CloudAmqpConfiguration{" + "host=" + host + ", port=" + port + ", virtualHost=" + virtualHost + ", username=" + username + ", password=" + password + ", exchange=" + exchange + ", queueName=" + queueName + ", routingKey=" + routingKey + ", heartBeat=" + heartBeat + '}';
+        return "RabbitMqConfiguration{" + "host=" + host + ", port=" + port + ", virtualHost=" + virtualHost + ", username=" + username + ", password=" + password + ", exchange=" + exchange + ", queueName=" + queueName + ", routingKey=" + routingKey + ", heartBeat=" + heartBeat + '}';
     }
 }

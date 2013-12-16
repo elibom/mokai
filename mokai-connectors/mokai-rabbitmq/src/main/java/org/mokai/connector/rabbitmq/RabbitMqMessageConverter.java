@@ -1,4 +1,4 @@
-package org.mokai.connector.cloudamqp;
+package org.mokai.connector.rabbitmq;
 
 import com.rabbitmq.client.AMQP;
 import java.io.UnsupportedEncodingException;
@@ -8,7 +8,7 @@ import org.mokai.Message;
  *
  * @author Alejandro Riveros Cruz <lariverosc@gmail.com>
  */
-public class CloudAmqpMessageConverter {
+public class RabbitMqMessageConverter {
 
     public Message convert(AMQP.BasicProperties basicProperties, byte[] body) throws UnsupportedEncodingException {
         Message mokaiMessage = new Message();

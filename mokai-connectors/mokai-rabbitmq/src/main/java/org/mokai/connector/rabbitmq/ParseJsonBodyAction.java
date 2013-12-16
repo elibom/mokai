@@ -1,4 +1,4 @@
-package org.mokai.connector.cloudamqp;
+package org.mokai.connector.rabbitmq;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;

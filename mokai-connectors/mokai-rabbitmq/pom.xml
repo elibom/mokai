@@ -7,10 +7,10 @@
         <version>0.10.2-SNAPSHOT</version>
     </parent>
 	
-    <artifactId>mokai-cloudamqp</artifactId>
+    <artifactId>mokai-rabbitmq</artifactId>
 
-    <name>Mokai CloudAMQP Connector</name>
-    <description>Mokai CloudAMQP Connector Module</description>
+    <name>Mokai RabbitMq Connector</name>
+    <description>Mokai RabbitMq Connector Module</description>
 
 	
     <dependencies>
@@ -24,7 +24,7 @@
         <dependency>
             <groupId>com.rabbitmq</groupId>
             <artifactId>amqp-client</artifactId>
-            <version>3.0.4</version>
+            <version>3.2.1</version>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
@@ -49,7 +49,7 @@
                     <descriptors>
                         <descriptor>src/main/assembly/bin.xml</descriptor>
                     </descriptors>
-                    <finalName>org.mokai.cloudamqp-${project.version}</finalName>
+                    <finalName>org.mokai.rabbitmq-${project.version}</finalName>
                     <appendAssemblyId>false</appendAssemblyId>
                 </configuration>
                 <executions>

@@ -84,6 +84,7 @@ public class CloudAmqpMessagesReceiverConnector implements Connector, Serviceabl
         connectionFactory.setVirtualHost(configuration.getVirtualHost());
         connection = connectionFactory.newConnection();
         channel = connection.createChannel();
+        channel.basicQos(20);
         channel.exchangeDeclare(configuration.getExchange(), "direct", true);
         channel.queueDeclare(configuration.getQueueName(), true, false, false, null);
         channel.queueBind(configuration.getQueueName(), configuration.getExchange(), configuration.getRoutingKey());

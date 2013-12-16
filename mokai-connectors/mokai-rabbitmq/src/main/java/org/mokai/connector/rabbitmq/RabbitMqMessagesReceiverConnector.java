@@ -1,4 +1,4 @@
-package org.mokai.connector.cloudamqp;
+package org.mokai.connector.rabbitmq;
 
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
@@ -25,11 +25,11 @@ import org.slf4j.LoggerFactory;
  *
  * @author Alejandro Riveros Cruz <lariverosc@gmail.com>
  */
-@Name("CloudAmqp")
-@Description("Receives messages from cloudAmqp")
-public class CloudAmqpMessagesReceiverConnector implements Connector, Serviceable, Monitorable, ExposableConfiguration<CloudAmqpConfiguration> {
+@Name("RabbitMq")
+@Description("Receives messages from RabbitMq")
+public class RabbitMqMessagesReceiverConnector implements Connector, Serviceable, Monitorable, ExposableConfiguration<RabbitMqConfiguration> {
 
-    private final Logger log = LoggerFactory.getLogger(CloudAmqpMessagesReceiverConnector.class);
+    private final Logger log = LoggerFactory.getLogger(RabbitMqMessagesReceiverConnector.class);
 
     @Resource
     private MessageProducer messageProducer;
@@ -38,28 +38,28 @@ public class CloudAmqpMessagesReceiverConnector implements Connector, Serviceabl
 
     private Channel channel;
 
-    private CloudAmqpConfiguration configuration;
+    private RabbitMqConfiguration configuration;
 
     private Status status = MonitorStatusBuilder.unknown();
 
     private boolean started;
 
-    public CloudAmqpMessagesReceiverConnector() {
-        this(new CloudAmqpConfiguration());
+    public RabbitMqMessagesReceiverConnector() {
+        this(new RabbitMqConfiguration());
     }
 
-    public CloudAmqpMessagesReceiverConnector(CloudAmqpConfiguration configuration) {
+    public RabbitMqMessagesReceiverConnector(RabbitMqConfiguration configuration) {
         this.configuration = configuration;
     }
 
     @Override
-    public CloudAmqpConfiguration getConfiguration() {
+    public RabbitMqConfiguration getConfiguration() {
         return configuration;
     }
 
     @Override
     public void doStart() throws Exception {
-        log.info("Starting cloudAmqpMessagesReceiverConnector");
+        log.info("Starting rabbitMqMessagesReceiverConnector");
         started = true;
         new ConnectionRunnable(1, 0).run();
         if (status.equals(Status.FAILED)) {
@@ -69,7 +69,7 @@ public class CloudAmqpMessagesReceiverConnector implements Connector, Serviceabl
 
     @Override
     public void doStop() throws Exception {
-        log.info("Stoping cloudAmqpMessagesReceiverConnector");
+        log.info("Stoping rabbitMqMessagesReceiverConnector");
         started = false;
         disconnect();
     }
@@ -88,14 +88,14 @@ public class CloudAmqpMessagesReceiverConnector implements Connector, Serviceabl
         channel.exchangeDeclare(configuration.getExchange(), "direct", true);
         channel.queueDeclare(configuration.getQueueName(), true, false, false, null);
         channel.queueBind(configuration.getQueueName(), configuration.getExchange(), configuration.getRoutingKey());
-        channel.basicConsume(configuration.getQueueName(), false, "CloudAmqpMessageConsumer", new CloudAmqpMessageConsumer(channel));
+        channel.basicConsume(configuration.getQueueName(), false, "Mokai-RabbitMqMessageConsumer", new RabbitMqMessageConsumer(channel));
     }
 
     private void disconnect() {
         try {
             connection.close();
         } catch (Exception ex) {
-            log.warn("Error while closing amqp connection", ex);
+            log.warn("Error while closing rabbitMq connection", ex);
         }
         status = MonitorStatusBuilder.unknown();
     }
@@ -105,13 +105,13 @@ public class CloudAmqpMessagesReceiverConnector implements Connector, Serviceabl
         return status;
     }
 
-    private class CloudAmqpMessageConsumer extends DefaultConsumer {
+    private class RabbitMqMessageConsumer extends DefaultConsumer {
 
-        private CloudAmqpMessageConverter messageConverter;
+        private RabbitMqMessageConverter messageConverter;
 
-        public CloudAmqpMessageConsumer(Channel channel) {
+        public RabbitMqMessageConsumer(Channel channel) {
             super(channel);
-            messageConverter = new CloudAmqpMessageConverter();
+            messageConverter = new RabbitMqMessageConverter();
         }
 
         @Override
@@ -126,7 +126,7 @@ public class CloudAmqpMessagesReceiverConnector implements Connector, Serviceabl
 
         @Override
         public void handleShutdownSignal(String consumerTag, ShutdownSignalException sig) {
-            log.error("Rabbit amqp disconnected trying to re-connect");
+            log.error("RabbitMq disconnected trying to re-connect");
             status = MonitorStatusBuilder.failed("connection lost: " + sig.getMessage());
             new Thread(new ConnectionRunnable(Integer.MAX_VALUE, configuration.getReconnectDelay())).start();
         }
@@ -152,17 +152,17 @@ public class CloudAmqpMessagesReceiverConnector implements Connector, Serviceabl
             }
             while (started && !status.equals(Status.OK) && attempt < maxRetries) {
                 try {
-                    log.info("Attempt #{} - Trying to connect to rabbit amqp: {}", new Object[]{(++attempt), configuration});
+                    log.info("Attempt #{} - Trying to connect to rabbitMq: {}", new Object[]{(++attempt), configuration});
                     connect();
                     status = MonitorStatusBuilder.ok();
-                    log.info("Success connected to cloudamqp");
+                    log.info("Success connected to rabbitMq");
                 } catch (Exception e) {
-                    log.info("Error while trying to reconnect to rabbit amqp", e);
+                    log.info("Error while trying to reconnect to rabbitMq", e);
                     status = MonitorStatusBuilder.failed(e.getMessage());
                     try {
                         connection.close();
                     } catch (Exception ex) {
-                        log.warn("Error while closing amqp connection", ex);
+                        log.warn("Error while closing rabbitMq connection", ex);
                     }
                     logException(e, attempt == 1);
                     try {
@@ -175,9 +175,9 @@ public class CloudAmqpMessagesReceiverConnector implements Connector, Serviceabl
 
         private void logException(Exception e, boolean firstTime) {
             if (firstTime) {
-                log.error("Error while connect to cloudAmqp", e);
+                log.error("Error while connect to rabbitMq", e);
             } else {
-                log.error("Error while connect to cloudAmqp: " + e.getMessage());
+                log.error("Error while connect to rabbitMq: " + e.getMessage());
             }
         }
     }

@@ -19,6 +19,10 @@
 		<module>mokai-jetty</module>
 		<module>mokai-smpp-server</module>
 		<module>mokai-mail</module>
+<<<<<<< HEAD
 		<module>mokai-ironmq</module>
+=======
+                <module>mokai-rabbitmq</module>
+>>>>>>> Rename all from cloudAmqp to rabbitMq
 	</modules>
 </project>

@@ -37,7 +37,7 @@ public class RabbitMqConfiguration {
     private long reconnectDelay = 1000;
 
     @Label("heartBeat")
-    private int heartBeat = 1;
+    private int heartBeat = 10;
 
     @ManagedAttribute(writable = false)
     public String getHost() {

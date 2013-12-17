@@ -1,23 +1,19 @@
 package org.mokai.connector.rabbitmq;
 
-import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.DefaultConsumer;
-import com.rabbitmq.client.Envelope;
+import com.rabbitmq.client.MessageProperties;
+import com.rabbitmq.client.ShutdownListener;
 import com.rabbitmq.client.ShutdownSignalException;
-import java.io.IOException;
-import org.mokai.Connector;
 import org.mokai.ExposableConfiguration;
 import org.mokai.Message;
-import org.mokai.MessageProducer;
 import org.mokai.MonitorStatusBuilder;
 import org.mokai.Monitorable;
+import org.mokai.Processor;
 import org.mokai.Serviceable;
 import org.mokai.annotation.Description;
 import org.mokai.annotation.Name;
-import org.mokai.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,14 +21,11 @@ import org.slf4j.LoggerFactory;
  *
  * @author Alejandro Riveros Cruz <lariverosc@gmail.com>
  */
-@Name("RabbitMq")
-@Description("Receives messages from RabbitMq")
-public class RabbitMqMessagesReceiverConnector implements Connector, Serviceable, Monitorable, ExposableConfiguration<RabbitMqConfiguration> {
+@Name("RabbitMqProcessor")
+@Description("Sends messages through RabbitMq")
+public class RabbitMqProcessor implements Processor, Serviceable, Monitorable, ExposableConfiguration<RabbitMqConfiguration> {
 
-    private final Logger log = LoggerFactory.getLogger(RabbitMqMessagesReceiverConnector.class);
-
-    @Resource
-    private MessageProducer messageProducer;
+    private final Logger log = LoggerFactory.getLogger(RabbitMqProcessor.class);
 
     private Connection connection;
 
@@ -44,32 +37,27 @@ public class RabbitMqMessagesReceiverConnector implements Connector, Serviceable
 
     private boolean started;
 
-    public RabbitMqMessagesReceiverConnector() {
+    public RabbitMqProcessor() {
         this(new RabbitMqConfiguration());
     }
 
-    public RabbitMqMessagesReceiverConnector(RabbitMqConfiguration configuration) {
+    public RabbitMqProcessor(RabbitMqConfiguration configuration) {
         this.configuration = configuration;
     }
 
     @Override
-    public RabbitMqConfiguration getConfiguration() {
-        return configuration;
-    }
-
-    @Override
     public void doStart() throws Exception {
-        log.info("Starting rabbitMqMessagesReceiverConnector");
+        log.info("Starting RabbitMqProcessor");
         started = true;
-        new ConnectionRunnable(1, 0).run();
+        new RabbitMqProcessor.ConnectionRunnable(1, 0).run();
         if (status.equals(Status.FAILED)) {
-            new Thread(new ConnectionRunnable(Integer.MAX_VALUE, configuration.getReconnectDelay())).start();
+            new Thread(new RabbitMqProcessor.ConnectionRunnable(Integer.MAX_VALUE, configuration.getReconnectDelay())).start();
         }
     }
 
     @Override
     public void doStop() throws Exception {
-        log.info("Stoping rabbitMqMessagesReceiverConnector");
+        log.info("Stoping RabbitMqProcessor");
         started = false;
         disconnect();
     }
@@ -83,12 +71,18 @@ public class RabbitMqMessagesReceiverConnector implements Connector, Serviceable
         connectionFactory.setPort(configuration.getPort());
         connectionFactory.setVirtualHost(configuration.getVirtualHost());
         connection = connectionFactory.newConnection();
+        connection.addShutdownListener(new ShutdownListener() {
+            @Override
+            public void shutdownCompleted(ShutdownSignalException cause) {
+                log.warn("RabbitMQ connection lost", cause);
+                status = MonitorStatusBuilder.failed("RabbitMQ connection lost", cause);
+            }
+        });
         channel = connection.createChannel();
-        channel.basicQos(20);
         channel.exchangeDeclare(configuration.getExchange(), "direct", true);
         channel.queueDeclare(configuration.getQueueName(), true, false, false, null);
         channel.queueBind(configuration.getQueueName(), configuration.getExchange(), configuration.getRoutingKey());
-        channel.basicConsume(configuration.getQueueName(), false, "Mokai-RabbitMqMessageConsumer", new RabbitMqMessageConsumer(channel));
+        status = MonitorStatusBuilder.ok();
     }
 
     private void disconnect() {
@@ -105,31 +99,34 @@ public class RabbitMqMessagesReceiverConnector implements Connector, Serviceable
         return status;
     }
 
-    private class RabbitMqMessageConsumer extends DefaultConsumer {
+    @Override
+    public RabbitMqConfiguration getConfiguration() {
+        return configuration;
+    }
 
-        private RabbitMqMessageConverter messageConverter;
-
-        public RabbitMqMessageConsumer(Channel channel) {
-            super(channel);
-            messageConverter = new RabbitMqMessageConverter();
+    @Override
+    public void process(Message message) throws Exception {
+        if (!status.equals(Status.OK)) {
+            try {
+                log.info("trying to reconnect to RabbitMQ");
+                connect();
+            } catch (Exception ex) {
+                log.error("Error while reconnect to RabbitMQ", ex);
+                throw new RuntimeException(ex);
+            }
         }
-
-        @Override
-        public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
-            Message message = messageConverter.convert(properties, body);
-            log.info("processing new Message: {}", message.getProperty("body"));
-            messageProducer.produce(message);
-            long deliveryTag = envelope.getDeliveryTag();
-            channel.basicAck(deliveryTag, false);
-            log.info("message acknowledge {}", deliveryTag);
+        try {
+            channel.basicPublish(configuration.getExchange(), configuration.getRoutingKey(), true, MessageProperties.PERSISTENT_TEXT_PLAIN, message.getProperty("body", String.class).getBytes("UTF-8"));
+        } catch (Exception ioe) {
+            disconnect();
+            log.error("Error while publishing message to RabbitMQ", ioe);
+            throw new RuntimeException(ioe);
         }
+    }
 
-        @Override
-        public void handleShutdownSignal(String consumerTag, ShutdownSignalException sig) {
-            log.error("RabbitMq disconnected trying to re-connect");
-            status = MonitorStatusBuilder.failed("connection lost: " + sig.getMessage());
-            new Thread(new ConnectionRunnable(Integer.MAX_VALUE, configuration.getReconnectDelay())).start();
-        }
+    @Override
+    public boolean supports(Message message) {
+        return true;
     }
 
     private class ConnectionRunnable implements Runnable {

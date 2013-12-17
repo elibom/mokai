@@ -1,1 +1,2 @@
-org.mokai.connector.rabbitmq.RabbitMqMessagesReceiverConnector
+org.mokai.connector.rabbitmq.RabbitMqReceiver
+org.mokai.connector.rabbitmq.RabbitMqProcessor

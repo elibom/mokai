@@ -36,6 +36,8 @@ public class RabbitMqProcessor implements Processor, Serviceable, Monitorable, E
     private Status status = MonitorStatusBuilder.unknown();
 
     private boolean started;
+    
+    private RabbitMqMessageConverter messageConverter;
 
     public RabbitMqProcessor() {
         this(new RabbitMqConfiguration());
@@ -43,6 +45,7 @@ public class RabbitMqProcessor implements Processor, Serviceable, Monitorable, E
 
     public RabbitMqProcessor(RabbitMqConfiguration configuration) {
         this.configuration = configuration;
+        messageConverter = new RabbitMqMessageConverter();
     }
 
     @Override
@@ -116,7 +119,7 @@ public class RabbitMqProcessor implements Processor, Serviceable, Monitorable, E
             }
         }
         try {
-            channel.basicPublish(configuration.getExchange(), configuration.getRoutingKey(), true, MessageProperties.PERSISTENT_TEXT_PLAIN, message.getProperty("body", String.class).getBytes("UTF-8"));
+            channel.basicPublish(configuration.getExchange(), configuration.getRoutingKey(), true, MessageProperties.PERSISTENT_TEXT_PLAIN, messageConverter.fromMessage(message));
         } catch (Exception ioe) {
             disconnect();
             log.error("Error while publishing message to RabbitMQ", ioe);

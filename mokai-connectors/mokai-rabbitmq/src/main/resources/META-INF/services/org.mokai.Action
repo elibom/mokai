@@ -1,1 +1,2 @@
 org.mokai.connector.rabbitmq.ParseJsonBodyAction
+org.mokai.connector.rabbitmq.BuildJsonBodyAction

@@ -116,7 +116,7 @@ public class RabbitMqReceiver implements Connector, Serviceable, Monitorable, Ex
 
         @Override
         public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
-            Message message = messageConverter.convert(properties, body);
+            Message message = messageConverter.fromByteArray(properties, body);
             log.info("processing new Message: {}", message.getProperty("body"));
             messageProducer.produce(message);
             long deliveryTag = envelope.getDeliveryTag();

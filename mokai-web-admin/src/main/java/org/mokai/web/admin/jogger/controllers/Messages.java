@@ -25,11 +25,11 @@ public class Messages {
 	private RoutingEngine routingEngine;
 
 	public void connections(Request request, Response response) throws JSONException {
-		Value to = request.getParameter("to");
+		Value to = request.getParameter("recipient");
 		Value status = request.getParameter("status");
 		Value numRecords = request.getParameter("numRecords");
 
-		Collection<Message> messages = listMessages(Direction.TO_CONNECTIONS, to, status, numRecords);
+		Collection<Message> messages = listMessages(Direction.TO_CONNECTIONS, "to", to, status, numRecords);
 
 		boolean htmlResponse = request.getHeader("Accept").contains("text/html");
 		if (htmlResponse) {
@@ -45,11 +45,11 @@ public class Messages {
 	}
 
 	public void applications(Request request, Response response) throws JSONException {
-		Value to = request.getParameter("to");
+		Value from = request.getParameter("recipient");
 		Value status = request.getParameter("status");
 		Value numRecords = request.getParameter("numRecords");
 
-		Collection<Message> messages = listMessages(Direction.TO_APPLICATIONS, to, status, numRecords);
+		Collection<Message> messages = listMessages(Direction.TO_APPLICATIONS, "from", from, status, numRecords);
 
 		boolean htmlResponse = request.getHeader("Accept").contains("text/html");
 		if (htmlResponse) {
@@ -64,15 +64,15 @@ public class Messages {
 		}
 	}
 
-	private Collection<Message> listMessages(Direction direction, Value to, Value status, Value numRecords) {
+	private Collection<Message> listMessages(Direction direction, String recipientKey, Value recipientValue, Value status, Value numRecords) {
 		MessageCriteria criteria = new MessageCriteria()
 			.direction(direction)
 			.orderBy("id")
 			.orderType(OrderType.DOWNWARDS)
 			.numRecords( numRecords == null ? 2000 : numRecords.asInteger() );
 
-		if (to != null) {
-			criteria.addProperty("to", to.asString());
+		if (recipientValue != null) {
+			criteria.addProperty(recipientKey, recipientValue.asString());
 		}
 
 		if (status != null) {

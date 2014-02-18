@@ -316,6 +316,8 @@ public abstract class AbstractSmsHandler implements MessageHandler {
 				String key = entry.getKey();
 				if ("to".equals(key)) {
 					key = "smsc_to";
+				} else if ("from".equals(key)) {
+					key = "smsc_from";
 				}
 
 				strSQL.append(" " + key + " = ?");

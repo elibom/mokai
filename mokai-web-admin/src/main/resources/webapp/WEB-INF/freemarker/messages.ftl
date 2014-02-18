@@ -79,9 +79,9 @@
 		
 		$(document).ready(function() { 
 			
-			var to = getParameterByName('to');
-			if (to.length != 0) {
-				$('#recipient').val(to);
+			var recipient = getParameterByName('recipient');
+			if (recipient.length != 0) {
+				$('#recipient').val(recipient);
 			}
 			
 			var status = getParameterByName('status');
@@ -105,7 +105,7 @@
 		
 			
 			$('form#filter-messages').submit(function() {
-				var to = $('#recipient').val();
+				var recipient = $('#recipient').val();
 				var processed = $('#processed').is(':checked');
 				var failed = $('#failed').is(':checked');
 				var unrouted = $('#unrouted').is(':checked');
@@ -113,8 +113,8 @@
 				var existsCriteria = false;
 				var query = "";
 				
-				if (to.length != 0 && to.replace(/\s/g, '').length != 0) {
-					query = "to=" + to;
+				if (recipient.length != 0 && recipient.replace(/\s/g, '').length != 0) {
+					query = "recipient=" + recipient;
 					existsCriteria = true;
 				}
 				
@@ -134,6 +134,7 @@
 					
 					if (unrouted) {
 						status += (existsStatus ? "," : "") + "4";
+						existsStatus = true;
 					}
 					
 					if (status.length != 0) {

@@ -37,10 +37,10 @@ public class Messages {
 			root.put( "messages", convertMessages(messages) );
 			root.put( "tab", "connections-messages" );
 
-			response.contentType("text/html").render("messages.ftl", root);
+			response.contentType("text/html; charset=UTF-8").render("messages.ftl", root);
 		} else {
 			JSONArray jsonMessages = getJSONMessages(messages);
-			response.contentType("application/json").print( jsonMessages.toString() );
+			response.contentType("application/json; charset=UTF-8").print( jsonMessages.toString() );
 		}
 	}
 
@@ -57,10 +57,10 @@ public class Messages {
 			root.put( "messages", convertMessages(messages) );
 			root.put( "tab", "applications-messages" );
 
-			response.contentType("text/html").render("messages.ftl", root);
+			response.contentType("text/html; charset=UTF-8").render("messages.ftl", root);
 		} else {
 			JSONArray jsonMessages = getJSONMessages(messages);
-			response.contentType("application/json").print( jsonMessages.toString() );
+			response.contentType("application/json; charset=UTF-8").print( jsonMessages.toString() );
 		}
 	}
 

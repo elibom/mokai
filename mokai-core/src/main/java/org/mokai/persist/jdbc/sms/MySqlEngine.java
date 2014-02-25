@@ -64,7 +64,7 @@ public class MySqlEngine implements SqlEngine {
 					"smsc_receipttime DATETIME, " +
 					"other VARCHAR(1000), " +
 					"creation_time DATETIME NOT NULL, " +
-					"modification_time DATETIME) ENGINE=MyISAM";
+					"modification_time DATETIME) ENGINE=MyISAM DEFAULT CHARSET=utf8;";
 	}
 
 	protected String getApplicationsCreateScript() {
@@ -84,7 +84,7 @@ public class MySqlEngine implements SqlEngine {
 					"smsc_receipttime DATETIME, " +
 					"other VARCHAR(1000), " +
 					"creation_time DATETIME NOT NULL, " +
-					"modification_time DATETIME) ENGINE=MyISAM";
+					"modification_time DATETIME) ENGINE=MyISAM DEFAULT CHARSET=utf8;";
 	}
 
 }

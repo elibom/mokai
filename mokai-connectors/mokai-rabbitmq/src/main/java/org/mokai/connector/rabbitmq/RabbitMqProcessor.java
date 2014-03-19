@@ -68,11 +68,19 @@ public class RabbitMqProcessor implements Processor, Serviceable, Monitorable, E
 	private void connect() throws Exception {
 		ConnectionFactory connectionFactory = new ConnectionFactory();
 		connectionFactory.setRequestedHeartbeat(configuration.getHeartBeat());
-		connectionFactory.setUsername(configuration.getUsername());
-		connectionFactory.setPassword(configuration.getPassword());
 		connectionFactory.setHost(configuration.getHost());
 		connectionFactory.setPort(configuration.getPort());
-		connectionFactory.setVirtualHost(configuration.getVirtualHost());
+
+		if (configuration.getUsername() != null) {
+			connectionFactory.setUsername(configuration.getUsername());
+		}
+		if (configuration.getPassword() != null) {
+			connectionFactory.setPassword(configuration.getPassword());
+		}
+		if (configuration.getVirtualHost() != null) {
+			connectionFactory.setVirtualHost(configuration.getVirtualHost());
+		}
+
 		connection = connectionFactory.newConnection();
 		connection.addShutdownListener(new ShutdownListener() {
 			@Override
@@ -110,6 +118,8 @@ public class RabbitMqProcessor implements Processor, Serviceable, Monitorable, E
 
 	@Override
 	public void process(Message message) throws Exception {
+		log.debug("processing message: {}", message.getProperty("body"));
+
 		if (!status.equals(Status.OK)) {
 			try {
 				log.info("trying to reconnect to RabbitMQ");

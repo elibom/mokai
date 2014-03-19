@@ -77,11 +77,18 @@ public class RabbitMqReceiver implements Connector, Serviceable, Monitorable, Ex
 	private void connect() throws Exception {
 		ConnectionFactory connectionFactory = new ConnectionFactory();
 		connectionFactory.setRequestedHeartbeat(configuration.getHeartBeat());
-		connectionFactory.setUsername(configuration.getUsername());
-		connectionFactory.setPassword(configuration.getPassword());
 		connectionFactory.setHost(configuration.getHost());
 		connectionFactory.setPort(configuration.getPort());
-		connectionFactory.setVirtualHost(configuration.getVirtualHost());
+
+		if (configuration.getUsername() != null) {
+			connectionFactory.setUsername(configuration.getUsername());
+		}
+		if (configuration.getPassword() != null) {
+			connectionFactory.setPassword(configuration.getPassword());
+		}
+		if (configuration.getVirtualHost() != null) {
+			connectionFactory.setVirtualHost(configuration.getVirtualHost());
+		}
 		connection = connectionFactory.newConnection();
 		channel = connection.createChannel();
 		channel.basicQos(20);
@@ -117,11 +124,11 @@ public class RabbitMqReceiver implements Connector, Serviceable, Monitorable, Ex
 		@Override
 		public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
 			Message message = messageConverter.fromByteArray(properties, body);
-			log.info("processing new Message: {}", message.getProperty("body"));
+			log.debug("received message: {}", message.getProperty("body"));
 			messageProducer.produce(message);
 			long deliveryTag = envelope.getDeliveryTag();
 			channel.basicAck(deliveryTag, false);
-			log.info("message acknowledge {}", deliveryTag);
+			log.debug("message acknowledge {}", deliveryTag);
 		}
 
 		@Override

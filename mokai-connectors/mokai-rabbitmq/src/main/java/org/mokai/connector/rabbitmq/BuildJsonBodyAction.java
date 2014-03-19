@@ -23,6 +23,6 @@ public class BuildJsonBodyAction implements Action {
 				jsonObject.add(key, new JsonPrimitive(value));
 			}
 		}
-		message.setProperty("body", jsonObject.getAsString());
+		message.setProperty("body", jsonObject.toString());
 	}
 }

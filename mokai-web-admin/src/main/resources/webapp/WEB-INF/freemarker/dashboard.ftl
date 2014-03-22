@@ -104,13 +104,13 @@
 				<% if (isProcessor) { %>
 					<li><a href="#acceptors" data-toggle="tab">Acceptors</a></li>
 				<% } %>
-				<% if (obj["pre-processing-actions"].length > 0) { %>
+				<% if (typeof(obj["pre-processing-actions"]) != "undefined" && obj["pre-processing-actions"].length > 0) { %>
 					<li><a href="#pre-processing-actions" data-toggle="tab">Pre Processing</a></li>
 				<% } %>
-				<% if (obj["post-processing-actions"].length > 0) { %>
+				<% if (typeof(obj["post-processing-actions"]) != "undefined" && obj["post-processing-actions"].length > 0) { %>
 					<li><a href="#post-processing-actions" data-toggle="tab">Post Processing</a></li>
 				<% } %>
-				<% if (obj["post-receiving-actions"].length > 0) { %>
+				<% if (typeof(obj["post-receiving-actions"]) != "undefined" && obj["post-receiving-actions"].length > 0) { %>
 					<li><a href="#post-receiving-actions" data-toggle="tab">Post Receiving</a></li>
 				<% } %>
 			</ul>
@@ -143,7 +143,7 @@
 					</div>
 				<% } %>
 
-				<% if (obj["pre-processing-actions"].length > 0) { %>
+				<% if (typeof(obj["pre-processing-actions"]) != "undefined" && obj["pre-processing-actions"].length > 0) { %>
 					<div class="tab-pane" id="pre-processing-actions">
 						<% _.each(obj["pre-processing-actions"], function(action) { %>
 							<%= renderAction(action) %>		
@@ -151,7 +151,7 @@
 					</div>
 				<% } %>
 
-				<% if (obj["post-processing-actions"].length > 0) { %>
+				<% if (typeof(obj["post-processing-actions"]) != "undefined" && obj["post-processing-actions"].length > 0) { %>
 					<div class="tab-pane" id="post-processing-actions">
 						<% _.each(obj["post-processing-actions"], function(action) { %>
 							<%= renderAction(action) %>		
@@ -159,7 +159,7 @@
 					</div>
 				<% } %>
 
-				<% if (obj["post-receiving-actions"].length > 0) { %>
+				<% if (typeof(obj["post-receiving-actions"]) != "undefined" && obj["post-receiving-actions"].length > 0) { %>
 					<div class="tab-pane" id="post-receiving-actions">
 						<% _.each(obj["post-receiving-actions"], function(action) { %>
 							<%= renderAction(action) %>		
@@ -175,7 +175,7 @@
 	</script>
 	<script id="acceptor-template" type="text/template">
 		<p><i class="icon-chevron-right"></i> <strong><%= name %></strong></p>
-		<% if (configuration) { %>
+		<% if (typeof(configuration) != "undefined") { %>
 			<div style="margin-left: 20px;">
 				<table class="table table-bordered table-condensed">
 					<% _.each(configuration, function(value, key) { %>

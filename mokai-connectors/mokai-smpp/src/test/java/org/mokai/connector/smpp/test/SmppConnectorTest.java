@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 
@@ -541,7 +542,53 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 		} finally {
 			connector.doStop();
 		}
+	}
 
+	@Test
+	public void testFailedCommandStatuses() throws Exception {
+		server.setPacketProcessor(new PacketProcessor() {
+
+			@Override
+			public void processPacket(SmppRequest packet, ResponseSender responseSender) {
+				if (packet.getCommandId() == SmppPacket.SUBMIT_SM) {
+					responseSender.send(Response.MESSAGE_QUEUE_FULL.withMessageId("12000"));
+					return;
+				}
+
+				responseSender.send( Response.OK );
+			}
+
+		});
+
+		SmppConfiguration configuration = new SmppConfiguration();
+		configuration.setHost("localhost");
+		configuration.setPort(SERVER_PORT);
+		configuration.setSystemId("test");
+		configuration.setPassword("test");
+		configuration.addFailedCommandStatus(Response.MESSAGE_QUEUE_FULL.getCommandStatus());
+
+		MockMessageStore messageStore = new MockMessageStore();
+		MockMessageProducer messageProducer = new MockMessageProducer();
+		SmppConnector connector = createAndStartSmppConnector(configuration, messageStore, messageProducer);
+
+		try {
+			// send a message
+			Message message = new Message();
+			message.setProperty("to", "3542");
+			message.setProperty("from", "3002175604");
+			message.setProperty("text", "This is the test");
+			sendMessage(connector, messageStore, message);
+
+			Assert.assertEquals(messageStore.messages.size(), 1);
+
+			Message m1 = messageStore.messages.iterator().next();
+			Assert.assertNotNull(m1);
+
+			waitMessageUntilStatus(m1, DEFAULT_TIMEOUT, Message.STATUS_FAILED);
+			Assert.assertEquals(m1.getStatus(), Message.STATUS_FAILED);
+		} finally {
+			connector.doStop();
+		}
 	}
 
 	private SmppConnector createAndStartSmppConnector(SmppConfiguration configuration, MessageStore messageStore, MessageProducer messageProducer) throws Exception {
@@ -688,6 +735,26 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 		Assert.assertEquals(connector.getStatus(), status);
 	}
 
+	private void waitMessageUntilStatus(Message message, long timeout, byte status) {
+		boolean isValid = false;
+
+		long startTime = new Date().getTime();
+		long actualTime = new Date().getTime();
+		while (!isValid && (actualTime - startTime) <= timeout) {
+			if (message.getStatus() == status) {
+				isValid = true;
+			} else {
+				synchronized (this) {
+					try { this.wait(200); } catch (Exception e) {}
+				}
+			}
+
+			actualTime = new Date().getTime();
+		}
+
+		Assert.assertEquals(message.getStatus(), status);
+	}
+
 	private boolean receiveMessage(MockMessageProducer messageProducer, long timeout) {
 		boolean received = false;
 
@@ -827,7 +894,7 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 
 	private class MockMessageStore implements MessageStore {
 
-		private Collection<Message> messages = new ArrayList<Message>();
+		private Collection<Message> messages = new HashSet<Message>();
 
 		@Override
 		public void saveOrUpdate(Message message) throws StoreException, RejectedException {

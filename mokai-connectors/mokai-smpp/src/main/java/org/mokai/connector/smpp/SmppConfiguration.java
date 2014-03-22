@@ -1,5 +1,8 @@
 package org.mokai.connector.smpp;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.gescobar.jmx.annotation.ManagedAttribute;
 
 import org.mokai.ui.annotation.Label;
@@ -144,6 +147,9 @@ public class SmppConfiguration {
 
 	@Label("Bind Timeout")
 	private long bindTimeout = 5000;
+
+	@Label("Failed Command Statuses")
+	private List<String> failedCommandStatuses = new ArrayList<String>();
 
 	@ManagedAttribute
 	public final String getHost() {
@@ -324,4 +330,15 @@ public class SmppConfiguration {
 		this.bindTimeout = bindTimeout;
 	}
 
+	public List<String> getFailedCommandStatuses() {
+		return failedCommandStatuses;
+	}
+
+	public void setFailedCommandStatuses(List<String> failedCommandStatuses) {
+		this.failedCommandStatuses = failedCommandStatuses;
+	}
+
+	public void addFailedCommandStatus(int failedCommandStatus) {
+		this.failedCommandStatuses.add(failedCommandStatus + "");
+	}
 }

@@ -2,6 +2,7 @@ package org.mokai.web.admin.jogger.controllers;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.json.JSONArray;
@@ -13,6 +14,7 @@ import org.mokai.Connector;
 import org.mokai.ConnectorService;
 import org.mokai.ExposableConfiguration;
 import org.mokai.Processor;
+import org.mokai.ui.annotation.AcceptorsList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -133,7 +135,23 @@ public final class HelperUI {
 		for (Field field : fields) {
 			try {
 				field.setAccessible(true);
-				jsonConfig.put( field.getName(), field.get(config) );
+
+				if (field.isAnnotationPresent(AcceptorsList.class)) {
+					Collection<Acceptor> acceptors = (Collection<Acceptor>) field.get(config);
+
+					JSONArray jsonAcceptors = new JSONArray();
+					for (Acceptor acceptor : acceptors) {
+						JSONObject jsonAcceptor = new JSONObject().put( "name", Helper.getComponentName(acceptor) );
+						if ( ExposableConfiguration.class.isInstance(acceptor) ) {
+							jsonAcceptor.put( "configuration", getConfigJSON((ExposableConfiguration<?>) acceptor) );
+						}
+						jsonAcceptors.put(jsonAcceptor);
+					}
+
+					jsonConfig.put(field.getName(), jsonAcceptors);
+				} else {
+					jsonConfig.put(field.getName(), field.get(config));
+				}
 			} catch (IllegalAccessException e) {
 				log.error(e.getMessage(), e);
 			}

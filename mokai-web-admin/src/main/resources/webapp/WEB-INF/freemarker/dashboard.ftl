@@ -190,22 +190,24 @@
 	</script>
 	<script id="action-template" type="text/template">
 		<p><i class="icon-chevron-right"></i> <strong><%= name %></strong></p>
-		<div style="margin-left: 20px;">
-			<table class="table table-bordered table-condensed table-striped">
-				<% _.each(configuration, function(value, key) { %>
-					<tr>
-						<th width="10%"><%= key %></th>
-						<td>
-							<% if (_.isObject(value) || _.isArray(value)) { %>
-								<%= JSON.stringify(value) %>
-							<% } else { %>
-								<%= value %>
-							<% } %>
-						</td>
-					</tr>
-				<% }) %>
-			</table>
-		</div>
+		<% if (typeof(configuration) != "undefined") { %>
+			<div style="margin-left: 20px;">
+				<table class="table table-bordered table-condensed table-striped">
+					<% _.each(configuration, function(value, key) { %>
+						<tr>
+							<th width="10%"><%= key %></th>
+							<td>
+								<% if (_.isObject(value) || _.isArray(value)) { %>
+									<%= JSON.stringify(value) %>
+								<% } else { %>
+									<%= value %>
+								<% } %>
+							</td>
+						</tr>
+					<% }) %>
+				</table>
+			</div>
+		<% } %>
 	</script>
 	
 	<script type="text/javascript" src="/js/backbone-min.js"></script>

@@ -32,6 +32,8 @@ import org.mokai.Serviceable;
 import org.mokai.annotation.Description;
 import org.mokai.annotation.Name;
 import org.mokai.annotation.Resource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.cloudhopper.commons.charset.CharsetUtil;
 
@@ -39,6 +41,8 @@ import com.cloudhopper.commons.charset.CharsetUtil;
 @Description("Allows SMPP clients to connect, send and receive messages")
 public class SmppServerConnector implements Processor, Configurable, Serviceable,
 		ExposableConfiguration<SmppServerConfiguration> {
+
+	private Logger log = LoggerFactory.getLogger(SmppServerConnector.class);
 
 	/**
 	 * The folder in which we will save the file with the sequence number.
@@ -199,6 +203,15 @@ public class SmppServerConnector implements Processor, Configurable, Serviceable
 		return sequence;
 	}
 
+	/**
+	 * Helper method that returns the header that should be appended to all log messages.
+	 *
+	 * @return the log header.
+	 */
+	private String getLogHead() {
+		return "[receiver=" + context.getId() + "] ";
+	}
+
 	private class CustomPacketProcessor implements PacketProcessor {
 
 		@Override
@@ -247,6 +260,7 @@ public class SmppServerConnector implements Processor, Configurable, Serviceable
 					responseSender.send( Response.OK.withMessageId(nextMessageId() + "") );
 					return;
 				} catch (Exception e) {
+					log.error(getLogHead() + "Exception sending response: " + e.getMessage(), e);
 					responseSender.send( Response.SYSTEM_ERROR );
 					return;
 				}

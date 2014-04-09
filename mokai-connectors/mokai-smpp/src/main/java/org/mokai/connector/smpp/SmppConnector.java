@@ -1039,7 +1039,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			int submitted = Integer.parseInt(getDeliveryReceiptValue("sub", shortMessage));
 			int delivered = Integer.parseInt(getDeliveryReceiptValue("dlvrd", shortMessage));
 
-			SimpleDateFormat sdf = new SimpleDateFormat("yyMMddhhmm");
+			SimpleDateFormat sdf = new SimpleDateFormat("yyMMddHHmm");
 			Date submitDate = sdf.parse(getDeliveryReceiptValue("submit date", shortMessage));
 			Date doneDate = sdf.parse(getDeliveryReceiptValue("done date", shortMessage));
 

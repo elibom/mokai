@@ -688,7 +688,7 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 	}
 
 	/**
-	 * Starts consuming messages from the queue (returned by
+	 * Stops consuming messages from the queue (returned by
 	 * {@link AbstractCamelConnectorService#getQueueUri()} method) and stops
 	 * the Apache Camel routes. If the {@link Processor} implements
 	 * {@link Serviceable}, it calls the {@link Serviceable#doStop()}

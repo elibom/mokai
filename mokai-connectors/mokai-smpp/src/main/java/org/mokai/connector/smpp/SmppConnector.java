@@ -120,6 +120,8 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	 */
 	private volatile boolean started = false;
 
+	private volatile boolean connecting = false;
+
 	/**
 	 * Tells if the session is bound.
 	 */
@@ -452,6 +454,12 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 
 		@Override
 		public void run() {
+			if (connecting) {
+				log.debug(getLogHead() + "wont start connection thread because it looks like there is another already running");
+				return;
+			}
+
+			connecting = true;
 			log.info(getLogHead() + "schedule connect after " + initialDelay + " millis");
 			try {
 				Thread.sleep(initialDelay);
@@ -474,6 +482,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 					bound = true;
 					status = MonitorStatusBuilder.ok();
 					log.info(getLogHead() +  "connected to '" + configuration.getHost() + ":" + configuration.getPort() + "'");
+					connecting = false;
 
 				} catch (Exception e) {
 					// log the exception and change status
@@ -516,6 +525,10 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 
 				BindResp bindResp = messageListener.getBindResponse(configuration.getBindTimeout());
 				if (bindResp == null || bindResp.getCommandStatus() != 0) {
+					// close the link if no response
+					if (link != null) {
+						try { link.close(); } catch (Exception f) {}
+					}
 					throw new Exception("Bind Response failed: " + bindResp);
 				}
 
@@ -606,6 +619,8 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 						if (!success) {
 							bound = false;
 							status = MonitorStatusBuilder.failed("enquire link failed");
+
+							try { connection.closeLink(); } catch (Exception e) {}
 
 							log.info("creating new ConnectionThread after a enquire link failed");
 							new Thread(
@@ -964,10 +979,14 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 					bound = false;
 					status = MonitorStatusBuilder.failed("received an exit event");
 
-					log.info("creating new ConnectionThread after a ReceiverExitEvent");
-					new Thread(
-						new ConnectionThread(Integer.MAX_VALUE, configuration.getInitialReconnectDelay())
-					).start();
+					try { connection.closeLink(); } catch (Exception e) {}
+
+					log.info(getLogHead() + "creating new ConnectionThread after a ReceiverExitEvent");
+					if (!connecting) {
+						new Thread(
+							new ConnectionThread(Integer.MAX_VALUE, configuration.getInitialReconnectDelay())
+						).start();
+					}
 				}
 			} else if (event.getType() == SMPPEvent.RECEIVER_EXCEPTION) {
 				ReceiverExceptionEvent exceptionEvent = (ReceiverExceptionEvent) event;

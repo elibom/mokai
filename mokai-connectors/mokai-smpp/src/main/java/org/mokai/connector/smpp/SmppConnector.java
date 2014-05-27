@@ -12,6 +12,7 @@ import ie.omk.smpp.message.EnquireLink;
 import ie.omk.smpp.message.SMPPPacket;
 import ie.omk.smpp.message.SubmitSM;
 import ie.omk.smpp.message.SubmitSMResp;
+import ie.omk.smpp.message.tlv.TLVTable;
 import ie.omk.smpp.message.tlv.Tag;
 import ie.omk.smpp.net.TcpLink;
 import ie.omk.smpp.util.ASCIIEncoding;
@@ -1019,6 +1020,18 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 				String from = deliverSm.getSource().getAddress();
 				String to = deliverSm.getDestination().getAddress();
 				String text = new String(deliverSm.getMessageText());
+				log.debug(getLogHead() + "DeliverSM text: " + new String(deliverSm.getMessageText()));
+				log.debug(getLogHead() + "DeliverSM text bytes: " + decodeBytes(deliverSm.getMessage()));
+				log.debug(getLogHead() + "DeliverSM data coding: " + deliverSm.getDataCoding());
+				TLVTable tlvTable = deliverSm.getTLVTable();
+				if (tlvTable != null) {
+					Collection values = deliverSm.getTLVTable().values();
+					for (Object tlv : values) {
+						log.debug(getLogHead() + "DeliverSM tlv: " + tlv);
+					}
+				} else {
+					log.debug(getLogHead() + "DeliverSM has no TLVTable!");
+				}
 
 				Message message = new Message();
 				message.setProperty("to", to);
@@ -1029,6 +1042,14 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			} else {
 				log.warn(getLogHead() + "received DeliverSM discardIncomingMessages is set ... ignoring message: " + deliverSm.toString());
 			}
+		}
+
+		private String decodeBytes(byte[] bytes) {
+			StringBuilder sb = new StringBuilder();
+			for (byte b : bytes) {
+				sb.append(String.format("%02X ", b));
+			}
+			return sb.toString();
 		}
 
 		/**

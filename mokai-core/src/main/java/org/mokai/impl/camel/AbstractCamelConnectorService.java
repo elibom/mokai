@@ -791,9 +791,12 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 				}
 
 				// try to process the message
+				long startTime = System.currentTimeMillis();
 				Processor processor = (Processor) connector;
 				processor.process(message);
 				message.setStatus(Message.STATUS_PROCESSED);
+				long endTime = System.currentTimeMillis();
+				log.debug("[processor=" + id + "] processing message took " + (endTime - startTime) + " millis");
 
 				status = Monitorable.class.isInstance(processor) ? MonitorStatusBuilder.ok() : MonitorStatusBuilder.unknown();
 				failedMessages = 0;

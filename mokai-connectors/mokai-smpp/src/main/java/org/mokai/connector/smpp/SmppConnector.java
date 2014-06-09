@@ -482,7 +482,6 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 					bound = true;
 					status = MonitorStatusBuilder.ok();
 					log.info(getLogHead() +  "connected to '" + configuration.getHost() + ":" + configuration.getPort() + "'");
-					connecting = false;
 
 				} catch (Exception e) {
 					// log the exception and change status
@@ -500,6 +499,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 
 				}
 			}
+			connecting = false;
 
 		}
 

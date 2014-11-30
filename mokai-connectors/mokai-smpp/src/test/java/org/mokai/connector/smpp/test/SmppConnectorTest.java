@@ -370,7 +370,7 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 			deliverSM.setSourceAddress(new Address((byte) 0, (byte) 0, from));
 			deliverSM.setShortMessage(text.getBytes());
 
-			session.sendRequest(deliverSM);
+			session.sendRequest(deliverSM, DEFAULT_TIMEOUT);
 
 			long timeout = 2000;
 			if (!receiveMessage(messageProducer, timeout)) {
@@ -425,7 +425,7 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 			deliverSM.setSourceAddress(new Address((byte) 0, (byte) 0, to));
 			deliverSM.setShortMessage("id:12000 sub:1 dlvrd:1 submit date:1101010000 done date:1101010000 stat:DELIVRD err:0 text:This is a ... ".getBytes());
 
-			session.sendRequest(deliverSM);
+			session.sendRequest(deliverSM, DEFAULT_TIMEOUT);
 
 			long timeout = 2000;
 			if (!receiveMessage(messageProducer, timeout)) {
@@ -479,7 +479,7 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 			deliverSM.setSourceAddress(new Address((byte) 0, (byte) 0, "3542"));
 			deliverSM.setShortMessage("id:16fee0e525 sub:1 dlvrd:1 submit date:1101010000 done date:1101010000 stat:DELIVRD err:0 text:This is a ... ".getBytes());
 
-			session.sendRequest(deliverSM);
+			session.sendRequest(deliverSM, DEFAULT_TIMEOUT);
 
 			long timeout = 2000;
 			if (!receiveMessage(messageProducer, timeout)) {
@@ -530,7 +530,7 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 			deliverSM.setSourceAddress(new Address((byte) 0, (byte) 0, "3542"));
 			deliverSM.setShortMessage("id:98765432101 sub:1 dlvrd:1 submit date:1101010000 done date:1101010000 stat:DELIVRD err:0 text:This is a ... ".getBytes());
 
-			session.sendRequest(deliverSM);
+			session.sendRequest(deliverSM, DEFAULT_TIMEOUT);
 
 			long timeout = 2000;
 			if (!receiveMessage(messageProducer, timeout)) {
@@ -678,7 +678,7 @@ private Logger log = LoggerFactory.getLogger(SmppConnectorTest.class);
 			Assert.assertNotNull(session);
 
 			// send the delivery receipt
-			session.sendRequest(deliverSm);
+			session.sendRequest(deliverSm, DEFAULT_TIMEOUT);
 
 			long timeout = 2000;
 			if (receiveMessage(messageProducer, timeout)) {

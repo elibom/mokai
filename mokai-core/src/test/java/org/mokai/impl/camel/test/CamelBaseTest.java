@@ -45,6 +45,7 @@ public class CamelBaseTest {
 		// a simple activemq connection factory
 		ActiveMQConnectionFactory connectionFactory = 
 			new ActiveMQConnectionFactory("vm://broker1?broker.persistent=false");
+                connectionFactory.setTrustAllPackages(true);
 		connectionFactory.setDispatchAsync(false);
 		
 		// create the default JmsComponent 

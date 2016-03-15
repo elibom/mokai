@@ -119,12 +119,12 @@
 	</dependencyManagement>
 
 	<properties>
-		<spring.version>3.0.3.RELEASE</spring.version>
-		<camel.version>2.10.6</camel.version>
-		<activemq.version>5.8.0</activemq.version>
+		<spring.version>3.2.16.RELEASE</spring.version>
+		<camel.version>2.10.7</camel.version>
+		<activemq.version>5.13.2</activemq.version>
 		<jpf.version>1.5</jpf.version>
-		<testng.version>5.13</testng.version>
-		<slf4j.version>1.6.1</slf4j.version>
+		<testng.version>6.9.10</testng.version>
+		<slf4j.version>1.7.18</slf4j.version>
 		<mockito.version>1.8.5</mockito.version>
 		
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -174,14 +174,14 @@
  		<repository>  
   			<id>elibom</id>  
   			<name>Elibom Nexus Repository</name>  
-  			<url>http://repository.elibom.net/nexus/content/repositories/releases</url>  
+			<url>http://dev-nexus.elibom.com/content/repositories/releases/</url>
  		</repository>  
   
  		<!-- Publish the versioned releases here -->  
  		<snapshotRepository>  
   			<id>elibom</id>  
   			<name>Elibom Nexus Repository</name>  
-  			<url>http://repository.elibom.net/nexus/content/repositories/snapshots</url>  
+			<url>http://dev-nexus.elibom.com/content/repositories/snapshots/</url>
  		</snapshotRepository>  
 	</distributionManagement>
 
@@ -204,7 +204,7 @@
 		<repository>  
   			<id>elibom</id>  
   			<name>Elibom Nexus Repository</name>  
-  			<url>http://repository.elibom.net/nexus/content/repositories/releases</url>  
+			<url>http://dev-nexus.elibom.com/content/repositories/releases/</url>
   			<releases>  
    				<enabled>true</enabled>  
   			</releases>  

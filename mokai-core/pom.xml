@@ -13,14 +13,33 @@
 	<description>Mokai Core Module</description>
 
 	<dependencies>
+                <dependency>
+                        <groupId>org.springframework</groupId>
+                        <artifactId>spring-context</artifactId>
+                </dependency>
+                <dependency>
+                        <groupId>org.springframework</groupId>
+                        <artifactId>spring-tx</artifactId>
+                        <version>${spring.version}</version>
+                </dependency>
+                <dependency>
+                        <groupId>org.springframework</groupId>
+                        <artifactId>spring-jms</artifactId>
+                        <version>${spring.version}</version>
+                </dependency>
 		<dependency>
 			<groupId>org.apache.camel</groupId>
 			<artifactId>camel-core</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>org.apache.activemq</groupId>
 			<artifactId>activemq-camel</artifactId>
+                        <exclusions>
+                            <exclusion>
+                                <groupId>org.springframework</groupId>
+                                <artifactId>*</artifactId>
+                            </exclusion>
+                        </exclusions>
 		</dependency>
 
 		<dependency>
@@ -70,12 +89,6 @@
 			<groupId>commons-dbcp</groupId>
 			<artifactId>commons-dbcp</artifactId>
 			<version>1.4</version>
-			<exclusions>
-				<exclusion>
-					<groupId>commons-pool</groupId>
-					<artifactId>commons-pool</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 
 		<dependency>

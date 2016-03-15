@@ -79,9 +79,8 @@ public class CamelRoutingEngine implements RoutingEngine {
 	 */
 	private JmsComponent defaultJmsComponent() {
 		// a simple activemq connection factory
-		ActiveMQConnectionFactory connectionFactory =
-				new ActiveMQConnectionFactory("vm://broker1?broker.persistent=false");
-
+		ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://broker1?broker.persistent=false");
+                connectionFactory.setTrustAllPackages(true);
 		// create the default JmsComponent
 		JmsComponent jmsComponent = new JmsComponent();
 		jmsComponent.setConnectionFactory(connectionFactory);

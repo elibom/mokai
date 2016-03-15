@@ -2,7 +2,6 @@ package org.mokai.type.impl.test;
 
 import java.util.Set;
 
-import junit.framework.Assert;
 
 import org.mokai.type.AcceptorType;
 import org.mokai.type.ActionType;
@@ -11,6 +10,7 @@ import org.mokai.type.impl.StandardTypeLoader;
 import org.mokai.types.mock.MockAcceptor;
 import org.mokai.types.mock.MockAction;
 import org.mokai.types.mock.MockConnector;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 public class StandardTypeLoaderTest {

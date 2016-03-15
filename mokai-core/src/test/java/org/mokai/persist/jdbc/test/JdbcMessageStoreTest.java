@@ -14,8 +14,6 @@ import java.util.Collections;
 
 import javax.sql.DataSource;
 
-import junit.framework.Assert;
-
 import org.mokai.Message;
 import org.mokai.Message.Direction;
 import org.mokai.ObjectNotFoundException;
@@ -23,6 +21,7 @@ import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.RejectedException;
 import org.mokai.persist.jdbc.JdbcMessageStore;
 import org.mokai.persist.jdbc.MessageHandler;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 /**

@@ -15,8 +15,6 @@ import java.util.List;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 
-import junit.framework.Assert;
-
 import org.apache.camel.ProducerTemplate;
 import org.mokai.Acceptor;
 import org.mokai.Configurable;
@@ -36,6 +34,7 @@ import org.mokai.persist.MessageStore;
 import org.mokai.persist.StoreException;
 import org.mokai.types.mock.MockConnector;
 import org.mokai.types.mock.MockServiceableConnector;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 /**

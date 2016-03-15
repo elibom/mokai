@@ -14,13 +14,13 @@ import org.mokai.Message;
  */
 public class ParseJsonBodyAction implements Action {
 
-    @Override
-    public void execute(Message message) throws Exception {
-        String body = (String) message.getProperty("body");
-        JsonObject jsonObject = new JsonParser().parse(body).getAsJsonObject();
-        Set<Map.Entry<String, JsonElement>> jsonEntrySet = jsonObject.entrySet();
-        for (Map.Entry<String, JsonElement> jsonEntry : jsonEntrySet) {
-            message.setProperty(jsonEntry.getKey(), jsonEntry.getValue().getAsString());
-        }
-    }
+	@Override
+	public void execute(Message message) throws Exception {
+		String body = (String) message.getProperty("body");
+		JsonObject jsonObject = new JsonParser().parse(body).getAsJsonObject();
+		Set<Map.Entry<String, JsonElement>> jsonEntrySet = jsonObject.entrySet();
+		for (Map.Entry<String, JsonElement> jsonEntry : jsonEntrySet) {
+			message.setProperty(jsonEntry.getKey(), jsonEntry.getValue().getAsString());
+		}
+	}
 }

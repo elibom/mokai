@@ -64,7 +64,7 @@ public class CamelRoutingEngine implements RoutingEngine {
 	private ConnectorServiceChangeListener connectorServiceChangeListener;
 
 	private ExecutorService executor =
-			new ThreadPoolExecutor(2, 4, Long.MAX_VALUE, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
+			new ThreadPoolExecutor(2, 25, Long.MAX_VALUE, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
 
 	public CamelRoutingEngine() {
 		this.jmsComponent = defaultJmsComponent();

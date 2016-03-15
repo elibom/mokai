@@ -64,7 +64,13 @@ public class MySqlEngine implements SqlEngine {
 					"smsc_receipttime DATETIME, " +
 					"other VARCHAR(1000), " +
 					"creation_time DATETIME NOT NULL, " +
-					"modification_time DATETIME) ENGINE=MyISAM DEFAULT CHARSET=utf8;";
+					"modification_time DATETIME, " +
+					"KEY DEST_SEQ_IDX (destination, smsc_sequencenumber)," +
+					"KEY DEST_MSGID_IDX (destination, smsc_messageid)," +
+					"KEY TO_IDX (smsc_to)," +
+					"KEY STATUS_IDX (status)," +
+					"KEY DATE_IDX (creation_time)" +
+				") ENGINE=MyISAM DEFAULT CHARSET=utf8;";
 	}
 
 	protected String getApplicationsCreateScript() {
@@ -84,7 +90,10 @@ public class MySqlEngine implements SqlEngine {
 					"smsc_receipttime DATETIME, " +
 					"other VARCHAR(1000), " +
 					"creation_time DATETIME NOT NULL, " +
-					"modification_time DATETIME) ENGINE=MyISAM DEFAULT CHARSET=utf8;";
+					"modification_time DATETIME," +
+					"KEY DEST_SEQNUM_IDX (destination, smsc_sequencenumber)," +
+					"KEY DEST_MSGID_IDX (destination, smsc_messageid)" +
+				") ENGINE=MyISAM DEFAULT CHARSET=utf8;";
 	}
 
 }

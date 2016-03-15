@@ -12,6 +12,7 @@ import ie.omk.smpp.message.EnquireLink;
 import ie.omk.smpp.message.SMPPPacket;
 import ie.omk.smpp.message.SubmitSM;
 import ie.omk.smpp.message.SubmitSMResp;
+import ie.omk.smpp.message.tlv.TLVTable;
 import ie.omk.smpp.message.tlv.Tag;
 import ie.omk.smpp.net.TcpLink;
 import ie.omk.smpp.util.ASCIIEncoding;
@@ -118,6 +119,8 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 	 * in case of failure.
 	 */
 	private volatile boolean started = false;
+
+	private volatile boolean connecting = false;
 
 	/**
 	 * Tells if the session is bound.
@@ -451,6 +454,12 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 
 		@Override
 		public void run() {
+			if (connecting) {
+				log.debug(getLogHead() + "wont start connection thread because it looks like there is another already running");
+				return;
+			}
+
+			connecting = true;
 			log.info(getLogHead() + "schedule connect after " + initialDelay + " millis");
 			try {
 				Thread.sleep(initialDelay);
@@ -490,6 +499,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 
 				}
 			}
+			connecting = false;
 
 		}
 
@@ -515,6 +525,10 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 
 				BindResp bindResp = messageListener.getBindResponse(configuration.getBindTimeout());
 				if (bindResp == null || bindResp.getCommandStatus() != 0) {
+					// close the link if no response
+					if (link != null) {
+						try { link.close(); } catch (Exception f) {}
+					}
 					throw new Exception("Bind Response failed: " + bindResp);
 				}
 
@@ -606,6 +620,8 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 							bound = false;
 							status = MonitorStatusBuilder.failed("enquire link failed");
 
+							try { connection.closeLink(); } catch (Exception e) {}
+
 							log.info("creating new ConnectionThread after a enquire link failed");
 							new Thread(
 								new ConnectionThread(Integer.MAX_VALUE, configuration.getInitialReconnectDelay())
@@ -668,6 +684,9 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		private void process() {
 			List<SubmitSmResp> submitSmResponseCopy = new ArrayList<SubmitSmResp>(submitSmResponses);
 
+			if (submitSmResponseCopy.size() > 10) {
+				log.debug("processing " + submitSmResponseCopy.size() + " submit_sm responses");
+			}
 			for (SubmitSmResp response : submitSmResponseCopy) {
 				// check if we have to precess this response
 				if (response.lastProcessedTime == null || (new Date().getTime() - response.lastProcessedTime.getTime()) > 500) {
@@ -722,15 +741,26 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 				message.setProperty("commandStatus", commandStatus);
 				message.setProperty("reponseTime", new Date());
 
+				if (configuration.getFailedCommandStatuses().contains(commandStatus + "")) {
+					message.setStatus(Message.STATUS_FAILED);
+				}
+
 				startTime = new Date().getTime();
 				messageStore.saveOrUpdate(message);
 				endTime = new Date().getTime();
 				log.trace(getLogHead() + "update message with id " + message.getId() + " took " + (endTime - startTime)
 						+ " milis");
 			} else {
-				// we couldn't find a matching message, try later
-				response.lastProcessedTime = new Date();
-				response.retries++;
+				// we couldn't find a matching message, try later or delete if too old
+				if (response.lastProcessedTime != null && System.currentTimeMillis() - response.lastProcessedTime.getTime() > 5 * 60 * 1000) {
+					log.warn(getLogHead() + "message with smsc_sequencenumber "
+							+ response.submitSMResp.getSequenceNum() + " not found after " + response.retries
+							+ " retries ... ignoring");
+					submitSmResponses.remove(response);
+				} else {
+					response.lastProcessedTime = new Date();
+					response.retries++;
+				}
 			}
 		}
 
@@ -818,13 +848,13 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			} else {
 				// we couldn't find a matching message, remove or try later if less than 6 retries
 				if (dr.retries > 9) {
-					log.warn(getLogHead() + " could not find message with messageId '" + drMessage.getProperty("messageId", String.class) + "' after " + dr.retries + " retries ... ignoring.");
+					log.warn(getLogHead() + " could not find message with messageId '" + convertMessageId(drMessage.getProperty("messageId", String.class)) + "' after " + dr.retries + " retries ... ignoring.");
 					deliveryReceipts.remove(dr);
 				} else {
 					dr.lastProcessedTime = new Date();
 					dr.retries++;
 
-					log.debug(getLogHead() + " could not find message with messageId: " + drMessage.getProperty("messageId", String.class) + " ... trying later, retry " + dr.retries);
+					log.debug(getLogHead() + " could not find message with messageId: " + convertMessageId(drMessage.getProperty("messageId", String.class)) + " ... trying later, retry " + dr.retries);
 				}
 			}
 		}
@@ -949,10 +979,14 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 					bound = false;
 					status = MonitorStatusBuilder.failed("received an exit event");
 
-					log.info("creating new ConnectionThread after a ReceiverExitEvent");
-					new Thread(
-						new ConnectionThread(Integer.MAX_VALUE, configuration.getInitialReconnectDelay())
-					).start();
+					try { connection.closeLink(); } catch (Exception e) {}
+
+					log.info(getLogHead() + "creating new ConnectionThread after a ReceiverExitEvent");
+					if (!connecting) {
+						new Thread(
+							new ConnectionThread(Integer.MAX_VALUE, configuration.getInitialReconnectDelay())
+						).start();
+					}
 				}
 			} else if (event.getType() == SMPPEvent.RECEIVER_EXCEPTION) {
 				ReceiverExceptionEvent exceptionEvent = (ReceiverExceptionEvent) event;
@@ -1000,11 +1034,23 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		 */
 		private void handleDeliverSm(DeliverSM deliverSm) {
 			if (!configuration.isDiscardIncomingMsgs()) {
-				log.info(getLogHead() + "received DeliverSM: " + deliverSm.toString());
+				log.debug(getLogHead() + "received DeliverSM: " +  deliverSm.toString());
 
 				String from = deliverSm.getSource().getAddress();
 				String to = deliverSm.getDestination().getAddress();
 				String text = new String(deliverSm.getMessageText());
+				log.debug(getLogHead() + "DeliverSM text: " + new String(deliverSm.getMessageText()));
+				log.debug(getLogHead() + "DeliverSM text bytes: " + decodeBytes(deliverSm.getMessage()));
+				log.debug(getLogHead() + "DeliverSM data coding: " + deliverSm.getDataCoding());
+				TLVTable tlvTable = deliverSm.getTLVTable();
+				if (tlvTable != null) {
+					Collection values = deliverSm.getTLVTable().values();
+					for (Object tlv : values) {
+						log.debug(getLogHead() + "DeliverSM tlv: " + tlv);
+					}
+				} else {
+					log.debug(getLogHead() + "DeliverSM has no TLVTable!");
+				}
 
 				Message message = new Message();
 				message.setProperty("to", to);
@@ -1017,6 +1063,14 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			}
 		}
 
+		private String decodeBytes(byte[] bytes) {
+			StringBuilder sb = new StringBuilder();
+			for (byte b : bytes) {
+				sb.append(String.format("%02X ", b));
+			}
+			return sb.toString();
+		}
+
 		/**
 		 * Helper method that handle delivery receipts PDU's. It will create a Message object out of the delivery
 		 * receipt, wrap it in the DeliveryReceipt class (defined in this file) and add it to the deliveryReceipts
@@ -1027,7 +1081,17 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 		 * @throws ParseException if the format of the short message (delivery receipt) is wrong.
 		 */
 		private void handleDeliveryReceipt(DeliverSM deliverSm) throws ParseException {
-			log.info(getLogHead() + "received Delivery Receipt: " + deliverSm.toString() + " - " + deliverSm.getMessageText());
+			String dest = "null";
+			if (deliverSm.getDestination() != null) {
+				dest = deliverSm.getDestination().getAddress();
+			}
+
+			String source = "null";
+			if (deliverSm.getSource() != null) {
+				source = deliverSm.getSource().getAddress();
+			}
+
+			log.info(getLogHead() + "received Delivery Receipt: source: " + source + ", dest: " + dest + ", text: " + deliverSm.getMessageText());
 
 			String shortMessage = new String(deliverSm.getMessageText());
 			String id = getDeliveryReceiptValue("id", shortMessage);
@@ -1035,7 +1099,7 @@ public class SmppConnector implements Processor, Serviceable, Monitorable,
 			int submitted = Integer.parseInt(getDeliveryReceiptValue("sub", shortMessage));
 			int delivered = Integer.parseInt(getDeliveryReceiptValue("dlvrd", shortMessage));
 
-			SimpleDateFormat sdf = new SimpleDateFormat("yyMMddhhmm");
+			SimpleDateFormat sdf = new SimpleDateFormat("yyMMddHHmm");
 			Date submitDate = sdf.parse(getDeliveryReceiptValue("submit date", shortMessage));
 			Date doneDate = sdf.parse(getDeliveryReceiptValue("done date", shortMessage));
 

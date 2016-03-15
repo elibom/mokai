@@ -85,6 +85,14 @@
 			</includes>
 		</fileSet>
 
+		<fileSet>
+			<directory>../mokai-connectors/mokai-rabbitmq/target</directory>
+			<outputDirectory>plugins</outputDirectory>
+			<includes>
+				<include>*.zip</include>
+			</includes>
+		</fileSet>
+
 	</fileSets>
 	
 	<dependencySets>

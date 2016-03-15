@@ -18,4 +18,4 @@ h2. Documentation
   
 h2. Download
 
-Current version: *0.11.4* - "Download":http://germanescobar.net/projects/mokai/releases/mokai-0.11.4.zip
+Current version: *0.11.5* - "Download":http://germanescobar.net/projects/mokai/releases/mokai-0.11.6.zip

@@ -6,6 +6,8 @@ import java.util.regex.Pattern;
 import org.mokai.Acceptor;
 import org.mokai.ExposableConfiguration;
 import org.mokai.Message;
+import org.mokai.annotation.Description;
+import org.mokai.annotation.Name;
 import org.mokai.ui.annotation.Label;
 import org.mokai.ui.annotation.List;
 
@@ -14,6 +16,8 @@ import org.mokai.ui.annotation.List;
  *
  * @author German Escobar
  */
+@Name("Regular Expression Acceptor")
+@Description("Matches a field using the provided regular expression")
 public class RegExpAcceptor implements Acceptor, ExposableConfiguration<RegExpAcceptor> {
 
 	@Label("Field")

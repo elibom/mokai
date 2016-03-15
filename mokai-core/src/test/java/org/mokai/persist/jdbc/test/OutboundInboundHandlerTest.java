@@ -11,14 +11,13 @@ import java.sql.Connection;
 import java.util.Collection;
 import java.util.Collections;
 
-import junit.framework.Assert;
-
 import org.mokai.Message;
 import org.mokai.Message.Direction;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.RejectedException;
 import org.mokai.persist.jdbc.MessageHandler;
 import org.mokai.persist.jdbc.OutboundInboundHandler;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 

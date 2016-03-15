@@ -2,12 +2,11 @@ package org.mokai.plugin.impl.jpf.test;
 
 import java.util.Set;
 
-import junit.framework.Assert;
-
 import org.mokai.Acceptor;
 import org.mokai.Action;
 import org.mokai.Connector;
 import org.mokai.plugin.jpf.JpfPluginMechanism;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 /**

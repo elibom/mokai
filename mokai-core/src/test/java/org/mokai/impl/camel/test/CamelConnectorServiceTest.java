@@ -3,8 +3,6 @@ package org.mokai.impl.camel.test;
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.Assert;
-
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.component.mock.MockEndpoint;
@@ -32,6 +30,7 @@ import org.mokai.impl.camel.ResourceRegistry;
 import org.mokai.persist.MessageStore;
 import org.mokai.types.mock.MockAcceptor;
 import org.mokai.types.mock.MockConnector;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 /**

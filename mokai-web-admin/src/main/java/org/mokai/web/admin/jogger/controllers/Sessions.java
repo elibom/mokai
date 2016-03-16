@@ -1,9 +1,9 @@
 package org.mokai.web.admin.jogger.controllers;
 
+import com.elibom.jogger.http.Cookie;
+import com.elibom.jogger.http.Request;
+import com.elibom.jogger.http.Response;
 import org.jasypt.util.password.StrongPasswordEncryptor;
-import org.jogger.http.Cookie;
-import org.jogger.http.Request;
-import org.jogger.http.Response;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mokai.web.admin.AdminPasswordStore;
@@ -30,9 +30,9 @@ public class Sessions {
 	public void create(Request request, Response response) throws JSONException {
 		JSONObject input = null;
 		try {
-			input = new JSONObject(request.getBody().asString());
-		} catch (JSONException e) {
-			response.badRequest().print("{ \"message\": \"" + e.getMessage() + "\"}");
+            input = new JSONObject(request.getBody());
+        } catch (Exception e) {
+            response.badRequest().write("{ \"message\": \"" + e.getMessage() + "\"}");
 			return;
 		}
 

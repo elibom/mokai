@@ -1,9 +1,9 @@
 package org.mokai.web.admin.jogger.controllers;
 
+import com.elibom.jogger.http.Request;
+import com.elibom.jogger.http.Response;
 import java.util.List;
 
-import org.jogger.http.Request;
-import org.jogger.http.Response;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -29,11 +29,11 @@ public class Connections {
 			jsonConnections.put( new ConnectorUI(connection).toJSON() );
 		}
 
-		response.contentType("application/json").print(jsonConnections.toString());
+        response.contentType("application/json").write(jsonConnections.toString());
 	}
 
 	public void show(Request request, Response response) throws JSONException {
-		String id = request.getPathVariable("id").asString();
+        String id = request.getPathVariable("id");
 		ConnectorService connectorService = routingEngine.getConnection(id);
 
 		if (connectorService == null) {
@@ -42,11 +42,11 @@ public class Connections {
 		}
 
 		JSONObject jsonConnector = HelperUI.getConnectorJSON(connectorService);
-		response.contentType("application/json").print(jsonConnector.toString());
+        response.contentType("application/json").write(jsonConnector.toString());
 	}
 
 	public void start(Request request, Response response) throws JSONException {
-		String id = request.getPathVariable("id").asString();
+        String id = request.getPathVariable("id");
 		ConnectorService connectorService = routingEngine.getConnection(id);
 
 		if (connectorService == null) {
@@ -58,7 +58,7 @@ public class Connections {
 	}
 
 	public void stop(Request request, Response response) throws JSONException {
-		String id = request.getPathVariable("id").asString();
+        String id = request.getPathVariable("id");
 		ConnectorService connectorService = routingEngine.getConnection(id);
 
 		if (connectorService == null) {

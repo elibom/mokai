@@ -1,14 +1,13 @@
 package org.mokai.web.admin.jogger.controllers;
 
+import com.elibom.jogger.http.Request;
+import com.elibom.jogger.http.Response;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.jogger.http.Request;
-import org.jogger.http.Response;
-import org.jogger.http.Value;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -25,9 +24,9 @@ public class Messages {
 	private RoutingEngine routingEngine;
 
 	public void connections(Request request, Response response) throws JSONException {
-		Value to = request.getParameter("recipient");
-		Value status = request.getParameter("status");
-		Value numRecords = request.getParameter("numRecords");
+        String to = request.getParameter("recipient");
+        String status = request.getParameter("status");
+        String numRecords = request.getParameter("numRecords");
 
 		Collection<Message> messages = listMessages(Direction.TO_CONNECTIONS, "to", to, status, numRecords);
 
@@ -40,14 +39,14 @@ public class Messages {
 			response.contentType("text/html; charset=UTF-8").render("messages.ftl", root);
 		} else {
 			JSONArray jsonMessages = getJSONMessages(messages);
-			response.contentType("application/json; charset=UTF-8").print( jsonMessages.toString() );
+            response.contentType("application/json; charset=UTF-8").write(jsonMessages.toString());
 		}
 	}
 
 	public void applications(Request request, Response response) throws JSONException {
-		Value from = request.getParameter("recipient");
-		Value status = request.getParameter("status");
-		Value numRecords = request.getParameter("numRecords");
+        String from = request.getParameter("recipient");
+        String status = request.getParameter("status");
+        String numRecords = request.getParameter("numRecords");
 
 		Collection<Message> messages = listMessages(Direction.TO_APPLICATIONS, "from", from, status, numRecords);
 
@@ -60,29 +59,32 @@ public class Messages {
 			response.contentType("text/html; charset=UTF-8").render("messages.ftl", root);
 		} else {
 			JSONArray jsonMessages = getJSONMessages(messages);
-			response.contentType("application/json; charset=UTF-8").print( jsonMessages.toString() );
+            response.contentType("application/json; charset=UTF-8").write(jsonMessages.toString());
 		}
 	}
 
-	private Collection<Message> listMessages(Direction direction, String recipientKey, Value recipientValue, Value status, Value numRecords) {
+    private Collection<Message> listMessages(Direction direction, String recipientKey, String recipientValue, String status, String numRecords) {
 		MessageCriteria criteria = new MessageCriteria()
 			.direction(direction)
 			.orderBy("id")
 			.orderType(OrderType.DOWNWARDS)
-			.numRecords( numRecords == null ? 2000 : numRecords.asInteger() );
+            .numRecords(numRecords == null ? 2000 : Integer.parseInt(numRecords));
 
 		if (recipientValue != null) {
-			criteria.addProperty(recipientKey, recipientValue.asString());
+            criteria.addProperty(recipientKey, recipientValue);
 		}
 
-		if (status != null) {
-			List<Value> statusList = status.asList();
-			for (Value s : statusList) {
-				criteria.addStatus(s.asInteger().byteValue());
-			}
-		}
-
-		return routingEngine.getMessageStore().list(criteria);
+        if (status != null) {
+            if (status.contains(",")) {
+                String[] statusSplited = status.split(",");
+                for (String s : statusSplited) {
+                    criteria.addStatus(Byte.parseByte(s));
+                }
+            } else {
+                criteria.addStatus(Byte.parseByte(status));
+            }
+        }
+        return routingEngine.getMessageStore().list(criteria);
 	}
 
 	private List<MessageUI> convertMessages(Collection<Message> messages) {

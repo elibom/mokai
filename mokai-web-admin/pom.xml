@@ -48,15 +48,9 @@
 		</dependency>
 		
 		<dependency>
-			<groupId>org.jogger</groupId>
-			<artifactId>jogger-core</artifactId>
-			<version>0.5.0</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.jogger</groupId>
-			<artifactId>jogger-spring</artifactId>
-			<version>0.5.0</version>
+			<groupId>com.elibom</groupId>
+			<artifactId>jogger</artifactId>
+			<version>0.2.1</version>
 		</dependency>
 		
 		<dependency>

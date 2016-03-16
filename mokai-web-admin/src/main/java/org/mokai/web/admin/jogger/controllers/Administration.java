@@ -1,8 +1,8 @@
 package org.mokai.web.admin.jogger.controllers;
 
+import com.elibom.jogger.http.Request;
+import com.elibom.jogger.http.Response;
 import org.jasypt.util.password.StrongPasswordEncryptor;
-import org.jogger.http.Request;
-import org.jogger.http.Response;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mokai.web.admin.AdminPasswordStore;
@@ -14,7 +14,7 @@ public class Administration {
 	private AdminPasswordStore adminPasswordStore;
 
 	public void changePassword(Request request, Response response) throws JSONException {
-		JSONObject jsonPassword = new JSONObject( request.getBody().asString() );
+        JSONObject jsonPassword = new JSONObject(request.getBody().asString());
 
 		StrongPasswordEncryptor passwordEncryptor = new StrongPasswordEncryptor();
 		String newPassword = passwordEncryptor.encryptPassword( jsonPassword.getString("password") );

@@ -1,5 +1,7 @@
 package org.mokai.web.admin.jogger.controllers;
 
+import com.elibom.jogger.http.Request;
+import com.elibom.jogger.http.Response;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -26,8 +28,6 @@ import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 import javax.management.openmbean.CompositeData;
 
-import org.jogger.http.Request;
-import org.jogger.http.Response;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -72,7 +72,7 @@ public class Jmx {
 	public void show(Request request, Response response) throws Exception {
 		MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
 
-		String mBean = URLDecoder.decode( request.getPathVariable("mbean").asString(), "UTF-8" );
+        String mBean = URLDecoder.decode(request.getPathVariable("mbean"), "UTF-8");
 
 		MBeanInfo mBeanInfo = null;
 		try {
@@ -135,14 +135,14 @@ public class Jmx {
 		}
 		json.put("operations", jsonOperations);
 
-		response.print( json.toString() );
+        response.write(json.toString());
 	}
 
 	public void showAttribute(Request request, Response response) throws Exception {
 		MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
 
-		String mBean = URLDecoder.decode( request.getPathVariable("mbean").asString(), "UTF-8" );
-		String attributeName = URLDecoder.decode( request.getPathVariable("attribute").asString(), "UTF-8");
+        String mBean = URLDecoder.decode(request.getPathVariable("mbean"), "UTF-8");
+        String attributeName = URLDecoder.decode(request.getPathVariable("attribute"), "UTF-8");
 
 		MBeanInfo mBeanInfo = null;
 		try {
@@ -165,7 +165,7 @@ public class Jmx {
 					.put("writable", attribute.isWritable())
 					.put("value", value);
 
-				response.print( json.toString() );
+                response.write(json.toString());
 				return;
 			}
 		}
@@ -176,10 +176,10 @@ public class Jmx {
 	public void updateAttribute(Request request, Response response) throws Exception {
 		MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
 
-		String mBean = URLDecoder.decode( request.getPathVariable("mbean").asString(), "UTF-8" );
-		String attributeName = URLDecoder.decode( request.getPathVariable("attribute").asString(), "UTF-8");
+        String mBean = URLDecoder.decode(request.getPathVariable("mbean"), "UTF-8");
+        String attributeName = URLDecoder.decode(request.getPathVariable("attribute"), "UTF-8");
 
-		String strJson = request.getBody().asString();
+        String strJson = request.getBody().asString();
 		if ( "".equals(strJson) ) {
 			response.badRequest();
 			return;
@@ -211,7 +211,7 @@ public class Jmx {
 			Attribute attribute = new Attribute(attributeName, value);
 			mBeanServer.setAttribute(new ObjectName(mBean), attribute);
 		} catch (JSONException e) {
-			response.badRequest().print( "{\"message\": \"" + e.getMessage() + "\"}" );
+            response.badRequest().write("{\"message\": \"" + e.getMessage() + "\"}");
 		} catch (InstanceNotFoundException e) {
 			response.notFound();
 			return;
@@ -224,8 +224,8 @@ public class Jmx {
 	public void invoke(Request request, Response response) throws Exception {
 		MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
 
-		String mBean = URLDecoder.decode( request.getPathVariable("mbean").asString(), "UTF-8" );
-		String operationName = URLDecoder.decode( request.getPathVariable("operation").asString(), "UTF-8");
+        String mBean = URLDecoder.decode(request.getPathVariable("mbean"), "UTF-8");
+        String operationName = URLDecoder.decode(request.getPathVariable("operation"), "UTF-8");
 
 		String[] signature = new String[0];
 		Object[] params = new Object[0];
@@ -240,7 +240,7 @@ public class Jmx {
 					params = getParams(jsonData, signature);
 				}
 			} catch (Exception e) {
-				response.badRequest().print( "{\"message\": \"" + e.getMessage() + "\"}" );
+                response.badRequest().write("{\"message\": \"" + e.getMessage() + "\"}");
 			}
 		}
 
@@ -269,13 +269,13 @@ public class Jmx {
 		try {
 			Object ret = mBeanServer.invoke( new ObjectName(mBean), operationName, params, signature);
 			if (ret != null) {
-				response.print( toJson(ret).toString() );
+                response.write(toJson(ret).toString());
 			}
 		} catch (MBeanException e) {
 			Writer writer = new StringWriter();
 			PrintWriter printWriter = new PrintWriter(writer);
 			e.printStackTrace(printWriter);
-			response.print( writer.toString() );
+            response.write(writer.toString());
 		}
 
 		return;

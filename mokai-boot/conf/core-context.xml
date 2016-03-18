@@ -49,7 +49,7 @@
 	<bean id="activeMQConnectionFactory" class="org.apache.activemq.pool.PooledConnectionFactory" depends-on="broker" destroy-method="stop">
 		<constructor-arg value="vm://mokai-broker" />
 		<property name="maxConnections" value="8" />
-		<property name="maximumActive" value="500" />
+		<property name="maximumActiveSessionPerConnection" value="500" />
 	</bean>
 	
 	<bean id="jmsTransactionManager" class="org.springframework.jms.connection.JmsTransactionManager">

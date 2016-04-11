@@ -14,6 +14,15 @@ Vagrant.configure(2) do |config|
   # boxes at https://atlas.hashicorp.com/search.
   config.vm.box = "ubuntu/trusty64"
 
+  if Vagrant.has_plugin?("vagrant-cachier")
+    config.cache.scope = :box
+    #OPTIONAL: If you are using VirtualBox, you might want to use that to enable NFS for shared folders. 
+    #config.cache.synced_folder_opts = {
+    #  type: :nfs,
+    #  mount_options: ['rw', 'vers=3', 'tcp', 'nolock']
+    #}
+  end
+
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
   # `vagrant box outdated`. This is not recommended.
@@ -79,6 +88,6 @@ Vagrant.configure(2) do |config|
     wget -c http://www-eu.apache.org/dist/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz
     tar zxf apache-maven-3.3.9-bin.tar.gz -C /opt
     cd /mokai
-    /opt/apache-maven-3.3.9/bin/mvn clean install
+    /opt/apache-maven-3.3.9/bin/mvn clean install -Pvagrant
    SHELL
 end

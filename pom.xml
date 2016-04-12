@@ -187,22 +187,33 @@
 
 	<repositories>
         <repository>
-			<id>elibom</id>
+			<id>elibom-releases</id>
 			<name>Elibom Nexus Repository</name>
-			<url>http://localhost:9000/nexus/content/groups/public</url>
+			<url>http://dev-nexus.elibom.com/content/repositories/releases/</url>
 			<releases>
 				<enabled>true</enabled>
 			</releases>
 			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>elibom-snapshots</id>
+			<name>Elibom Nexus Repository</name>
+			<url>http://dev-nexus.elibom.com/content/repositories/snapshots/</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
 				<enabled>true</enabled>
 			</snapshots>
- 		</repository>
+		</repository>
 	</repositories>
 	
 	<pluginRepositories>
 		<pluginRepository>
 			<id>elibom-nexus</id>
-			<url>http://localhost:9000/nexus/content/groups/public</url>
+			<url>http://dev-nexus.elibom.com/nexus/content/groups/public</url>
 		</pluginRepository>
 	</pluginRepositories>
 

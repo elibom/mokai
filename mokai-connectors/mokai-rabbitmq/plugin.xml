@@ -6,8 +6,8 @@
         <library id="core" path="classes/" type="code">
             <export prefix="*" />
         </library>
-        <library id="amqp-client" path="lib/amqp-client-3.2.1.jar" type="code" />
-        <library id="gson" path="lib/gson-2.2.2.jar" type="code" />
+        <library id="amqp-client" path="lib/amqp-client-3.2.4.jar" type="code" />
+        <library id="gson" path="lib/gson-2.6.2.jar" type="code" />
     </runtime>
 	
 </plugin>

@@ -9,6 +9,9 @@
 		<configuration>
 			<property name="delay" value="100" />
 		</configuration>
+        <pre-processing-actions>
+            <action className="org.mokai.connector.rabbitmq.BuildJsonBodyAction"></action>
+        </pre-processing-actions>
 		<acceptors>
 			<acceptor className="org.mokai.acceptor.AcceptAllAcceptor" />
 		</acceptors>
@@ -46,9 +49,9 @@
 			</listProperty>
 		</configuration>
 
-		<acceptors>
-			<acceptor className="org.mokai.acceptor.AcceptAllAcceptor" />
-		</acceptors>
-	</connector> -->
+        <acceptors>
+            <acceptor className="org.mokai.acceptor.AcceptAllAcceptor" />
+        </acceptors>
+    </connector> -->
 
 </connectors>

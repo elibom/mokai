@@ -4,7 +4,7 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans 
 			http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
-	<import resource="derby-context.xml" />
+	<import resource="${MOKAI_DB_ENGINE:derby}-context.xml" />
 	<!-- <import resource="mysql-context.xml" /> -->
 	<!-- <import resource="mongodb-context.xml" /> -->
 

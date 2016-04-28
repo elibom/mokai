@@ -74,20 +74,22 @@ Vagrant.configure(2) do |config|
   # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
   # documentation for more information about their specific syntax and use.
 
-  config.vm.provision "shell", inline: <<-SHELL
-    apt-get update 
-    apt-get -y upgrade
-    debconf-set-selections <<< 'mysql-server mysql-server/root_password password elibom'
-    debconf-set-selections <<< 'mysql-server mysql-server/root_password_again password elibom'
-    apt-get -y install mysql-server
-    mysqladmin -u root -pelibom create mokai
-    add-apt-repository ppa:webupd8team/java
-    apt-get -y -q update
-    echo oracle-java7-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections
-    apt-get -y -q install oracle-java7-installer
-    wget -c http://www-eu.apache.org/dist/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz
-    tar zxf apache-maven-3.3.9-bin.tar.gz -C /opt
+  $script = <<-SHELL
+    sudo apt-get update
+    sudo apt-get -y upgrade
+    sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password password elibom'
+    sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password_again password elibom'
+    sudo apt-get -y install mysql-server
+    sudo mysqladmin -u root -pelibom create mokai
+    sudo add-apt-repository ppa:webupd8team/java
+    sudo apt-get -y -q update
+    sudo echo oracle-java7-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections
+    sudo apt-get -y -q install oracle-java7-installer
     cd /mokai
+    wget -c http://www-eu.apache.org/dist/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz
+    sudo tar zxf apache-maven-3.3.9-bin.tar.gz -C /opt
     /opt/apache-maven-3.3.9/bin/mvn clean install -Pvagrant
-   SHELL
+  SHELL
+
+  config.vm.provision "shell", inline: $script, privileged: false
 end

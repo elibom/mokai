@@ -5,10 +5,26 @@
 		xsi:schemaLocation=
 			"http://mokai.googlecode.com/connectors http://mokai.googlecode.com/svn/schema/connectors-0.8.xsd">
 
-	<connector id="jetty-test" className="org.mokai.connector.jetty.JettyConnector">
-		<configuration>
-			<property name="port">9081</property>
-		</configuration>
-	</connector>
+    <connector id="jetty-test" className="org.mokai.connector.jetty.JettyConnector">
+        <configuration>
+            <property name="port">9081</property>
+        </configuration>
+    </connector>
+    <connector id="claro" className="org.mokai.connector.rabbitmq.RabbitMqReceiver" >
+        <configuration>
+            <property name="host">localhost</property>
+            <property name="virtualHost">elibom</property>
+            <property name="username">elibom</property>
+            <property name="password">mobile745</property>
+            <property name="exchange">test</property>
+            <property name="queueName">test</property>
+            <property name="routingKey">test</property>
+            <property name="heartBeat">10</property>
+        </configuration>
+        <post-receiving-actions>
+            <action className="org.mokai.connector.rabbitmq.ParseJsonBodyAction">
+            </action>
+        </post-receiving-actions>
+    </connector>
 
 </connectors>

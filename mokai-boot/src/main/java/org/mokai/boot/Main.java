@@ -12,30 +12,33 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
  */
 public final class Main {
 
-	private static Logger log = LoggerFactory.getLogger(Main.class);
+    private static Logger log = LoggerFactory.getLogger(Main.class);
 
-	/**
-	 * This class shouldn't be instantiated.
-	 */
-	private Main() {}
+    /**
+     * This class shouldn't be instantiated.
+     */
+    private Main() {
+    }
 
-	public static void main(String[] args) {
-		// start spring context
-		String[] configLocations = new String[] {
-				"conf/core-context.xml", "conf/jogger-context.xml", "conf/admin-console-context.xml"
-		};
+    public static void main(String[] args) {
+        // start spring context
+        System.setProperty("org.apache.activemq.SERIALIZABLE_PACKAGES", "*");
 
-		final ConfigurableApplicationContext springContext = new FileSystemXmlApplicationContext(configLocations);
+        String[] configLocations = new String[]{
+            "conf/core-context.xml", "conf/jogger-context.xml", "conf/admin-console-context.xml"
+        };
 
-		// add a shutdown hook to close spring context
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			public void run() {
-				log.info("stopping spring context ... ");
-				springContext.stop();
-				springContext.close();
-				log.info("<< spring context stopped >>");
-			}
-		});
-	}
+        final ConfigurableApplicationContext springContext = new FileSystemXmlApplicationContext(configLocations);
+
+        // add a shutdown hook to close spring context
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                log.info("stopping spring context ... ");
+                springContext.stop();
+                springContext.close();
+                log.info("<< spring context stopped >>");
+            }
+        });
+    }
 
 }

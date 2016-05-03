@@ -8,8 +8,8 @@
 	
 	<artifactId>mokai-boot</artifactId>
 	
-	<name>Mokai Bootstrap</name>
-	<description>Mokai Bootstrap Module</description>
+	<name>Mokai Boot</name>
+	<description>Mokai Boot Module</description>
 	
 	<dependencies>
 		<dependency>

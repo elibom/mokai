@@ -6,7 +6,7 @@
 		<library id="core" path="classes/" type="code">
 			<export prefix="*" />
 		</library>
-		<library id="jetty-servlet" path="lib/jetty-servlet-7.1.6.v20100715.jar" type="code" />
+		<library id="jetty-servlet" path="lib/jetty-servlet-8.1.4.v20120524.jar" type="code" />
 	</runtime>
 	
 </plugin>

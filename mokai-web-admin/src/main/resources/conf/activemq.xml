@@ -1,0 +1,40 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:amq="http://activemq.apache.org/schema/core"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://activemq.apache.org/schema/core
+        http://activemq.apache.org/schema/core/activemq-core-5.2.0.xsd">
+
+<amq:broker brokerName="mokai-broker" persistent="true" useShutdownHook="false" dataDirectory="data/activemq">
+
+	<amq:destinationPolicy>
+		<amq:policyMap>
+			<amq:policyEntries>
+				<amq:policyEntry queue=">" producerFlowControl="false" />
+			</amq:policyEntries>
+		</amq:policyMap>
+	</amq:destinationPolicy>
+	
+	<amq:managementContext>
+		<amq:managementContext createConnector="true" connectorPort="1190" />
+	</amq:managementContext>
+	
+	<amq:systemUsage>
+		<amq:systemUsage>
+			<amq:memoryUsage>
+				<amq:memoryUsage limit="64mb"></amq:memoryUsage>
+			</amq:memoryUsage>
+			<amq:storeUsage>
+				<amq:storeUsage limit="10gb"></amq:storeUsage>
+			</amq:storeUsage>
+			<amq:tempUsage>
+				<amq:tempUsage limit="5gb"></amq:tempUsage>
+			</amq:tempUsage>
+		</amq:systemUsage>
+	</amq:systemUsage>
+</amq:broker>
+
+ 
+</beans>

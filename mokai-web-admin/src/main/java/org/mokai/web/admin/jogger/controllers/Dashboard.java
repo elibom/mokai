@@ -1,11 +1,11 @@
 package org.mokai.web.admin.jogger.controllers;
 
+import com.elibom.jogger.http.Request;
+import com.elibom.jogger.http.Response;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.jogger.http.Request;
-import org.jogger.http.Response;
 import org.mokai.Message;
 import org.mokai.RoutingEngine;
 import org.mokai.persist.MessageCriteria;

@@ -1,15 +1,15 @@
 package org.mokai.web.admin.jogger.interceptors;
 
+import com.elibom.jogger.http.Cookie;
+import com.elibom.jogger.http.Request;
+import com.elibom.jogger.http.Response;
+import com.elibom.jogger.middleware.router.interceptor.Action;
+import com.elibom.jogger.middleware.router.interceptor.Controller;
+import com.elibom.jogger.middleware.router.interceptor.Interceptor;
+import com.elibom.jogger.middleware.router.interceptor.InterceptorExecution;
 import javax.xml.bind.DatatypeConverter;
 
 import org.jasypt.util.password.StrongPasswordEncryptor;
-import org.jogger.http.Cookie;
-import org.jogger.http.Request;
-import org.jogger.http.Response;
-import org.jogger.interceptor.Action;
-import org.jogger.interceptor.Controller;
-import org.jogger.interceptor.Interceptor;
-import org.jogger.interceptor.InterceptorExecution;
 import org.mokai.web.admin.AdminPasswordStore;
 import org.mokai.web.admin.jogger.annotations.Secured;
 

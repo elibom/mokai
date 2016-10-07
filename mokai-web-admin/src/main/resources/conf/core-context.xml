@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+                            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+    <import resource="${MOKAI_DB_ENGINE:derby}-context.xml" />
+    <!-- <import resource="mysql-context.xml" /> -->
+    <!-- <import resource="mongodb-context.xml" /> -->
+
+    <!-- Camel Routing Engine - Lifecycle -->
+    <bean id="routingEngineLifecyle" class="org.mokai.impl.camel.RoutingEngineLifecycle"
+              init-method="start" destroy-method="stop">
+        <property name="routingEngine">
+            <ref bean="routingEngine" />
+        </property>
+        <property name="applicationsConfiguration">
+            <ref bean="applicationsConfiguration" />
+        </property>
+        <property name="connectionsConfiguration">
+            <ref bean="connectionsConfiguration" />
+        </property>
+    </bean>
+
+    <!-- Routing Engine -->
+    <bean id="routingEngine" class="org.mokai.impl.camel.CamelRoutingEngine">
+        <constructor-arg ref="jmsComponent" />
+        <property name="messageStore">
+            <ref bean="messageStore" />
+        </property>
+        <property name="connectorServiceChangeListener" ref="webSocketsListener" />
+    </bean>
+	
+    <bean id="pluginMechanism" class="org.mokai.plugin.jpf.JpfPluginMechanism" init-method="configure"
+              destroy-method="destroy" />
+	
+    <bean id="applicationsConfiguration" class="org.mokai.config.xml.ApplicationsConfiguration">
+        <property name="routingEngine">
+            <ref bean="routingEngine" />
+        </property>
+        <property name="pluginMechanism">
+            <ref bean="pluginMechanism" />
+        </property>
+    </bean>
+	
+    <bean id="connectionsConfiguration" class="org.mokai.config.xml.ConnectionsConfiguration">
+        <property name="routingEngine">
+            <ref bean="routingEngine" />
+        </property>
+        <property name="pluginMechanism">
+            <ref bean="pluginMechanism" />
+        </property>
+    </bean>
+	
+    <bean id="faileMessagesMonitor" class="org.mokai.impl.camel.FailedMessagesMonitor" init-method="start" destroy-method="stop">
+        <property name="routingEngine">
+            <ref bean="routingEngine" />
+        </property>
+        <property name="delay" value="30000" />
+    </bean>
+	
+    <bean id="broker" class="org.apache.activemq.xbean.BrokerFactoryBean">
+        <property name="config" value="/conf/activemq.xml" />
+        <property name="start" value="true" />
+    </bean>
+	
+    <bean id="activeMQConnectionFactory" class="org.apache.activemq.pool.PooledConnectionFactory" depends-on="broker" destroy-method="stop">
+        <constructor-arg value="vm://mokai-broker" />
+        <property name="maxConnections" value="8" />
+        <property name="maximumActiveSessionPerConnection" value="500" />
+    </bean>
+	
+    <bean id="jmsTransactionManager" class="org.springframework.jms.connection.JmsTransactionManager">
+        <constructor-arg>
+            <ref bean="activeMQConnectionFactory" />
+        </constructor-arg>
+    </bean>
+	
+    <bean id="jmsConfiguration" class="org.apache.camel.component.jms.JmsConfiguration">
+        <property name="deliveryPersistent" value="true" />
+        <property name="transacted" value="true" />
+        <property name="transactionManager" ref="jmsTransactionManager" />
+        <property name="connectionFactory" ref="activeMQConnectionFactory" />
+    </bean>
+	
+    <bean id="jmsComponent" class="org.apache.camel.component.jms.JmsComponent">
+        <constructor-arg>
+            <ref bean="jmsConfiguration" />
+        </constructor-arg>
+    </bean>
+</beans>

@@ -1,8 +1,7 @@
-package org.mokai.boot;
+package org.mokai.impl.camel;
 
 import org.mokai.config.xml.ApplicationsConfiguration;
 import org.mokai.config.xml.ConnectionsConfiguration;
-import org.mokai.impl.camel.CamelRoutingEngine;
 
 /**
  * This class is configured in the core-context.xml file with dependencies to all the

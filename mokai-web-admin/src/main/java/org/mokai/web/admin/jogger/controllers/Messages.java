@@ -1,14 +1,13 @@
 package org.mokai.web.admin.jogger.controllers;
 
+import com.elibom.jogger.http.Request;
+import com.elibom.jogger.http.Response;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.jogger.http.Request;
-import org.jogger.http.Response;
-import org.jogger.http.Value;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -22,107 +21,131 @@ import org.mokai.web.admin.jogger.annotations.Secured;
 @Secured
 public class Messages {
 
-	private RoutingEngine routingEngine;
+    private RoutingEngine routingEngine;
 
-	public void connections(Request request, Response response) throws JSONException {
-		Value to = request.getParameter("recipient");
-		Value status = request.getParameter("status");
-		Value numRecords = request.getParameter("numRecords");
+    public void connections(Request request, Response response) throws JSONException {
+        String to = request.getParameter("recipient");
+        Byte[] status = parseStatusParameter(request.getParameter("status"));
+        int numRecords = parseNumRecords(request.getParameter("numRecords"));
 
-		Collection<Message> messages = listMessages(Direction.TO_CONNECTIONS, "to", to, status, numRecords);
+        Collection<Message> messages = listMessages(Direction.TO_CONNECTIONS, "to", to, status, numRecords);
 
-		boolean htmlResponse = request.getHeader("Accept").contains("text/html");
-		if (htmlResponse) {
-			Map<String,Object> root = new HashMap<String,Object>();
-			root.put( "messages", convertMessages(messages) );
-			root.put( "tab", "connections-messages" );
+        boolean htmlResponse = request.getHeader("Accept").contains("text/html");
+        if (htmlResponse) {
+            Map<String, Object> root = new HashMap<String, Object>();
+            root.put("messages", convertMessages(messages));
+            root.put("tab", "connections-messages");
 
-			response.contentType("text/html; charset=UTF-8").render("messages.ftl", root);
-		} else {
-			JSONArray jsonMessages = getJSONMessages(messages);
-			response.contentType("application/json; charset=UTF-8").print( jsonMessages.toString() );
-		}
-	}
+            response.contentType("text/html; charset=UTF-8").render("messages.ftl", root);
+        } else {
+            JSONArray jsonMessages = getJSONMessages(messages);
+            response.contentType("application/json; charset=UTF-8").write(jsonMessages.toString());
+        }
+    }
 
-	public void applications(Request request, Response response) throws JSONException {
-		Value from = request.getParameter("recipient");
-		Value status = request.getParameter("status");
-		Value numRecords = request.getParameter("numRecords");
+    public void applications(Request request, Response response) throws JSONException {
+        String from = request.getParameter("recipient");
+        Byte[] status = parseStatusParameter(request.getParameter("status"));
+        int numRecords = parseNumRecords(request.getParameter("numRecords"));
 
-		Collection<Message> messages = listMessages(Direction.TO_APPLICATIONS, "from", from, status, numRecords);
+        Collection<Message> messages = listMessages(Direction.TO_APPLICATIONS, "from", from, status, numRecords);
 
-		boolean htmlResponse = request.getHeader("Accept").contains("text/html");
-		if (htmlResponse) {
-			Map<String,Object> root = new HashMap<String,Object>();
-			root.put( "messages", convertMessages(messages) );
-			root.put( "tab", "applications-messages" );
+        boolean htmlResponse = request.getHeader("Accept").contains("text/html");
+        if (htmlResponse) {
+            Map<String, Object> root = new HashMap<String, Object>();
+            root.put("messages", convertMessages(messages));
+            root.put("tab", "applications-messages");
 
-			response.contentType("text/html; charset=UTF-8").render("messages.ftl", root);
-		} else {
-			JSONArray jsonMessages = getJSONMessages(messages);
-			response.contentType("application/json; charset=UTF-8").print( jsonMessages.toString() );
-		}
-	}
+            response.contentType("text/html; charset=UTF-8").render("messages.ftl", root);
+        } else {
+            JSONArray jsonMessages = getJSONMessages(messages);
+            response.contentType("application/json; charset=UTF-8").write(jsonMessages.toString());
+        }
+    }
 
-	private Collection<Message> listMessages(Direction direction, String recipientKey, Value recipientValue, Value status, Value numRecords) {
-		MessageCriteria criteria = new MessageCriteria()
-			.direction(direction)
-			.orderBy("id")
-			.orderType(OrderType.DOWNWARDS)
-			.numRecords( numRecords == null ? 2000 : numRecords.asInteger() );
+    private Byte[] parseStatusParameter(String statusStrParam) {
+        if (statusStrParam == null) {
+            return new Byte[0];
+        }
+        String[] statusStrArray = statusStrParam.split(",");
+        List<Byte> statusList = new ArrayList<Byte>();
+        for (String statusStr : statusStrArray) {
+            try {
+                statusList.add(Byte.parseByte(statusStr));
+            } catch (NumberFormatException nfe) {
+            }
+        }
+        return statusList.toArray(new Byte[0]);
+    }
 
-		if (recipientValue != null) {
-			criteria.addProperty(recipientKey, recipientValue.asString());
-		}
+    private int parseNumRecords(String numRecordsStr) {
+        final int defaultNumRecords = 1000;
+        if (numRecordsStr == null) {
+            return defaultNumRecords;
+        }
+        try {
+            return Integer.parseInt(numRecordsStr);
+        } catch (Exception e) {
+            return defaultNumRecords;
+        }
+    }
 
-		if (status != null) {
-			List<Value> statusList = status.asList();
-			for (Value s : statusList) {
-				criteria.addStatus(s.asInteger().byteValue());
-			}
-		}
+    private Collection<Message> listMessages(Direction direction, String recipientKey, String recipientValue, Byte[] status, int numRecords) {
+        MessageCriteria criteria = new MessageCriteria()
+                .direction(direction)
+                .orderBy("id")
+                .orderType(OrderType.DOWNWARDS)
+                .numRecords(numRecords == 0 ? 1000 : numRecords);
 
-		return routingEngine.getMessageStore().list(criteria);
-	}
+        if (recipientValue != null) {
+            criteria.addProperty(recipientKey, recipientValue);
+        }
 
-	private List<MessageUI> convertMessages(Collection<Message> messages) {
-		List<MessageUI> uiMessages = new ArrayList<MessageUI>();
-		for (Message message : messages) {
-			uiMessages.add( new MessageUI(message) );
-		}
+        if (status != null) {
+            criteria.addStatus(status);
+        }
 
-		return uiMessages;
-	}
+        return routingEngine.getMessageStore().list(criteria);
+    }
 
-	private JSONArray getJSONMessages(Collection<Message> messages) throws JSONException {
-		JSONArray jsonMessages = new JSONArray();
-		for (Message message : messages) {
-			jsonMessages.put( getJSONMessage(message) );
-		}
+    private List<MessageUI> convertMessages(Collection<Message> messages) {
+        List<MessageUI> uiMessages = new ArrayList<MessageUI>();
+        for (Message message : messages) {
+            uiMessages.add(new MessageUI(message));
+        }
 
-		return jsonMessages;
-	}
+        return uiMessages;
+    }
 
-	private JSONObject getJSONMessage(Message message) throws JSONException {
-		JSONObject jsonMessage = new JSONObject()
-			.put("id", message.getId())
-			.put("reference", message.getReference())
-			.put("source", message.getSource())
-			.put("destination", message.getDestination())
-			.put("status", message.getStatus())
-			.put("creationTime", message.getCreationTime())
-			.put("modificationTime", message.getModificationTime());
+    private JSONArray getJSONMessages(Collection<Message> messages) throws JSONException {
+        JSONArray jsonMessages = new JSONArray();
+        for (Message message : messages) {
+            jsonMessages.put(getJSONMessage(message));
+        }
 
-		Map<String,Object> properties = message.getProperties();
-		for (Map.Entry<String,Object> property : properties.entrySet()) {
-			jsonMessage.put(property.getKey(), property.getValue());
-		}
+        return jsonMessages;
+    }
 
-		return jsonMessage;
-	}
+    private JSONObject getJSONMessage(Message message) throws JSONException {
+        JSONObject jsonMessage = new JSONObject()
+                .put("id", message.getId())
+                .put("reference", message.getReference())
+                .put("source", message.getSource())
+                .put("destination", message.getDestination())
+                .put("status", message.getStatus())
+                .put("creationTime", message.getCreationTime())
+                .put("modificationTime", message.getModificationTime());
 
-	public void setRoutingEngine(RoutingEngine routingEngine) {
-		this.routingEngine = routingEngine;
-	}
+        Map<String, Object> properties = message.getProperties();
+        for (Map.Entry<String, Object> property : properties.entrySet()) {
+            jsonMessage.put(property.getKey(), property.getValue());
+        }
+
+        return jsonMessage;
+    }
+
+    public void setRoutingEngine(RoutingEngine routingEngine) {
+        this.routingEngine = routingEngine;
+    }
 
 }

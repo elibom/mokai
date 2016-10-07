@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<connectors xmlns="http://mokai.googlecode.com/connectors" 
+			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			xsi:schemaLocation=
+				"http://mokai.googlecode.com/connectors http://mokai.googlecode.com/svn/schema/connectors-0.8.xsd">
+
+	<connector id="fake-1" className="org.mokai.connector.FakeProcessor">
+		<configuration>
+			<property name="delay" value="100" />
+		</configuration>
+        <pre-processing-actions>
+            <action className="org.mokai.connector.rabbitmq.BuildJsonBodyAction"></action>
+        </pre-processing-actions>
+		<acceptors>
+			<acceptor className="org.mokai.acceptor.AcceptAllAcceptor" />
+		</acceptors>
+	</connector>
+
+	<!-- <connector id="smpp-test" priority="700" className="org.mokai.connector.smpp.SmppConnector">
+		<configuration>
+			<property name="host">localhost</property>
+			<property name="port">8321</property>
+			<property name="systemId">test</property>
+			<property name="password">test</property>
+		</configuration>
+		<acceptors>
+			<acceptor className="org.mokai.acceptor.AcceptAllAcceptor" />
+		</acceptors>
+	</connector> -->
+
+	<!-- <connector id="http-test" priority="1000" className="org.mokai.connector.http.HttpConnector">
+		<configuration>
+			<property name="url">http://www.google.com/</property>
+		</configuration>
+		<acceptors>
+			<acceptor className="org.mokai.acceptor.AcceptAllAcceptor" />
+		</acceptors>
+	</connector>  -->
+
+	<!-- <connector className="org.mokai.connector.RoundRobinProcessor" id="test-1">
+		<configuration>
+			<listProperty name="processors">
+				<item>
+					<connector className="org.mokai.connector.http.HttpConnector">
+						<property name="url">http://www.google.com/</property>
+					</connector>
+				</item>
+			</listProperty>
+		</configuration>
+
+        <acceptors>
+            <acceptor className="org.mokai.acceptor.AcceptAllAcceptor" />
+        </acceptors>
+    </connector> -->
+
+</connectors>

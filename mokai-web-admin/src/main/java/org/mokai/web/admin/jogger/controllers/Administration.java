@@ -1,8 +1,8 @@
 package org.mokai.web.admin.jogger.controllers;
 
+import com.elibom.jogger.http.Request;
+import com.elibom.jogger.http.Response;
 import org.jasypt.util.password.StrongPasswordEncryptor;
-import org.jogger.http.Request;
-import org.jogger.http.Response;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mokai.web.admin.AdminPasswordStore;

@@ -16,155 +16,158 @@ import org.mokai.Message.Direction;
  */
 public class MessageCriteria implements Serializable {
 
-	/**
-	 * Generated Serial Version UID
-	 */
-	private static final long serialVersionUID = 9038107535715271586L;
+    /**
+     * Generated Serial Version UID
+     */
+    private static final long serialVersionUID = 9038107535715271586L;
 
-	public enum OrderType {
-		UPWARDS, DOWNWARDS;
-	}
+    public enum OrderType {
 
-	private Direction direction;
+        UPWARDS, DOWNWARDS;
 
-	private List<Byte> status;
+    }
 
-	private String destination;
+    private Direction direction;
 
-	private Map<String,Object> properties = new HashMap<String,Object>();
+    private List<Byte> status;
 
-	/**
-	 * The column by which the query should be ordered.
-	 */
-	private String orderBy;
+    private String destination;
 
-	/**
-	 * If it should be ordered upwards or downwards.
-	 */
-	private OrderType orderType = OrderType.UPWARDS;
+    private Map<String, Object> properties = new HashMap<String, Object>();
 
-	/**
-	 * The lower limit of records to be retrieved.
-	 */
-	protected int lowerLimit;
+    /**
+     * The column by which the query should be ordered.
+     */
+    private String orderBy;
 
-	/**
-	 * The number of records to be retrieved.
-	 */
-	protected int numRecords;
+    /**
+     * If it should be ordered upwards or downwards.
+     */
+    private OrderType orderType = OrderType.UPWARDS;
 
-	public MessageCriteria() {
-		this.status = new ArrayList<Byte>();
-	}
+    /**
+     * The lower limit of records to be retrieved.
+     */
+    protected int lowerLimit;
 
-	public final String getOrderBy() {
-		return orderBy;
-	}
+    /**
+     * The number of records to be retrieved.
+     */
+    protected int numRecords;
 
-	public final void setOrderBy(String orderBy) {
-		this.orderBy = orderBy;
-	}
+    public MessageCriteria() {
+        this.status = new ArrayList<Byte>();
+    }
 
-	public final MessageCriteria orderBy(String orderBy) {
-		setOrderBy(orderBy);
+    public final String getOrderBy() {
+        return orderBy;
+    }
 
-		return this;
-	}
+    public final void setOrderBy(String orderBy) {
+        this.orderBy = orderBy;
+    }
 
-	public final OrderType getOrderType() {
-		return orderType;
-	}
+    public final MessageCriteria orderBy(String orderBy) {
+        setOrderBy(orderBy);
 
-	public final void setOrderType(OrderType orderType) {
-		this.orderType = orderType;
-	}
+        return this;
+    }
 
-	public final MessageCriteria orderType(OrderType orderType) {
-		setOrderType(orderType);
+    public final OrderType getOrderType() {
+        return orderType;
+    }
 
-		return this;
-	}
+    public final void setOrderType(OrderType orderType) {
+        this.orderType = orderType;
+    }
 
-	public final Direction getDirection() {
-		return direction;
-	}
+    public final MessageCriteria orderType(OrderType orderType) {
+        setOrderType(orderType);
 
-	public final void setDirection(Direction direction) {
-		this.direction = direction;
-	}
+        return this;
+    }
 
-	public final MessageCriteria direction(Direction direction) {
-		setDirection(direction);
+    public final Direction getDirection() {
+        return direction;
+    }
 
-		return this;
-	}
+    public final void setDirection(Direction direction) {
+        this.direction = direction;
+    }
 
-	public final List<Byte> getStatus() {
-		return status;
-	}
+    public final MessageCriteria direction(Direction direction) {
+        setDirection(direction);
 
-	public final void setStatus(List<Byte> status) {
-		this.status = status;
-	}
+        return this;
+    }
 
-	public final MessageCriteria addStatus(byte status) {
-		this.status.add(status);
+    public final List<Byte> getStatus() {
+        return status;
+    }
 
-		return this;
-	}
+    public final void setStatus(List<Byte> status) {
+        this.status = status;
+    }
 
-	public final String getDestination() {
-		return destination;
-	}
+    public final MessageCriteria addStatus(Byte... status) {
+        for (int i = 0; i < status.length; i++) {
+            this.status.add(status[i]);
+        }
+        return this;
+    }
 
-	public final void setDestination(String destination) {
-		this.destination = destination;
-	}
+    public final String getDestination() {
+        return destination;
+    }
 
-	public final MessageCriteria destination(String destination) {
-		setDestination(destination);
+    public final void setDestination(String destination) {
+        this.destination = destination;
+    }
 
-		return this;
-	}
+    public final MessageCriteria destination(String destination) {
+        setDestination(destination);
 
-	public int getLowerLimit() {
-		return lowerLimit;
-	}
+        return this;
+    }
 
-	public void setLowerLimit(int lowerLimit) {
-		this.lowerLimit = lowerLimit;
-	}
+    public int getLowerLimit() {
+        return lowerLimit;
+    }
 
-	public MessageCriteria lowerLimit(int lowerLimit) {
-		setLowerLimit(lowerLimit);
-		return this;
-	}
+    public void setLowerLimit(int lowerLimit) {
+        this.lowerLimit = lowerLimit;
+    }
 
-	public int getNumRecords() {
-		return numRecords;
-	}
+    public MessageCriteria lowerLimit(int lowerLimit) {
+        setLowerLimit(lowerLimit);
+        return this;
+    }
 
-	public void setNumRecords(int numRecords) {
-		this.numRecords = numRecords;
-	}
+    public int getNumRecords() {
+        return numRecords;
+    }
 
-	public MessageCriteria numRecords(int numRecords) {
-		setNumRecords(numRecords);
-		return this;
-	}
+    public void setNumRecords(int numRecords) {
+        this.numRecords = numRecords;
+    }
 
-	public final Map<String, Object> getProperties() {
-		return properties;
-	}
+    public MessageCriteria numRecords(int numRecords) {
+        setNumRecords(numRecords);
+        return this;
+    }
 
-	public final void setProperties(Map<String, Object> properties) {
-		this.properties = properties;
-	}
+    public final Map<String, Object> getProperties() {
+        return properties;
+    }
 
-	public final MessageCriteria addProperty(String key, Object value) {
-		properties.put(key, value);
+    public final void setProperties(Map<String, Object> properties) {
+        this.properties = properties;
+    }
 
-		return this;
-	}
+    public final MessageCriteria addProperty(String key, Object value) {
+        properties.put(key, value);
+
+        return this;
+    }
 
 }

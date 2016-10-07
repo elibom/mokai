@@ -10,8 +10,8 @@
 	<!-- <import resource="mongodb-context.xml" /> -->
 
 	<!-- Camel Routing Engine - Lifecycle -->
-	<bean id="routingEngineLifecyle" class="org.mokai.boot.RoutingEngineLifecycle" init-method="start" 
-			destroy-method="stop">
+	<bean id="routingEngineLifecyle" class="org.mokai.impl.camel.RoutingEngineLifecycle"
+              init-method="start" destroy-method="stop">
 		<property name="routingEngine"><ref bean="routingEngine" /></property>
 		<property name="applicationsConfiguration"><ref bean="applicationsConfiguration" /></property>
 		<property name="connectionsConfiguration"><ref bean="connectionsConfiguration" /></property>

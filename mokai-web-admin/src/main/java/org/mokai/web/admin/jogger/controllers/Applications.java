@@ -1,6 +1,5 @@
 package org.mokai.web.admin.jogger.controllers;
 
-import org.mokai.web.admin.jogger.helpers.HelperUI;
 import org.mokai.web.admin.jogger.helpers.ConnectorPresenter;
 import com.elibom.jogger.http.Request;
 import com.elibom.jogger.http.Response;
@@ -12,11 +11,13 @@ import org.json.JSONObject;
 import org.mokai.ConnectorService;
 import org.mokai.RoutingEngine;
 import org.mokai.web.admin.jogger.Annotations.Secured;
+import org.mokai.web.admin.jogger.helpers.WebUtil;
 
 /**
  * Applications controller.
  *
  * @author German Escobar
+ * @author Alejandro <lariverosc@gmail.com>
  */
 @Secured
 public class Applications {
@@ -43,7 +44,7 @@ public class Applications {
             return;
         }
 
-        JSONObject jsonConnector = HelperUI.getConnectorJSON(connectorService);
+        JSONObject jsonConnector = WebUtil.getConnectorJSON(connectorService);
         response.contentType("application/json").write(jsonConnector.toString());
     }
 

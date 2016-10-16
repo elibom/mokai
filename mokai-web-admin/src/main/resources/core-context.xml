@@ -4,21 +4,14 @@
        xmlns:context="http://www.springframework.org/schema/context"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
                             http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
-
-    <import resource="${MOKAI_DB_ENGINE:derby}-context.xml" />
     <context:property-placeholder />
+    <import resource="${MOKAI_DB_ENGINE:derby}-context.xml" />
+    
     <!-- Camel Routing Engine - Lifecycle -->
-    <bean id="routingEngineLifecyle" class="org.mokai.impl.camel.RoutingEngineLifecycle"
-              init-method="start" destroy-method="stop">
-        <property name="routingEngine">
-            <ref bean="routingEngine" />
-        </property>
-        <property name="applicationsConfiguration">
-            <ref bean="applicationsConfiguration" />
-        </property>
-        <property name="connectionsConfiguration">
-            <ref bean="connectionsConfiguration" />
-        </property>
+    <bean id="routingEngineLifecyle" class="org.mokai.impl.camel.RoutingEngineLifecycle" init-method="start" destroy-method="stop">
+        <property name="routingEngine" ref="routingEngine"/>
+        <property name="applicationsConfiguration" ref="applicationsConfiguration"/>
+        <property name="connectionsConfiguration" ref="connectionsConfiguration"/>
     </bean>
 
     <!-- Routing Engine -->
@@ -26,37 +19,24 @@
 
     <bean id="routingEngine" class="org.mokai.impl.camel.CamelRoutingEngine">
         <constructor-arg ref="jmsComponent" />
-        <property name="messageStore">
-            <ref bean="messageStore" />
-        </property>
+        <property name="messageStore" ref="messageStore"/>
         <property name="connectorServiceChangeListener" ref="connectorServiceChangeListener" />
     </bean>
 	
-    <bean id="pluginMechanism" class="org.mokai.plugin.jpf.JpfPluginMechanism" init-method="configure"
-              destroy-method="destroy" />
+    <bean id="pluginMechanism" class="org.mokai.plugin.jpf.JpfPluginMechanism" init-method="configure" destroy-method="destroy" />
 	
     <bean id="applicationsConfiguration" class="org.mokai.config.xml.ApplicationsConfiguration">
-        <property name="routingEngine">
-            <ref bean="routingEngine" />
-        </property>
-        <property name="pluginMechanism">
-            <ref bean="pluginMechanism" />
-        </property>
+        <property name="routingEngine" ref="routingEngine"/>
+        <property name="pluginMechanism" ref="pluginMechanism"/>
     </bean>
 	
     <bean id="connectionsConfiguration" class="org.mokai.config.xml.ConnectionsConfiguration">
-        <property name="routingEngine">
-            <ref bean="routingEngine" />
-        </property>
-        <property name="pluginMechanism">
-            <ref bean="pluginMechanism" />
-        </property>
+        <property name="routingEngine" ref="routingEngine"/>
+        <property name="pluginMechanism" ref="pluginMechanism"/>
     </bean>
 	
     <bean id="faileMessagesMonitor" class="org.mokai.impl.camel.FailedMessagesMonitor" init-method="start" destroy-method="stop">
-        <property name="routingEngine">
-            <ref bean="routingEngine" />
-        </property>
+        <property name="routingEngine" ref="routingEngine"/>
         <property name="delay" value="30000" />
     </bean>
 	
@@ -72,9 +52,7 @@
     </bean>
 	
     <bean id="jmsTransactionManager" class="org.springframework.jms.connection.JmsTransactionManager">
-        <constructor-arg>
-            <ref bean="activeMQConnectionFactory" />
-        </constructor-arg>
+        <constructor-arg ref="activeMQConnectionFactory"/>
     </bean>
 	
     <bean id="jmsConfiguration" class="org.apache.camel.component.jms.JmsConfiguration">
@@ -85,8 +63,6 @@
     </bean>
 	
     <bean id="jmsComponent" class="org.apache.camel.component.jms.JmsComponent">
-        <constructor-arg>
-            <ref bean="jmsConfiguration" />
-        </constructor-arg>
+        <constructor-arg ref="jmsConfiguration"/>
     </bean>
 </beans>

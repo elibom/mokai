@@ -1,5 +1,7 @@
 package org.mokai.web.admin.jogger.controllers;
 
+import org.mokai.web.admin.jogger.helpers.HelperUI;
+import org.mokai.web.admin.jogger.helpers.ConnectorPresenter;
 import com.elibom.jogger.http.Request;
 import com.elibom.jogger.http.Response;
 import java.util.List;
@@ -9,7 +11,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.mokai.ConnectorService;
 import org.mokai.RoutingEngine;
-import org.mokai.web.admin.jogger.annotations.Secured;
+import org.mokai.web.admin.jogger.Annotations.Secured;
 
 /**
  * Connections controller.
@@ -26,7 +28,7 @@ public class Connections {
 
 		JSONArray jsonConnections = new JSONArray();
 		for (ConnectorService connection : connections) {
-			jsonConnections.put( new ConnectorUI(connection).toJSON() );
+			jsonConnections.put(new ConnectorPresenter(connection).toJSON() );
 		}
 
 		response.contentType("application/json").write(jsonConnections.toString());

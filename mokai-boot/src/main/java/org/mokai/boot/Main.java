@@ -25,7 +25,7 @@ public final class Main {
         System.setProperty("org.apache.activemq.SERIALIZABLE_PACKAGES", "*");
 
         String[] configLocations = new String[]{
-            "classpath*:core-context.xml", "classpath*:jogger-context.xml", "classpath*:admin-console-context.xml"
+            "classpath*:core-context.xml", "classpath*:jogger-context.xml"
         };
 
         final ConfigurableApplicationContext springContext = new FileSystemXmlApplicationContext(configLocations);

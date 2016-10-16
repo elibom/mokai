@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:property-placeholder />
+
+    <bean name="sessions" class="org.mokai.web.admin.jogger.controllers.Sessions">
+       <property name="sessionsManager" ref="sessionsManager" />
+       <property name="usersManager" ref="usersManager"/>
+    </bean>
+    <bean name="dashboard" class="org.mokai.web.admin.jogger.controllers.Dashboard">
+        <property name="routingEngine" ref="routingEngine" />
+    </bean>
+    <bean name="connections" class="org.mokai.web.admin.jogger.controllers.Connections">
+        <property name="routingEngine" ref="routingEngine" />
+    </bean>
+    <bean name="applications" class="org.mokai.web.admin.jogger.controllers.Applications">
+        <property name="routingEngine" ref="routingEngine" />
+    </bean>
+    <bean name="messages" class="org.mokai.web.admin.jogger.controllers.Messages">
+        <property name="routingEngine" ref="routingEngine" />
+    </bean>
+    <bean name="jmx" class="org.mokai.web.admin.jogger.controllers.Jmx"></bean>
+	
+    <bean id="sessionsManager" class="org.mokai.web.admin.jogger.SessionsManager" >
+    </bean>
+    <bean id="usersManager" class="org.mokai.web.admin.jogger.UsersManager" >
+    </bean>
+
+    <!-- Jogger configuration -->
+    <bean id="controllerLoader" class="com.elibom.jogger.middleware.router.loader.SpringControllerLoader" />
+    <bean id="routesLoader" class="com.elibom.jogger.middleware.router.loader.FileSystemRoutesLoader">
+        <property name="filePath" value="${BASEDIR:.}/routes.config" />
+        <property name="controllerLoader" ref="controllerLoader" />
+    </bean>
+
+    <bean id="joggerFactory" class="org.mokai.web.admin.jogger.MokaiJoggerFactory">
+        <property name="routesLoader" ref="routesLoader" />
+        <property name="staticDirectory" value="${BASEDIR:.}/static" />
+        <property name="freeMarker" ref="freeMarker"/>
+    </bean>
+
+    <!-- Server configuration -->
+    <bean id="jogger" class="com.elibom.jogger.Jogger" factory-bean="joggerFactory" factory-method="create" init-method="listen" destroy-method="stop">
+        <property name="port" value="${PORT:8484}" />
+    </bean>
+
+    <!--freemarker-->
+    <bean id="freeMarkerFactory" class="org.mokai.web.admin.jogger.FreeMarkerFactory">
+        <property name="templatesDirectory" value="${BASEDIR:.}/templates/" />
+        <property name="classpathDirectory" value="/templates" />
+    </bean>
+    <bean id="freeMarker" factory-bean="freeMarkerFactory" factory-method="create" />
+
+    <!-- Interceptors -->
+    <bean id="sessionInterceptor" class="org.mokai.web.admin.jogger.interceptors.SessionInterceptor">
+        <property name="sessionsManager" ref="sessionsManager"/>
+    </bean>
+    <bean id="securityInterceptor" class="org.mokai.web.admin.jogger.interceptors.SecurityInterceptor"></bean>
+    <bean id="noCacheInterceptor" class="org.mokai.web.admin.jogger.interceptors.NoCacheInterceptor"></bean>
+</beans>

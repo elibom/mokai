@@ -1,5 +1,7 @@
 package org.mokai.web.admin.jogger.controllers;
 
+import org.mokai.web.admin.jogger.helpers.HelperUI;
+import org.mokai.web.admin.jogger.helpers.ConnectorPresenter;
 import com.elibom.jogger.http.Request;
 import com.elibom.jogger.http.Response;
 import java.util.List;
@@ -9,7 +11,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.mokai.ConnectorService;
 import org.mokai.RoutingEngine;
-import org.mokai.web.admin.jogger.annotations.Secured;
+import org.mokai.web.admin.jogger.Annotations.Secured;
 
 /**
  * Applications controller.
@@ -26,7 +28,7 @@ public class Applications {
 
         JSONArray jsonApplications = new JSONArray();
         for (ConnectorService application : applications) {
-            jsonApplications.put(new ConnectorUI(application).toJSON());
+            jsonApplications.put(new ConnectorPresenter(application).toJSON());
         }
 
         response.contentType("application/json").write(jsonApplications.toString());

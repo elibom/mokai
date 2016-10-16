@@ -1,5 +1,7 @@
 package org.mokai.web.admin.jogger.controllers;
 
+import org.mokai.web.admin.jogger.helpers.HelperUI;
+import org.mokai.web.admin.jogger.helpers.ConnectorPresenter;
 import com.elibom.jogger.http.Request;
 import com.elibom.jogger.http.Response;
 import java.util.HashMap;
@@ -9,7 +11,7 @@ import java.util.Map;
 import org.mokai.Message;
 import org.mokai.RoutingEngine;
 import org.mokai.persist.MessageCriteria;
-import org.mokai.web.admin.jogger.annotations.Secured;
+import org.mokai.web.admin.jogger.Annotations.Secured;
 
 /**
  * Dashboard controller.
@@ -22,8 +24,8 @@ public class Dashboard {
 	private RoutingEngine routingEngine;
 
 	public void index(Request request, Response response) {
-		List<ConnectorUI> connections = HelperUI.buildConnectorUIs( routingEngine.getConnections() );
-		List<ConnectorUI> applications = HelperUI.buildConnectorUIs( routingEngine.getApplications() );
+		List<ConnectorPresenter> connections = HelperUI.buildConnectorUIs( routingEngine.getConnections() );
+		List<ConnectorPresenter> applications = HelperUI.buildConnectorUIs( routingEngine.getApplications() );
 
 		MessageCriteria criteria = new MessageCriteria()
 			.addStatus(Message.STATUS_FAILED)

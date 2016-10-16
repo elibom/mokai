@@ -6,82 +6,68 @@ import com.elibom.jogger.http.Response;
 import org.jasypt.util.password.StrongPasswordEncryptor;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.mokai.web.admin.AdminPasswordStore;
+import org.mokai.web.admin.jogger.Session;
+import org.mokai.web.admin.jogger.SessionsManager;
+import org.mokai.web.admin.jogger.UsersManager;
+import org.mokai.web.admin.jogger.helpers.WebUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Sessions controller.
  *
  * @author German Escobar
+ * @author Alejandro <lariverosc@gmail.com>
  */
 public class Sessions {
 
-	private AdminPasswordStore adminPasswordStore;
+    private final Logger log = LoggerFactory.getLogger(Sessions.class);
 
-	public void newForm(Request request, Response response) {
-		boolean authenticated = (Boolean) response.getAttributes().get("authenticated");
-		if (authenticated) {
-			response.redirect("/");
-			return;
-		}
+    private SessionsManager sessionsManager;
 
-		response.render("login.ftl");
-	}
+    private UsersManager usersManager;
 
-	public void create(Request request, Response response) throws JSONException {
-		JSONObject input = null;
-		try {
-			input = new JSONObject(request.getBody().asString());
-		} catch (JSONException e) {
-			response.badRequest().write("{ \"message\": \"" + e.getMessage() + "\"}");
-			return;
-		}
+    public void index(Request request, Response response) {
+        if (WebUtil.isAuthenticated(response)) {
+            response.redirect("/");
+            return;
+        }
+        response.contentType("text/html; charset=UTF-8").render("login.ftl");
+    }
 
-		String username = getField(input, "username");
-		String password = getField(input, "password");
+    public void create(Request request, Response response) throws JSONException {
+        Session session = WebUtil.getSession(response);
+        if (session.getUser() != null) {
+            return;
+        }
+        String data = request.getBody().asString();
+        JSONObject jsonData = new JSONObject(data);
+        String username = jsonData.getString("username");
+        String password = jsonData.getString("password");
+        boolean keepLogged = jsonData.getBoolean("keepLogged");
+        if (usersManager.isValid(username, password)) {
+            session.setUser(username);
+            session.setKeepLogged(keepLogged);
+            sessionsManager.addSession(session);
+            response.redirect("/");
+        } else {
+            JSONObject jsonResponse = new JSONObject();
+            jsonResponse.put("errorCode", "invalid_credentials");
+            response.unauthorized().write(jsonResponse.toString());
+        }
+    }
 
-		if ( !"admin".equals(username) || !isPasswordValid(password) ) {
-			response.unauthorized();
-		}
+    public void destroy(Request request, Response response) {
+        Session session = (Session) response.getAttributes().get("session");
+        sessionsManager.deleteSession(session);
+        response.redirect("/login");
+    }
 
-		Cookie cookie = new Cookie("access_token", "SO8ERHEHFSKJFHI7S3G3WODY7WFG64");
-		cookie.setMaxAge( 3600 * 24 * 14 );
-		cookie.setHttpOnly(true);
-		response.setCookie( cookie );
-	}
+    public void setSessionsManager(SessionsManager sessionsManager) {
+        this.sessionsManager = sessionsManager;
+    }
 
-	private boolean isPasswordValid(String password) {
-		String encryptedPassword = adminPasswordStore.getPassword();
-
-		if (encryptedPassword != null) {
-			StrongPasswordEncryptor encryptor = new StrongPasswordEncryptor();
-			return encryptor.checkPassword(password, encryptedPassword);
-		} else {
-			if ("admin".equals(password)) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	private String getField(JSONObject input, String field) throws JSONException {
-		if ( !input.has(field) ) {
-			return null;
-		}
-
-		return input.getString(field);
-	}
-
-	public void delete(Request request, Response response) {
-		Cookie cookie = request.getCookie("access_token");
-
-		if (cookie != null) {
-			response.removeCookie(cookie);
-		}
-	}
-
-	public void setAdminPasswordStore(AdminPasswordStore adminPasswordStore) {
-		this.adminPasswordStore = adminPasswordStore;
-	}
-
+    public void setUsersManager(UsersManager usersManager) {
+        this.usersManager = usersManager;
+    }
 }

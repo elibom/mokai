@@ -1,0 +1,10 @@
+----------------------------------------------------------------
+Sun Oct 16 12:02:52 COT 2016:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.8.2.2 - (1181258): instance a816c00e-0157-ce72-2ee4-00000b629478 
+on database directory /Users/desarrollo/workspace/elibom/mokai/mokai-web-admin/data/derby/messages  with class loader sun.misc.Launcher$AppClassLoader@591ce4fe 
+Loaded from file:/Users/desarrollo/.m2/repository/org/apache/derby/derby/10.8.2.2/derby-10.8.2.2.jar
+java.vendor=Oracle Corporation
+java.runtime.version=1.7.0_45-b18
+user.dir=/Users/desarrollo/workspace/elibom/mokai/mokai-web-admin
+derby.system.home=null
+Database Class Loader started - derby.database.classpath=''

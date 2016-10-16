@@ -31,7 +31,7 @@ import javax.management.openmbean.CompositeData;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.mokai.web.admin.jogger.annotations.Secured;
+import org.mokai.web.admin.jogger.Annotations.Secured;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -42,7 +42,6 @@ public class MokaiJoggerFactory implements ApplicationContextAware {
                 Interceptor noCaheInterceptor = applicationContext.getBean("noCacheInterceptor", Interceptor.class);
                 routerMiddleware.addInterceptor(noCaheInterceptor);
 
-//                return new Middleware[]{new ExceptionMiddleware(), new StaticMiddleware(staticDirectory, ""), routerMiddleware};
                 return new Middleware[]{new StaticMiddleware(staticDirectory, ""), routerMiddleware};
             }
         });

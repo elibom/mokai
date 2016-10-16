@@ -1,5 +1,6 @@
 package org.mokai.web.admin.jogger;
 
+import java.io.File;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -14,10 +15,10 @@ public class Main {
 
     public static void main(String[] args) {
         try {
+            System.setProperty("org.apache.activemq.SERIALIZABLE_PACKAGES", "*");
             String[] contextLocations = {
-                "conf/core-context.xml",
-                "conf/jogger-context.xml",
-                "conf/admin-console-context.xml",
+                "classpath*:core-context.xml",
+                "classpath*:jogger-context.xml"
             };
             ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(contextLocations);
             context.registerShutdownHook();

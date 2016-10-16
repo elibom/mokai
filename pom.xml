@@ -1,221 +1,225 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.mokai</groupId>
-	<artifactId>mokai-parent</artifactId>
-	<version>0.11.7-SNAPSHOT</version>
-	<packaging>pom</packaging>
+    <groupId>org.mokai</groupId>
+    <artifactId>mokai-parent</artifactId>
+    <version>0.11.7-SNAPSHOT</version>
+    <packaging>pom</packaging>
 
-	<name>Mokai Parent</name>
-	<description>Mokai Parent Module</description>
+    <name>Mokai Parent</name>
+    <description>Mokai Parent Module</description>
 
-	<modules>
-		<module>mokai-spi</module>
-		<module>mokai-core</module>
-		<module>mokai-connectors</module>
-		<module>mokai-boot</module>
-		<module>mokai-assembly</module>
-		<module>mokai-web-admin</module>
-	</modules>
+    <modules>
+        <module>mokai-spi</module>
+        <module>mokai-core</module>
+        <module>mokai-connectors</module>
+        <module>mokai-web-admin</module>
+        <module>mokai-assembly</module>
+    </modules>
 	
-	<dependencies>
-		<dependency>
-			<groupId>org.testng</groupId>
-			<artifactId>testng</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-all</artifactId>
-			<version>1.8.5</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-simple</artifactId>
-			<version>${slf4j.version}</version>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
+    <dependencies>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>${slf4j.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>1.8.5</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>org.springframework</groupId>
-				<artifactId>spring-context</artifactId>
-				<version>${spring.version}</version>
-			</dependency>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-context</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
 			
-			<dependency>
-				<groupId>org.springframework</groupId>
-				<artifactId>spring-web</artifactId>
-				<version>${spring.version}</version>
-			</dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-web</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
 
-			<dependency>
-				<groupId>org.apache.camel</groupId>
-				<artifactId>camel-core</artifactId>
-				<version>${camel.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.camel</groupId>
-				<artifactId>camel-spring</artifactId>
-				<version>${camel.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.activemq</groupId>
-				<artifactId>activemq-camel</artifactId>
-				<version>${activemq.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.activemq</groupId>
-				<artifactId>activemq-kahadb-store</artifactId>
-				<version>${activemq.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.camel</groupId>
-				<artifactId>camel-jetty</artifactId>
-				<version>${camel.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.camel</groupId>
-				<artifactId>camel-jms</artifactId>
-				<version>${camel.version}</version>
-			</dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
+                <artifactId>camel-core</artifactId>
+                <version>${camel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
+                <artifactId>camel-spring</artifactId>
+                <version>${camel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.activemq</groupId>
+                <artifactId>activemq-camel</artifactId>
+                <version>${activemq.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.activemq</groupId>
+                <artifactId>activemq-kahadb-store</artifactId>
+                <version>${activemq.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
+                <artifactId>camel-jetty</artifactId>
+                <version>${camel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
+                <artifactId>camel-jms</artifactId>
+                <version>${camel.version}</version>
+            </dependency>
 
-			<dependency>
-				<groupId>net.sf.jpf</groupId>
-				<artifactId>jpf</artifactId>
-				<version>${jpf.version}</version>
-			</dependency>
+            <dependency>
+                <groupId>net.sf.jpf</groupId>
+                <artifactId>jpf</artifactId>
+                <version>${jpf.version}</version>
+            </dependency>
 			
-			<dependency>
-				<groupId>net.gescobar</groupId>
-				<artifactId>jmx-annotations</artifactId>
-				<version>1.0.0</version>
-			</dependency>
-			
-			<dependency>
-				<groupId>org.slf4j</groupId>
-				<artifactId>slf4j-api</artifactId>
-				<version>${slf4j.version}</version>
-			</dependency>
-			
-			<dependency>
-				<groupId>org.slf4j</groupId>
-				<artifactId>slf4j-log4j12</artifactId>
-				<version>${slf4j.version}</version>
-			</dependency>
-			
-			<dependency>
-				<groupId>org.testng</groupId>
-				<artifactId>testng</artifactId>
-				<version>${testng.version}</version>
-				<scope>test</scope>
-			</dependency>
-			
-		</dependencies>
-	</dependencyManagement>
+            <dependency>
+                <groupId>net.gescobar</groupId>
+                <artifactId>jmx-annotations</artifactId>
+                <version>1.0.0</version>
+            </dependency>
 
-	<properties>
-		<spring.version>3.2.16.RELEASE</spring.version>
-		<camel.version>2.10.7</camel.version>
-		<activemq.version>5.13.2</activemq.version>
-		<jpf.version>1.5</jpf.version>
-		<testng.version>6.9.10</testng.version>
-		<slf4j.version>1.7.18</slf4j.version>
-		<mockito.version>1.8.5</mockito.version>
-		
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
+            <!--Logging-->
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-core</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
 
-	<scm>
-		<url>scm:git:git@github.com:germanescobar/mokai.git</url>
-		<connection>scm:git:git@github.com:germanescobar/mokai.git</connection>
-	</scm>
+            <dependency>
+                <groupId>org.testng</groupId>
+                <artifactId>testng</artifactId>
+                <version>${testng.version}</version>
+                <scope>test</scope>
+            </dependency>
+			
+        </dependencies>
+    </dependencyManagement>
+
+    <properties>
+        <spring.version>3.2.16.RELEASE</spring.version>
+        <camel.version>2.10.7</camel.version>
+        <activemq.version>5.13.2</activemq.version>
+        <jpf.version>1.5</jpf.version>
+        <slf4j.version>1.7.21</slf4j.version>
+        <logback.version>1.1.7</logback.version>
+        <testng.version>6.9.10</testng.version>
+        <mockito.version>1.8.5</mockito.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <scm>
+        <url>scm:git:git@github.com:germanescobar/mokai.git</url>
+        <connection>scm:git:git@github.com:germanescobar/mokai.git</connection>
+    </scm>
 	
-	<build>
+    <build>
 	
-		<pluginManagement>
-			<plugins>
+        <pluginManagement>
+            <plugins>
 
 			   	
-			   	<plugin>
-			   		<groupId>org.apache.maven.plugins</groupId>
-			 		<artifactId>maven-release-plugin</artifactId>
-					<version>2.1</version>
-				</plugin>
-			</plugins>
-		</pluginManagement>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>2.1</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
 	
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.3.2</version>
-				<inherited>true</inherited>
-				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
-					<showDeprecation>false</showDeprecation>
-					<showWarnings>true</showWarnings>
-					<optimize>true</optimize>
-					<compilerVersion>1.6</compilerVersion>
-					<fork>true</fork>
-				</configuration>
-			</plugin>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <inherited>true</inherited>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                    <showDeprecation>false</showDeprecation>
+                    <showWarnings>true</showWarnings>
+                    <optimize>true</optimize>
+                    <compilerVersion>1.6</compilerVersion>
+                    <fork>true</fork>
+                </configuration>
+            </plugin>
 
-		</plugins>
-	</build>
+        </plugins>
+    </build>
 	
-	<distributionManagement>
-		<!-- Publish the versioned releases here -->
-		<repository>
-			<id>elibom</id>
-			<name>Elibom Nexus Repository</name>
-			<url>http://dev-nexus.elibom.com/content/repositories/releases/</url>
-		</repository>
-
-		<!-- Publish the versioned releases here -->
-		<snapshotRepository>
-			<id>elibom</id>
-			<name>Elibom Nexus Repository</name>
-			<url>http://dev-nexus.elibom.com/content/repositories/snapshots/</url>
-		</snapshotRepository>
-	</distributionManagement>
-
-	<repositories>
+    <distributionManagement>
+        <!-- Publish the versioned releases here -->
         <repository>
-			<id>elibom-releases</id>
-			<name>Elibom Nexus Repository</name>
-			<url>http://dev-nexus.elibom.com/content/repositories/releases/</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-		<repository>
-			<id>elibom-snapshots</id>
-			<name>Elibom Nexus Repository</name>
-			<url>http://dev-nexus.elibom.com/content/repositories/snapshots/</url>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</repository>
-	</repositories>
+            <id>elibom</id>
+            <name>Elibom Nexus Repository</name>
+            <url>http://dev-nexus.elibom.com/content/repositories/releases/</url>
+        </repository>
+
+        <!-- Publish the versioned releases here -->
+        <snapshotRepository>
+            <id>elibom</id>
+            <name>Elibom Nexus Repository</name>
+            <url>http://dev-nexus.elibom.com/content/repositories/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <repositories>
+        <repository>
+            <id>elibom-releases</id>
+            <name>Elibom Nexus Repository</name>
+            <url>http://dev-nexus.elibom.com/content/repositories/releases/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>elibom-snapshots</id>
+            <name>Elibom Nexus Repository</name>
+            <url>http://dev-nexus.elibom.com/content/repositories/snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 	
-	<pluginRepositories>
-		<pluginRepository>
-			<id>elibom-nexus</id>
-			<url>http://dev-nexus.elibom.com/nexus/content/groups/public</url>
-		</pluginRepository>
-	</pluginRepositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>elibom-nexus</id>
+            <url>http://dev-nexus.elibom.com/nexus/content/groups/public</url>
+        </pluginRepository>
+    </pluginRepositories>
 
     <profiles>
         <profile>

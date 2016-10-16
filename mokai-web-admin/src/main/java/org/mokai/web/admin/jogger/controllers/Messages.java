@@ -1,5 +1,6 @@
 package org.mokai.web.admin.jogger.controllers;
 
+import org.mokai.web.admin.jogger.helpers.MessagePresenter;
 import com.elibom.jogger.http.Request;
 import com.elibom.jogger.http.Response;
 import java.util.ArrayList;
@@ -16,7 +17,7 @@ import org.mokai.Message.Direction;
 import org.mokai.RoutingEngine;
 import org.mokai.persist.MessageCriteria;
 import org.mokai.persist.MessageCriteria.OrderType;
-import org.mokai.web.admin.jogger.annotations.Secured;
+import org.mokai.web.admin.jogger.Annotations.Secured;
 
 @Secured
 public class Messages {
@@ -108,10 +109,10 @@ public class Messages {
         return routingEngine.getMessageStore().list(criteria);
     }
 
-    private List<MessageUI> convertMessages(Collection<Message> messages) {
-        List<MessageUI> uiMessages = new ArrayList<MessageUI>();
+    private List<MessagePresenter> convertMessages(Collection<Message> messages) {
+        List<MessagePresenter> uiMessages = new ArrayList<MessagePresenter>();
         for (Message message : messages) {
-            uiMessages.add(new MessageUI(message));
+            uiMessages.add(new MessagePresenter(message));
         }
 
         return uiMessages;

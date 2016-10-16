@@ -3,3 +3,4 @@
 /target
 nbactions.xml
 .vagrant*
+mokai-web-admin/data/*

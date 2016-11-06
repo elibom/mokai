@@ -54,7 +54,7 @@ public class FreeMarkerFactory {
         }
 
         MultiTemplateLoader mtl = new MultiTemplateLoader(templatesLoaders.toArray(new TemplateLoader[templatesLoaders.size()]));
-        configuration.setTemplateLoader(mtl); 
+        configuration.setTemplateLoader(mtl);
     }
 
     public void setDefaultEncoding(String defaultEncoding) {

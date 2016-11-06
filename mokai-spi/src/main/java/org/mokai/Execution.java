@@ -1,8 +1,8 @@
 package org.mokai;
 
 /**
- * Used by {@link Action} implementations to control the execution of the message (eg. stopping the message or
- * routing more messages). {@link Action} implementations need to define a field using the {@link Resource}
+ * Used by {Action} implementations to control the execution of the message (eg. stopping the message or
+ * routing more messages). {Action} implementations need to define a field using the {Resource}
  * annotation.
  *
  * @author German Escobar
@@ -11,7 +11,7 @@ public interface Execution {
 
 	/**
 	 * Stops the execution of the current message. Notice that this only affects the message that is being
-	 * processed by the action. Others messages that you send using the {@link #route(Message)} method won't
+	 * processed by the action. Others messages that you send using the {#route(Message)} method won't
 	 * get affected.
 	 */
 	void stop();

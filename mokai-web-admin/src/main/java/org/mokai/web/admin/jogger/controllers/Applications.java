@@ -1,6 +1,6 @@
 package org.mokai.web.admin.jogger.controllers;
 
-import org.mokai.web.admin.jogger.helpers.ConnectorPresenter;
+import org.mokai.web.admin.jogger.helpers.EndpointPresenter;
 import com.elibom.jogger.http.Request;
 import com.elibom.jogger.http.Response;
 import java.util.List;
@@ -29,7 +29,7 @@ public class Applications {
 
         JSONArray jsonApplications = new JSONArray();
         for (ConnectorService application : applications) {
-            jsonApplications.put(new ConnectorPresenter(application).toJSON());
+            jsonApplications.put(new EndpointPresenter(application).toJSON());
         }
 
         response.contentType("application/json").write(jsonApplications.toString());
@@ -58,6 +58,7 @@ public class Applications {
         }
 
         connectorService.start();
+        response.write(new JSONObject().put("newState", "STARTED").toString());
     }
 
     public void stop(Request request, Response response) throws JSONException {
@@ -70,6 +71,7 @@ public class Applications {
         }
 
         connectorService.stop();
+        response.write(new JSONObject().put("newState", "STOPPED").toString());
     }
 
     public void setRoutingEngine(RoutingEngine routingEngine) {

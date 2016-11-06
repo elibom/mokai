@@ -1,11 +1,9 @@
 package org.mokai.web.admin.jogger.controllers;
 
-import org.mokai.web.admin.jogger.helpers.ConnectorPresenter;
 import com.elibom.jogger.http.Request;
 import com.elibom.jogger.http.Response;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import org.mokai.Message;
 import org.mokai.RoutingEngine;
@@ -25,9 +23,10 @@ public class Dashboard {
     private RoutingEngine routingEngine;
 
     public void index(Request request, Response response) {
-        List<ConnectorPresenter> connections = WebUtil.buildConnectorUIs(routingEngine.getConnections());
-        List<ConnectorPresenter> applications = WebUtil.buildConnectorUIs(routingEngine.getApplications());
+        response.contentType("text/html; charset=UTF-8").render("dashboard.ftl");
+    }
 
+    public void data(Request request, Response response) throws JSONException {
         MessageCriteria criteria = new MessageCriteria()
                 .addStatus(Message.STATUS_FAILED)
                 .addStatus(Message.STATUS_RETRYING);
@@ -36,14 +35,14 @@ public class Dashboard {
         criteria = new MessageCriteria().addStatus(Message.STATUS_UNROUTABLE);
         int unroutable = routingEngine.getMessageStore().list(criteria).size();
 
-        Map<String, Object> root = new HashMap<String, Object>();
-        root.put("connections", connections);
-        root.put("applications", applications);
-        root.put("failedMsgs", failed);
-        root.put("unroutableMsgs", unroutable);
-        root.put("tab", "dashboard");
+        JSONObject json = new JSONObject();
+        json.put("failedMsgs", failed);
+        json.put("unroutableMsgs", unroutable);
+        json.put("connections", WebUtil.buildEndpointsJson(routingEngine.getConnections()));
+        json.put("applications", WebUtil.buildEndpointsJson(routingEngine.getApplications()));
 
-        response.render("dashboard.ftl", root);
+        response.contentType("text/json; charset=UTF-8").write(json.toString());
+
     }
 
     public void setRoutingEngine(RoutingEngine routingEngine) {

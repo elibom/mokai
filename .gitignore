@@ -1,6 +1,7 @@
 /.project
 /.settings
 /target
+*.log
 nbactions.xml
 .vagrant*
 mokai-web-admin/data/*

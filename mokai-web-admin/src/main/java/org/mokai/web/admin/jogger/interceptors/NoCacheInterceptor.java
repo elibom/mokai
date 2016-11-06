@@ -1,13 +1,11 @@
 package org.mokai.web.admin.jogger.interceptors;
 
-
 import com.elibom.jogger.http.Request;
 import com.elibom.jogger.http.Response;
 import com.elibom.jogger.middleware.router.interceptor.Interceptor;
 import com.elibom.jogger.middleware.router.interceptor.InterceptorExecution;
 
 public class NoCacheInterceptor implements Interceptor {
-
 
     @Override
     public void intercept(Request request, Response response, InterceptorExecution execution) throws Exception {

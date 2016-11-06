@@ -324,7 +324,7 @@ public class HttpConnectorTest {
 	public void shoudlThrowConnectionTimeoutException() throws Exception {
 
 		HttpConfiguration configuration = new HttpConfiguration();
-		configuration.setUrl("http://10.255.255.1/");
+		configuration.setUrl("http://255.255.255.1/");
 		configuration.setThrowExceptionOnFailure(false);
 		configuration.setConnectionTimeout(3000);
 

@@ -35,7 +35,6 @@ public class Messages {
         if (htmlResponse) {
             Map<String, Object> root = new HashMap<String, Object>();
             root.put("messages", convertMessages(messages));
-            root.put("tab", "connections-messages");
 
             response.contentType("text/html; charset=UTF-8").render("messages.ftl", root);
         } else {
@@ -55,7 +54,6 @@ public class Messages {
         if (htmlResponse) {
             Map<String, Object> root = new HashMap<String, Object>();
             root.put("messages", convertMessages(messages));
-            root.put("tab", "applications-messages");
 
             response.contentType("text/html; charset=UTF-8").render("messages.ftl", root);
         } else {

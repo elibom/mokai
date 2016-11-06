@@ -19,7 +19,6 @@
 		<module>mokai-jetty</module>
 		<module>mokai-smpp-server</module>
 		<module>mokai-mail</module>
-		<module>mokai-ironmq</module>
 		<module>mokai-rabbitmq</module>
 	</modules>
 </project>

@@ -1,7 +1,6 @@
 package org.mokai.web.admin.jogger.helpers;
 
 import com.elibom.jogger.http.Response;
-import static java.lang.StrictMath.log;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -15,9 +14,9 @@ import org.mokai.Connector;
 import org.mokai.ConnectorService;
 import org.mokai.ExposableConfiguration;
 import org.mokai.Processor;
+import org.mokai.annotation.Name;
 import org.mokai.ui.annotation.AcceptorsList;
 import org.mokai.web.admin.jogger.Session;
-import org.mokai.web.admin.jogger.controllers.Helper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,19 +48,19 @@ public class WebUtil {
     }
 
     /**
-     * Helper method. Converts a list of {@link ConnectorService} objects to a list of {@link ConnectorPresenter} objects.
+     * Helper method. Converts a list of {@link ConnectorService} objects to a list of {@link EndpointPresenter} objects.
      *
-     * @param connectorServices the connector services that we want to convert into {@link ConnectorPresenter}
+     * @param connectorServices the connector services that we want to convert into {@link EndpointPresenter}
      *
-     * @return a list of {@link ConnectorPresenter} objects.
+     * @return a list of {@link EndpointPresenter} objects.
      */
-    public static List<ConnectorPresenter> buildConnectorUIs(List<ConnectorService> connectorServices) {
-        List<ConnectorPresenter> connectorUIs = new ArrayList<ConnectorPresenter>();
+    public static JSONArray buildEndpointsJson(List<ConnectorService> connectorServices) throws JSONException {
+        JSONArray jsonArray = new JSONArray();
         for (ConnectorService connectorService : connectorServices) {
-            connectorUIs.add(new ConnectorPresenter(connectorService));
+            jsonArray.put(new EndpointPresenter(connectorService).toJSON());
         }
 
-        return connectorUIs;
+        return jsonArray;
     }
 
     /**
@@ -74,7 +73,7 @@ public class WebUtil {
      * @throws JSONException
      */
     public static JSONObject getConnectorJSON(ConnectorService connectorService) throws JSONException {
-        JSONObject jsonConnector = new ConnectorPresenter(connectorService).toJSON();
+        JSONObject jsonConnector = new EndpointPresenter(connectorService).toJSON();
 
         // include configuration
         Connector connector = connectorService.getConnector();
@@ -88,7 +87,7 @@ public class WebUtil {
 
             List<Acceptor> acceptors = connectorService.getAcceptors();
             for (Acceptor acceptor : acceptors) {
-                JSONObject jsonAcceptor = new JSONObject().put("name", Helper.getComponentName(acceptor));
+                JSONObject jsonAcceptor = new JSONObject().put("name", getComponentName(acceptor));
                 if (ExposableConfiguration.class.isInstance(acceptor)) {
                     jsonAcceptor.put("configuration", getConfigJSON((ExposableConfiguration<?>) acceptor));
                 }
@@ -126,7 +125,7 @@ public class WebUtil {
         JSONArray jsonActions = new JSONArray();
 
         for (Action action : actions) {
-            JSONObject jsonAction = new JSONObject().put("name", Helper.getComponentName(action));
+            JSONObject jsonAction = new JSONObject().put("name", getComponentName(action));
             if (ExposableConfiguration.class.isInstance(action)) {
                 jsonAction.put("configuration", getConfigJSON((ExposableConfiguration<?>) action));
             }
@@ -147,7 +146,7 @@ public class WebUtil {
      */
     public static <T extends ExposableConfiguration<?>> JSONObject getConfigJSON(T o) throws JSONException {
         Object config = o.getConfiguration();
-        List<Field> fields = Helper.getConfigurationFields(config.getClass());
+        List<Field> fields = getConfigurationFields(config.getClass());
 
         JSONObject jsonConfig = new JSONObject();
         for (Field field : fields) {
@@ -159,7 +158,7 @@ public class WebUtil {
 
                     JSONArray jsonAcceptors = new JSONArray();
                     for (Acceptor acceptor : acceptors) {
-                        JSONObject jsonAcceptor = new JSONObject().put("name", Helper.getComponentName(acceptor));
+                        JSONObject jsonAcceptor = new JSONObject().put("name", getComponentName(acceptor));
                         if (ExposableConfiguration.class.isInstance(acceptor)) {
                             jsonAcceptor.put("configuration", getConfigJSON((ExposableConfiguration<?>) acceptor));
                         }
@@ -176,6 +175,76 @@ public class WebUtil {
         }
 
         return jsonConfig;
+    }
+
+    /**
+     * Helper method. Check if the field has a {@link Name} annotation and returns its value, otherwise, the name of
+     * the class is returned.
+     *
+     * @param component the Object from which we are retrieving the name.
+     * @return a String that is used as the name of the component.
+     */
+    public static String getComponentName(Object component) {
+        Class<?> componentClass = component.getClass();
+
+        Name nameAnnotation = componentClass.getAnnotation(Name.class);
+        if (nameAnnotation != null) {
+            return nameAnnotation.value();
+        }
+
+        return componentClass.getSimpleName();
+    }
+
+    /**
+     * Helper method that retrieves all the fields that have a getter method (i.e. are readable) of an object.
+     *
+     * @param clazz the class from which we are going to retrieve the readable fields.
+     * @return a List of Field objects that are readable.
+     */
+    public static List<Field> getConfigurationFields(Class<?> clazz) {
+
+        List<Field> ret = new ArrayList<Field>();
+
+        Field[] fields = clazz.getDeclaredFields();
+        for (Field field : fields) {
+            boolean existsGetter = existsGetter(clazz, field);
+            if (existsGetter) {
+                ret.add(field);
+            }
+        }
+
+        return ret;
+
+    }
+
+    /**
+     * Helper method. Checks if there is a getter method of the field in the configClass.
+     *
+     * @param configClass the class in which we are checking for the getter method.
+     * @param field the field for whose getter method we are searching.
+     * @return true if a getter method exists in the configClass, false otherwise.
+     */
+    private static boolean existsGetter(Class<?> configClass, Field field) {
+        try {
+            configClass.getMethod("get" + capitalize(field.getName()));
+        } catch (NoSuchMethodException e) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Helper method. Capitalizes the first letter of a string.
+     *
+     * @param name the string that we want to capitalize.
+     * @return the capitalized string.
+     */
+    private static String capitalize(String name) {
+        if (name == null || name.length() == 0) {
+            return name;
+        }
+
+        return name.substring(0, 1).toUpperCase() + name.substring(1);
     }
 
 }

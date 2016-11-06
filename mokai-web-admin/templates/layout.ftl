@@ -5,7 +5,7 @@
         <meta http-equiv="content-type" content="text/html; charset=UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        <title>Mokai - Messaging Gateway</title>
+        <title>Mokai</title>
         <link rel="stylesheet" href="/css/bootstrap-3.1.1.min.css"/>
         <link rel="stylesheet" type="text/css" href="/css/style.css">
 
@@ -19,28 +19,16 @@
         <#if user?? >
         <div class="navbar navbar-default" role="navigation">
             <div class="container-fluid">
-
-                <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </a>
                 <div class="navbar-header">
-                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-                        <span class="sr-only">Toggle navigation</span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                    <a class="navbar-brand" href="/">Mokai</a>
+                    <a class="navbar-brand text-center" href="/"><strong>Mokai^2</strong></a>
                 </div>
-                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <div class="collapse navbar-collapse" id="navbar-collapse">
                     <ul class="nav navbar-nav">
                         <li id="menu-dashboard" ><a href="/">Dashboard</a></li>
                         <li id="menu-applications"><a href="/messages/applications">Applications Messages</a></li>
                         <li id="menu-connections"><a href="/messages/connections">Connections Messages</a></li>
                         <li id="menu-jmx"><a href="/jmx">Management</a></li>
                     </ul>
-
                     <ul class="nav navbar-nav navbar-right">
                         <li><a id="logout">Logout</a></li>
                     </ul>
@@ -48,8 +36,12 @@
             </div>
         </div>
         </#if>
-        <div id="content" class="container" style="height: 100%; min-height: 100%;">
-            <#nested/>
+        <div id="content" class="container-fluid" >
+            <div class="row">
+                <div class="col-md-10 col-md-offset-1">
+                    <#nested/>
+                </div>
+            </div>
         </div>
 
         <script id="message-template" type="text/template">

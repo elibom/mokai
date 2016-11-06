@@ -14,7 +14,7 @@
         </fileSet>
 
         <fileSet>
-            <directory>../mokai-web-admin/conf</directory>
+            <directory>./conf</directory>
             <outputDirectory>conf</outputDirectory>
             <includes>
                 <include>*</include>
@@ -22,7 +22,7 @@
         </fileSet>
 
         <fileSet>
-            <directory>../mokai-web-admin/src/main/resources</directory>
+            <directory>./src/main/resources</directory>
             <outputDirectory>etc</outputDirectory>
             <includes>
                 <include>*</include>

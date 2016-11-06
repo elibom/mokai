@@ -1,1 +1,0 @@
-Dummy file so the 'logs' folder is created. We need it because there is where the .pid file is created. See http://jira.codehaus.org/browse/MAPPASM-111.

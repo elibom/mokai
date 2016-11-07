@@ -15,7 +15,6 @@
         <module>mokai-core</module>
         <module>mokai-connectors</module>
         <module>mokai-web-admin</module>
-        <module>mokai-assembly</module>
     </modules>
 	
     <dependencies>

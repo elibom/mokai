@@ -41,6 +41,7 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 
 	private final String PROCESSED_MESSAGES_URI = "mock:processedMessages";
 	private final String FAILED_MESSAGES_URI = "mock:failedMessages";
+        private final String RETRY_MESSAGES_URI = "mock:retryMessages";
 	private final String RECEIVED_MESSAGES_URI = "mock:receivedRouter";
 
 	private final long DEFAULT_TIMEOUT = 3000;
@@ -91,7 +92,7 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 	public void testProcessorStatus() throws Exception {
 		// add failed validation
 		MockEndpoint outboundEndpoint = getProcessedMessagesEndpoint(0);
-		MockEndpoint failedEndpoint = getFailedMessagesEndpoint(1);
+		MockEndpoint retryEndpoint = getRetryMessagesEndpoint(1);
 
 		Processor processor = Mockito.mock(Processor.class);
 		Mockito
@@ -108,7 +109,7 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 		simulateMessage(new Message(), "activemq:mokai-test");
 
 		// wait until the message fails
-		failedEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
+		retryEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
 		outboundEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
 
 		// check that the status is FAILED
@@ -117,8 +118,8 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 		// add processed validation
 		outboundEndpoint.reset();
 		outboundEndpoint.expectedMessageCount(1);
-		failedEndpoint.reset();
-		failedEndpoint.expectedMessageCount(0);
+		retryEndpoint.reset();
+		retryEndpoint.expectedMessageCount(0);
 
 		Mockito.doNothing()
 			.when(processor)
@@ -129,7 +130,7 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 
 		// wait until the message is processed
 		outboundEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
-		failedEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
+		retryEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
 
 		// check that the status is back to UNKNOWN
 		Assert.assertEquals(Status.UNKNOWN, processorService.getStatus());
@@ -196,7 +197,7 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 	public void testConflictMonitorableProcessorStatus() throws Exception {
 		// add failed validation
 		MockEndpoint outboundEndpoint = getProcessedMessagesEndpoint(0);
-		MockEndpoint failedEndpoint = getFailedMessagesEndpoint(1);
+		MockEndpoint failedEndpoint = getFailedMessagesEndpoint(0);
 
 		Processor processor =
 			Mockito.mock(Processor.class, Mockito.withSettings().extraInterfaces(Monitorable.class));
@@ -397,13 +398,13 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 	}
 
 	/**
-	 * Tests that if an exception occurs in the processor, the message is sent to the failedMessages queue.
+	 * Tests that if an exception occurs in the processor, the message is sent to the retryMessages queue.
 	 * @throws Exception
 	 */
 	@Test
 	public void testProcessorException() throws Exception {
 		MockEndpoint outboundEndpoint = getProcessedMessagesEndpoint(0);
-		MockEndpoint failedEndpoint = getFailedMessagesEndpoint(1);
+		MockEndpoint retryEndpoint = getRetryMessagesEndpoint(1);
 
 		AbstractCamelConnectorService processorService = new MockConnectorService("test", new Processor() {
 
@@ -422,10 +423,10 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 
 		simulateMessage(new Message(), "activemq:mokai-test");
 
-		failedEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
+		retryEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
 		outboundEndpoint.assertIsSatisfied(DEFAULT_TIMEOUT);
 
-		Exchange exchange = failedEndpoint.getReceivedExchanges().iterator().next();
+		Exchange exchange = retryEndpoint.getReceivedExchanges().iterator().next();
 		Message smsMessage = exchange.getIn().getBody(Message.class);
 
 		Assert.assertEquals("test", smsMessage.getDestination());
@@ -931,6 +932,15 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 		return ret;
 	}
 
+        private MockEndpoint getRetryMessagesEndpoint(int expectedMessages) throws Exception {
+		CamelContext camelContext = resourceRegistry.getResource(CamelContext.class);
+
+		MockEndpoint ret = camelContext.getEndpoint(RETRY_MESSAGES_URI, MockEndpoint.class);
+		ret.expectedMessageCount(expectedMessages);
+
+		return ret;
+	}
+
 	private class MockConnectorService extends AbstractCamelConnectorService {
 
 		public MockConnectorService(String id, Connector connector, ResourceRegistry resourceRegistry)
@@ -962,6 +972,10 @@ public class CamelConnectorServiceTest extends CamelBaseTest {
 		protected String getFailedMessagesUri() {
 			return FAILED_MESSAGES_URI;
 		}
+                @Override
+                protected String getRetryMessagesUri() {
+                    return RETRY_MESSAGES_URI;
+                }
 
 		@Override
 		protected String getMessagesRouterUri() {

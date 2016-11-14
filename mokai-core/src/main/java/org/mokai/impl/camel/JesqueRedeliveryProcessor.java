@@ -10,12 +10,16 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.mokai.Message;
 import org.mokai.persist.MessageStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author Alejandro <lariverosc@gmail.com>
  */
 public class JesqueRedeliveryProcessor implements Processor {
+
+    private final Logger log = LoggerFactory.getLogger(JesqueRedeliveryProcessor.class);
 
     private ResourceRegistry resourceRegistry;
 
@@ -47,7 +51,7 @@ public class JesqueRedeliveryProcessor implements Processor {
         String deliveryToken = jsonMessage.get("deliveryToken").getAsString();
         int deliverySequence = jsonMessage.get("deliverySequence").getAsInt();
         triggerJob(ReDeliverMessageJob, new Object[]{deliveryToken, deliverySequence});
-
+        log.info("Redeliver message with deliveryToken:{} and deliverySequence:{}", new Object[]{deliveryToken, deliverySequence});
         MessageStore messageStore = resourceRegistry.getResource(MessageStore.class);
         message.setStatus(Message.STATUS_REDELIVERED);
         messageStore.saveOrUpdate(message);

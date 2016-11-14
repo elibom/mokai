@@ -826,7 +826,7 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 
 					// send to failed messages
 					message.setStatus(Message.STATUS_FAILED);
-					camelProducer.sendBody(UriConstants.CONNECTIONS_RETRY_MESSAGES, message);
+					camelProducer.sendBody(getRetryMessagesUri(), message);
 
 				}
 
@@ -932,6 +932,8 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 	 * @return a string with a failed messages uri.
 	 */
 	protected abstract String getFailedMessagesUri();
+
+        protected abstract String getRetryMessagesUri();
 
 	/**
 	 * The messages router uri is the endpoint to which the received messages are routed.

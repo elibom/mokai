@@ -41,6 +41,10 @@ public class CamelConnectionService extends AbstractCamelConnectorService {
 	protected String getFailedMessagesUri() {
 		return UriConstants.CONNECTIONS_FAILED_MESSAGES;
 	}
+        @Override
+        protected String getRetryMessagesUri() {
+            return UriConstants.CONNECTIONS_RETRY_MESSAGES;
+        }
 
 	@Override
 	protected String getMessagesRouterUri() {

@@ -4,4 +4,5 @@
 *.log
 nbactions.xml
 .vagrant*
+mokai-web-admin/temp/*
 mokai-web-admin/data/*

@@ -6,7 +6,7 @@ APP_NAME="mokai-web"
 APP_LONG_NAME="Mokai Web"
 MAIN_CLASS="org.mokai.web.admin.jogger.Main"
 JAVA_OPTS="-Xmx600m"
-PIDFILE="/var/run/$APP_NAME.pid"
+PIDFILE="$HOME/$APP_NAME.pid"
 
 # search for the 'java' command
 if [ -z "$JAVACMD" ] ; then

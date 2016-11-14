@@ -134,6 +134,9 @@ public class CamelRoutingEngine implements RoutingEngine {
 					// unroutable messages - we pass a delegate in case the MessageStore changes
 					PersistenceProcessor unRoutableProcessor = new PersistenceProcessor(resourceRegistry);
 					from(UriConstants.CONNECTIONS_UNROUTABLE_MESSAGES).process(unRoutableProcessor);
+
+                                        JesqueRedeliveryProcessor redeliveryProcessor = new JesqueRedeliveryProcessor(resourceRegistry);
+					from(UriConstants.CONNECTIONS_RETRY_MESSAGES).process(redeliveryProcessor);
 				}
 
 			});

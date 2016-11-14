@@ -813,26 +813,20 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 					long delay = redeliveryPolicy.getMaxRedeliveryDelay();
 					try { this.wait(delay); } catch (Exception f) { }
 
-					// MOKAI-20 - return keyword was missing
 					return process(message, attempt + 1);
 				} else {
 
-					// print the stack trace every 50 messages that fail consecutively
-					if (failedMessages % 50 == 0) {
-						log.error("message failed after " + maxRetries + " retries: " + e.getMessage(), e);
-					} else {
-						log.error("message failed after " + maxRetries + " retries: " + e.getMessage());
-					}
+
+                                        log.error("message failed after " + maxRetries + " retries: " + e.getMessage(), e);
 
 					// set the new status
 					failedMessages++;
-					String failMessage = failedMessages +
-						(failedMessages == 1 ? " message has " : " messages have") + "failed.";
+					String failMessage = failedMessages + (failedMessages == 1 ? " message has " : " messages have") + "failed.";
 					status = MonitorStatusBuilder.failed(failMessage, e);
 
 					// send to failed messages
 					message.setStatus(Message.STATUS_FAILED);
-					camelProducer.sendBody(getFailedMessagesUri(), message);
+					camelProducer.sendBody(UriConstants.CONNECTIONS_RETRY_MESSAGES, message);
 
 				}
 

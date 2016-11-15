@@ -15,20 +15,13 @@ fixType = function(s) {
 		
 var showBean = function(mbean) {
 		
-	App.request = $.ajax({
+	$.ajax({
 		url: '/jmx/' + mbean,
 		dataType: 'json'
-	});			
-	App.request.done(function(data) {
-		stopTimers();
+	}).done(function(data) {
 		$('#fade').fadeOut();
-					
 		new mBeanView(data);
-					
-	});
-	App.request.fail(function(jqXHR, textStatus) {
-		stopTimers();
-					
+	}).fail(function(jqXHR, textStatus) {
 		if (jqXHR.status == 404) {
 			$('#fade').fadeOut();
 			alert("Not found!");
@@ -51,14 +44,12 @@ var paramsTypes = function(params) {
 		
 var invokeOp = function(mbean, operation, jAlert, data) {
 			
-	App.request = $.ajax({
+	$.ajax({
 		type: 'POST',
 		url: '/jmx/' + mbean + '/operations/' + operation.name,
 		data: '{ "params": ' + JSON.stringify(data) + ', "signature": ' + JSON.stringify(paramsTypes(operation.params)) + ' }',
 		contentType: "application/json; charset=utf-8"
-	});
-	App.request.done(function(resp) {
-		stopTimers();
+	}).done(function(resp) {
 		$('#fade').hide();
 						
 		if (operation.returnType === "void") {
@@ -69,10 +60,7 @@ var invokeOp = function(mbean, operation, jAlert, data) {
 			$(".return_info .modal-body p").html('' + resp);
 			$(".return_info").modal();
 		}
-	});
-	App.request.fail(function(jqXHR, textStatus) {
-		stopTimers();
-					
+	}).fail(function(jqXHR, textStatus) {
 		if (jqXHR.status == 404) {
 			$('#fade').fadeOut();
 			alert("Not found!");
@@ -100,33 +88,29 @@ var mainView = Backbone.View.extend({
 	},
 			
 	updateMemory: function() {
-		var request = $.ajax({
+		$.ajax({
 			url: '/jmx/' + encodeURIComponent('java.lang:type=Memory') + "/attributes/HeapMemoryUsage",
 			dataType: 'json',
 			global: false
-		});
-		request.done(function(data) {
+		}).done(function(data) {
 			var value = $.parseJSON(data.value);
 
 			$("div.featured div#used_memory span.value").html( (value.used / (1024 * 1024)).toFixed(0) + "MB" );
 			$("div.featured div#max_memory span.value").html( (value.max / (1024 * 1024)).toFixed(0) + "MB" );
 						
-		});
-		request.fail(function(jqXHR, textStatus) {
+		}).fail(function(jqXHR, textStatus) {
 			
 		});
 	},
 			
 	updateThreading: function() {
-		request = $.ajax({
+		$.ajax({
 			url: '/jmx/' + encodeURIComponent('java.lang:type=Threading') + "/attributes/ThreadCount",
 			dataType: 'json',
 			global: false
-		});
-		request.done(function(data) {
+		}).done(function(data) {
 			$("div.featured div#thread_count span.value").html( data.value);
-		});
-		request.fail(function(jqXHR, textStatus) {
+		}).fail(function(jqXHR, textStatus) {
 						
 		});
 	}
@@ -178,8 +162,9 @@ var mBeanView = Backbone.View.extend({
 		
 	template: _.template( $('#mbean_template').html() ),
 			
-	initialize: function() {
-		location.hash = encodeURIComponent(this.options.name);
+	initialize: function(options) {
+            this.options = options;
+		location.hash = encodeURIComponent(options.name);
 		this.render();
 	},
 			
@@ -209,9 +194,10 @@ var mBeanAttribute = Backbone.View.extend({
 	
 	template: _.template( $('#attribute_template').html() ),
 	
-	initialize: function() {
+	initialize: function(options) {
+            this.options = options;
 		_.bindAll(this, 'show', 'edit', 'cancel');
-		this.render( this.options.attribute );
+		this.render(options.attribute );
 	},
 	
 	render: function(attribute) {
@@ -265,17 +251,15 @@ var mBeanAttribute = Backbone.View.extend({
 		var val = $('td.attr_value input', this.$el).val();
 		$('td.attr_value', this.$el).html(val);		
 		
-		request = $.ajax({
+		$.ajax({
 			url: '/jmx/' + encodeURIComponent(this.options.mbean) + "/attributes/" + this.options.attribute.name,
 			type: 'POST',
 			data: '{"value": ' + val + '}',
 			dataType: 'json'
-		});
-		request.done(function(data) {
+		}).done(function(data) {
 			$('#fade').fadeOut();
 			that.options.attribute.value = val;
-		});
-		request.fail(function(jqXHR, textStatus) {
+		}).fail(function(jqXHR, textStatus) {
 			$('#fade').fadeOut();
 			
 			var originalVal = this.options.attribute.value ? this.options.attribute.value : "";
@@ -297,8 +281,9 @@ var mBeanOperation = Backbone.View.extend({
 			
 	template: _.template( $('#operation_template').html() ),
 			
-	initialize: function() {
-		this.render( this.options.operation );
+	initialize: function(options) {
+            this.options = options;
+		this.render( options.operation );
 	},
 			
 	render: function(operation) {

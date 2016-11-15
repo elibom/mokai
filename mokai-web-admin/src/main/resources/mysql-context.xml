@@ -4,27 +4,28 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
+    <bean id="dbUri" class="org.mokai.web.admin.jogger.helpers.Uri">
+        <constructor-arg value="${DATABASE_URL:mysql://root:elibom@localhost:3306/mokai?useUnicode=true&amp;characterEncoding=UTF-8&amp;autoReconnect=true}"/>
+    </bean>
+
     <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
         <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
-        <property name="url" value="jdbc:mysql://localhost:3306/mokai?useUnicode=true&amp;characterEncoding=UTF-8&amp;autoReconnect=true"/>
-        <property name="username" value="root"/>
-        <property name="password" value="elibom"/>
+        <property name="url" value="#{ 'jdbc:' + @dbUri.getUrl() + @dbUri.getPath()}" />
+        <property name="username" value="#{ @dbUri.getUsername() }"/>
+        <property name="password" value="#{ @dbUri.getPassword() }"/>
+        <property name="removeAbandoned" value="true"/>
+        <property name="initialSize" value="20"/>
+        <property name="maxActive" value="30"/>
     </bean>
 	
     <bean id="sqlEngine" class="org.mokai.persist.jdbc.sms.MySqlEngine" init-method="init">
-        <property name="dataSource">
-            <ref bean="dataSource" />
-        </property>
+        <property name="dataSource" ref="dataSource"/>
         <property name="schema" value="mokai" />
     </bean>
 	
     <bean id="messageStore" class="org.mokai.persist.jdbc.JdbcMessageStore" depends-on="sqlEngine">
-        <property name="dataSource">
-            <ref bean="dataSource" />
-        </property>
-        <property name="messageHandler">
-            <ref bean="smsHandler" />
-        </property>
+        <property name="dataSource" ref="dataSource"/>
+        <property name="messageHandler" ref="smsHandler"/>
     </bean>
 	
     <bean id="smsHandler" class="org.mokai.persist.jdbc.OutboundInboundHandler">

@@ -29,6 +29,7 @@ public class JesqueRedeliveryProcessor implements Processor {
 
     public JesqueRedeliveryProcessor(ResourceRegistry resourceRegistry) {
         this("localhost", ConfigBuilder.DEFAULT_PORT, ConfigBuilder.DEFAULT_PASSWORD);
+//        this("10.0.0.120", ConfigBuilder.DEFAULT_PORT, "oAtnNRX7Z8S4rTf5GIkslso9LpselwDy7GDCskiduTG59egyaQDlH");
         this.resourceRegistry = resourceRegistry;
     }
 

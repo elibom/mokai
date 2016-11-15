@@ -244,7 +244,7 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 		RouteBuilder inboundRouteBuilder = new RouteBuilder() {
 
 			@Override
-			public void configure() throws Exception {;
+			public void configure() throws Exception {
 				// from the inbound queue (that receives the messages from the MessageProducer) to the post-receiving
 				// actions that puts the message(s) in the router URI
 				from(getInboundUri())

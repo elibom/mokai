@@ -2,28 +2,34 @@
 
 var MainView = Backbone.View.extend({
     initialize: function () {
-        this.updateEndpoints();
+        this.endPointItemTemplate = _.template($('#endpoint-item-template').text());
+        _.bindAll(this, 'updateStatus');
+        setInterval((function(self) {
+            return function() {
+                self.updateStatus();
+            };
+        })(this), 5000);
     },
-    updateEndpoints: function () {
-        var endPointItemTemplate = _.template($('#endpoint-item-template').text());
+    updateStatus: function () {
         var that = this;
         $.ajax({
             type: 'GET',
             url: '/data/'
         }).done(function (response) {
             that.clearInfo();
-
+            $('#failedMessages > .number').text(response.failedMsgs);
+            $('#unroutableMessages > .number').text(response.failedMsgs);
             var applicationsContainer = $('#applications-container', that.$el);
             response.applications.forEach(function (application) {
                 application.class = 'applications';
-                applicationsContainer.append(endPointItemTemplate({endpoint: application}));
+                applicationsContainer.append(that.endPointItemTemplate({endpoint: application}));
                 new EndpointItemView({el: $('#' + application.type + '-' + application.id, that.$el), endpoint: application});
             });
 
             var connectionsContainer = $('#connections-container', that.$el);
             response.connections.forEach(function (connection) {
                 connection.class = 'connections';
-                connectionsContainer.append(endPointItemTemplate({endpoint: connection}));
+                connectionsContainer.append(that.endPointItemTemplate({endpoint: connection}));
                 new EndpointItemView({el: $('#' + connection.type + '-' + connection.id, that.$el), endpoint: connection});
             });
         });

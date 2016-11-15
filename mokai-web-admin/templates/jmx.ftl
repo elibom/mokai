@@ -133,8 +133,8 @@
   		</div>
 	</div>
 	
-	<script type="text/javascript" src="/js/backbone-min.js"></script>
-	<script type="text/javascript" src="/js/jmx.js"></script>
+	<script type="text/javascript" src="/javascript/lib/backbone-1.1.0.js"></script>
+        <script type="text/javascript" src="/javascript/jmx.js"></script>
 	<script type="text/javascript">
 		new mainView();
 		new mBeansView( { el: $("#mbeans_list ul") } );

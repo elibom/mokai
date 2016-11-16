@@ -2,10 +2,7 @@ package org.mokai.impl.camel;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import net.greghaines.jesque.Config;
-import net.greghaines.jesque.ConfigBuilder;
 import net.greghaines.jesque.client.Client;
-import net.greghaines.jesque.client.ClientImpl;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.mokai.Message;
@@ -27,15 +24,9 @@ public class JesqueRedeliveryProcessor implements Processor {
 
     private static final String ReDeliverMessageJob = "reDeliverMessageJob";
 
-    public JesqueRedeliveryProcessor(ResourceRegistry resourceRegistry) {
-        this("localhost", ConfigBuilder.DEFAULT_PORT, ConfigBuilder.DEFAULT_PASSWORD);
-//        this("10.0.0.120", ConfigBuilder.DEFAULT_PORT, "oAtnNRX7Z8S4rTf5GIkslso9LpselwDy7GDCskiduTG59egyaQDlH");
+    public JesqueRedeliveryProcessor(ResourceRegistry resourceRegistry, Client jesqueClient) {
         this.resourceRegistry = resourceRegistry;
-    }
-
-    public JesqueRedeliveryProcessor(String redisIP, int redisPort, String redisPassword) {
-        Config jesqueConfig = new Config(redisIP, redisPort, ConfigBuilder.DEFAULT_TIMEOUT, redisPassword, ConfigBuilder.DEFAULT_NAMESPACE, ConfigBuilder.DEFAULT_DATABASE);
-        jesqueClient = new ClientImpl(jesqueConfig);
+        this.jesqueClient = jesqueClient;
     }
 
     public void triggerJob(String jobName, Object[] args) {

@@ -22,6 +22,7 @@ public class Uri {
      */
     public Uri(String uri) {
         try {
+            log.info("New URI conf:"+uri);
             this.uri = new URI(uri);
         } catch (URISyntaxException ex) {
             log.error("Error while parsing URL", ex);

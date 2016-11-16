@@ -1,6 +1,8 @@
 #!/bin/sh
 #Configure database
 export MOKAI_DB_ENGINE=mysql
+export DATABASE_URL="mysql://root:elibom@localhost:3306/mokai?useUnicode=true&amp;characterEncoding=UTF-8&amp;autoReconnect=true"
+export JESQUE_URL="jedis://localhost:6379"
 
 APP_NAME="mokai-web"
 APP_LONG_NAME="Mokai Web"

@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 import javax.management.InstanceAlreadyExistsException;
 
 import net.gescobar.jmx.Management;
+import net.greghaines.jesque.client.Client;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.camel.CamelContext;
@@ -61,6 +62,8 @@ public class CamelRoutingEngine implements RoutingEngine {
 
 	private ResourceRegistry resourceRegistry;
 
+        private Client jesqueClient;
+
 	private ConnectorServiceChangeListener connectorServiceChangeListener;
 
 	private ExecutorService executor =
@@ -88,8 +91,9 @@ public class CamelRoutingEngine implements RoutingEngine {
 		return jmsComponent;
 	}
 
-	public CamelRoutingEngine(JmsComponent jmsComponent) {
+	public CamelRoutingEngine(JmsComponent jmsComponent, Client jesqueClient) {
 		this.jmsComponent = jmsComponent;
+                this.jesqueClient = jesqueClient;
 		init();
 	}
 
@@ -135,7 +139,7 @@ public class CamelRoutingEngine implements RoutingEngine {
 					PersistenceProcessor unRoutableProcessor = new PersistenceProcessor(resourceRegistry);
 					from(UriConstants.CONNECTIONS_UNROUTABLE_MESSAGES).process(unRoutableProcessor);
 
-                                        JesqueRedeliveryProcessor redeliveryProcessor = new JesqueRedeliveryProcessor(resourceRegistry);
+                                        JesqueRedeliveryProcessor redeliveryProcessor = new JesqueRedeliveryProcessor(resourceRegistry, jesqueClient);
 					from(UriConstants.CONNECTIONS_RETRY_MESSAGES).process(redeliveryProcessor);
 				}
 

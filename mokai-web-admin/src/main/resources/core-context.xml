@@ -13,12 +13,45 @@
         <property name="applicationsConfiguration" ref="applicationsConfiguration"/>
         <property name="connectionsConfiguration" ref="connectionsConfiguration"/>
     </bean>
+    <!--Jesque-->
+    <bean id="jesqueUri" class="org.mokai.web.admin.jogger.helpers.Uri">
+        <constructor-arg value="${JESQUE_URL:jesque://localhost:6379}" />
+    </bean>
+    <bean id="jesqueConfig" class="net.greghaines.jesque.Config">
+        <constructor-arg name="host" value="#{ @jesqueUri.getHost() }" />
+        <constructor-arg name="port" value="#{ @jesqueUri.getPort() }" />
+        <constructor-arg name="password" value="#{ @jesqueUri.getPassword() }" />
+        <constructor-arg name="namespace" value="resque" />
+        <constructor-arg name="database" value="0" />
+        <constructor-arg name="timeout" value="7000" />
+    </bean>
+    <bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+        <property name="testOnBorrow" value="true" />
+        <property name="minIdle" value="1" />
+        <property name="maxIdle" value="10" />
+        <property name="maxActive" value="15" />
+        <property name="maxWait" value="30000" />
+    </bean>
+
+    <bean id="jedisPool" class="redis.clients.jedis.JedisPool">
+        <constructor-arg name="poolConfig" ref="jedisPoolConfig"/>
+        <constructor-arg name="host" value="#{ @jesqueUri.getHost() }" />
+        <constructor-arg name="port" value="#{ @jesqueUri.getPort() }" />
+        <constructor-arg name="password" value="#{ @jesqueUri.getPassword() }" />
+        <constructor-arg name="timeout" value="7000"/>
+    </bean>
+
+    <bean id="jesqueClient" class="net.greghaines.jesque.client.ClientPoolImpl">
+        <constructor-arg name="config"  ref="jesqueConfig"/>
+        <constructor-arg name="jedisPool" ref="jedisPool" />
+    </bean>
 
     <!-- Routing Engine -->
     <bean id="connectorServiceChangeListener" class="org.mokai.web.admin.jogger.AsyncConnectorServiceChangeListener" />
 
     <bean id="routingEngine" class="org.mokai.impl.camel.CamelRoutingEngine">
         <constructor-arg ref="jmsComponent" />
+        <constructor-arg ref="jesqueClient" />
         <property name="messageStore" ref="messageStore"/>
         <property name="connectorServiceChangeListener" ref="connectorServiceChangeListener" />
     </bean>

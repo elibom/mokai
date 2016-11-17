@@ -45,7 +45,7 @@
 
     <!-- Server configuration -->
     <bean id="jogger" class="com.elibom.jogger.Jogger" factory-bean="joggerFactory" factory-method="create" init-method="listen" destroy-method="stop">
-        <property name="port" value="${PORT:8484}" />
+        <property name="port" value="${PORT:9070}" />
     </bean>
 
     <!--freemarker-->

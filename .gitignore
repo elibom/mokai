@@ -2,6 +2,7 @@
 /.settings
 /target
 *.log
+*.log.gz
 nbactions.xml
 .vagrant*
 mokai-web-admin/temp/*

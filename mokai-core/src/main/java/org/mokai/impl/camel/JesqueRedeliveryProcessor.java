@@ -2,6 +2,7 @@ package org.mokai.impl.camel;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import java.util.Date;
 import net.greghaines.jesque.client.Client;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
@@ -37,8 +38,9 @@ public class JesqueRedeliveryProcessor implements Processor {
 
     public void triggerDelayedJob(String jobName, long delay, Object[] args) {
         net.greghaines.jesque.Job job = new net.greghaines.jesque.Job(jobName, args);
-        jesqueClient.delayedEnqueue(jobName, job, delay);
-        log.info("Succesfully enqueued job {} to be executed in {} seconds", new Object[]{jobName, delay});
+        long future = System.currentTimeMillis() + delay;
+        jesqueClient.delayedEnqueue(jobName, job, future);
+        log.info("Succesfully enqueued job {} to be executed in {}", new Object[]{jobName, new Date(future)});
     }
 
     @Override

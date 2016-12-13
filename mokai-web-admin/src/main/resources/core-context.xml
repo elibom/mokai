@@ -29,8 +29,7 @@
         <property name="testOnBorrow" value="true" />
         <property name="minIdle" value="1" />
         <property name="maxIdle" value="10" />
-        <property name="maxActive" value="15" />
-        <property name="maxWait" value="30000" />
+        <property name="maxWaitMillis" value="30000" />
     </bean>
 
     <bean id="jedisPool" class="redis.clients.jedis.JedisPool">

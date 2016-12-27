@@ -1,5 +1,7 @@
 package org.mokai.impl.camel;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,6 +11,7 @@ import javax.management.InstanceNotFoundException;
 import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
+import net.greghaines.jesque.client.Client;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelExecutionException;
@@ -84,6 +87,10 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 
 	private ConnectorServiceChangeListener changeListener;
 
+        private Client jesqueClient;
+
+        private final String UPDATE_MESSAGE_TO_SENT="UpdateMessageToSentJob";
+
 	/**
 	 * Used to send messages to Apache Camel endpoints.
 	 */
@@ -131,6 +138,7 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 		Validate.notNull(connector, "A connector must be provided");
 		Validate.notNull(resourceRegistry, "A ResourceRegistry must be provided");
 		Validate.notNull(resourceRegistry.getResource(CamelContext.class), "A CamelContext must be provided");
+                Validate.notNull(resourceRegistry.getResource(Client.class), "A JesqiueClient must be provided");
 
 		String fixedId = StringUtils.lowerCase(id);
 		this.id = StringUtils.deleteWhitespace(fixedId);
@@ -151,6 +159,8 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 
 		this.camelContext = resourceRegistry.getResource(CamelContext.class);
 		this.camelProducer = camelContext.createProducerTemplate();
+
+                this.jesqueClient = resourceRegistry.getResource(Client.class);
 
 		// inject resources to the connector
 		ResourceInjector.inject(connector, resourceRegistry);
@@ -795,6 +805,16 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 				Processor processor = (Processor) connector;
 				processor.process(message);
 				message.setStatus(Message.STATUS_PROCESSED);
+
+                                //Triger update status here
+                                String body = (String) message.getProperty("body");
+                                JsonObject jsonMessage = new JsonParser().parse(body).getAsJsonObject();
+                                String deliveryToken = jsonMessage.get("deliveryToken").getAsString();
+                                int deliverySequence = jsonMessage.get("deliverySequence").getAsInt();
+
+                                net.greghaines.jesque.Job job = new net.greghaines.jesque.Job(UPDATE_MESSAGE_TO_SENT, new Object[]{deliveryToken,deliverySequence});
+                                jesqueClient.enqueue(UPDATE_MESSAGE_TO_SENT, job);
+
 				long endTime = System.currentTimeMillis();
 				log.debug("[processor=" + id + "] processing message took " + (endTime - startTime) + " millis");
 

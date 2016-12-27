@@ -113,6 +113,9 @@ public class CamelRoutingEngine implements RoutingEngine {
 
 		camelContext.addComponent("activemq", jmsComponent);
 
+                resourceRegistry.putResource(Client.class, jesqueClient);
+
+
 		final ConnectionsRouter connectionsRouter = new ConnectionsRouter();
 		connectionsRouter.setRoutingEngine(this);
 

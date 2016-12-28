@@ -89,7 +89,7 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 
         private Client jesqueClient;
 
-        private final String UPDATE_MESSAGE_TO_SENT="UpdateMessageToSentJob";
+        private final String UPDATE_MESSAGE_TO_SENT="updateMessageToSentJob";
 
 	/**
 	 * Used to send messages to Apache Camel endpoints.

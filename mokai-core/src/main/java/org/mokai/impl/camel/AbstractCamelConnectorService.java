@@ -138,7 +138,7 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 		Validate.notNull(connector, "A connector must be provided");
 		Validate.notNull(resourceRegistry, "A ResourceRegistry must be provided");
 		Validate.notNull(resourceRegistry.getResource(CamelContext.class), "A CamelContext must be provided");
-                Validate.notNull(resourceRegistry.getResource(Client.class), "A JesqiueClient must be provided");
+                Validate.notNull(resourceRegistry.getResource(Client.class), "A JesqueClient must be provided");
 
 		String fixedId = StringUtils.lowerCase(id);
 		this.id = StringUtils.deleteWhitespace(fixedId);
@@ -797,7 +797,7 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 				if (!Processor.class.isInstance(connector)) {
 					// should not happen but just in case
 					throw new IllegalStateException("A message cannot be processed by connector " + id +
-							", it doesn't implements org.mokai.Processor");
+                                                       ", it doesn't implements org.mokai.Processor");
 				}
 
 				// try to process the message
@@ -808,13 +808,16 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 
                                 //Triger update status here
                                 String body = (String) message.getProperty("body");
-                                JsonObject jsonMessage = new JsonParser().parse(body).getAsJsonObject();
-                                String deliveryToken = jsonMessage.get("deliveryToken").getAsString();
-                                int deliverySequence = jsonMessage.get("deliverySequence").getAsInt();
+                                if (body!=null){
+                                    JsonObject jsonMessage = new JsonParser().parse(body).getAsJsonObject();
+                                    String deliveryToken = jsonMessage.get("deliveryToken").getAsString();
+                                    int deliverySequence = jsonMessage.get("deliverySequence").getAsInt();
 
-                                net.greghaines.jesque.Job job = new net.greghaines.jesque.Job(UPDATE_MESSAGE_TO_SENT, new Object[]{deliveryToken,deliverySequence});
-                                jesqueClient.enqueue(UPDATE_MESSAGE_TO_SENT, job);
-
+                                    net.greghaines.jesque.Job job = new net.greghaines.jesque.Job(UPDATE_MESSAGE_TO_SENT, new Object[]{deliveryToken,deliverySequence});
+                                    jesqueClient.enqueue(UPDATE_MESSAGE_TO_SENT, job);
+                                }else{
+                                    log.warn("processing message without a body!!!");
+                                }
 				long endTime = System.currentTimeMillis();
 				log.debug("[processor=" + id + "] processing message took " + (endTime - startTime) + " millis");
 

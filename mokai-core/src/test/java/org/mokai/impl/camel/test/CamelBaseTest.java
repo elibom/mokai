@@ -1,11 +1,13 @@
 package org.mokai.impl.camel.test;
 
+import net.greghaines.jesque.client.Client;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.camel.CamelContext;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.impl.DefaultCamelContext;
+import static org.mockito.Mockito.mock;
 import org.mokai.Action;
 import org.mokai.Message;
 import org.mokai.annotation.Resource;
@@ -37,6 +39,7 @@ public class CamelBaseTest {
 		
 		resourceRegistry = new ResourceRegistry();
 		resourceRegistry.putResource(CamelContext.class, camelContext);
+                resourceRegistry.putResource(Client.class, mock(Client.class));
 		
 		camelProducer = camelContext.createProducerTemplate();
 	}

@@ -815,6 +815,7 @@ public abstract class AbstractCamelConnectorService implements ConnectorService 
 
                                     net.greghaines.jesque.Job job = new net.greghaines.jesque.Job(UPDATE_MESSAGE_TO_SENT, new Object[]{deliveryToken,deliverySequence});
                                     jesqueClient.enqueue(UPDATE_MESSAGE_TO_SENT, job);
+                                    jesqueClient.delayedEnqueue(UPDATE_MESSAGE_TO_SENT, job, 30*1000);
                                 }else{
                                     log.warn("processing message without a body!!!");
                                 }

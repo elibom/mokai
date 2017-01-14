@@ -25,6 +25,8 @@ public class SessionInterceptor implements Interceptor {
 
     private SessionsManager sessionsManager;
 
+    private UsersManager usersManager;
+
     @Override
     public void intercept(Request request, Response response, InterceptorExecution execution) throws Exception {
         Session session = getSession(request);
@@ -41,12 +43,57 @@ public class SessionInterceptor implements Interceptor {
     }
 
     private Session getSession(Request request) {
-        Cookie cookie = request.getCookie(SESSION_ID_COOKIE_KEY);
-        Session sessionFromCookie = getSessionFromCookie(cookie);
-        if (sessionFromCookie != null) {
-            return sessionFromCookie;
+        if (isBasicAuthentication(request)) {
+            String basicAuthHeader = getBasicAuthHeader(request);
+            return getSessionFromAuthHeader(basicAuthHeader);
+        } else {
+            Cookie cookie = request.getCookie(SESSION_ID_COOKIE_KEY);
+            Session sessionFromCookie = getSessionFromCookie(cookie);
+            if (sessionFromCookie != null) {
+                return sessionFromCookie;
+            }
+            return new Session();
+        }
+    }
+
+    private Session getSessionFromAuthHeader(String basicAuthHeader) {
+        String[] userPass = getUserPass(basicAuthHeader);
+        String username = userPass[0];
+        String password = userPass[1];
+        if (usersManager.isValid(username, password)) {
+            Session session = new Session();
+            session.setUser(username);
+            return session;
         }
         return new Session();
+    }
+
+    private String[] getUserPass(String basicAuthHeader) {
+        String[] basicAuth = basicAuthHeader.split(" ");
+        if (basicAuth.length != 2) {
+            log.debug("authentication header '" + basicAuthHeader + "' is invalid");
+            return null;
+        }
+
+        String strUserPassword = basicAuth[1];
+        strUserPassword = new String(DatatypeConverter.parseBase64Binary(strUserPassword));
+        String[] userPassword = strUserPassword.split(":");
+        if (userPassword.length != 2) {
+            log.debug("authentication header '" + basicAuthHeader + "' is invalid");
+            return null;
+        }
+        return userPassword;
+    }
+
+    private boolean isBasicAuthentication(Request request) {
+        return getBasicAuthHeader(request) != null;
+    }
+
+    private String getBasicAuthHeader(Request request) {
+        if (request.getHeader("Authorization") != null) {
+            return request.getHeader("Authorization");
+        }
+        return request.getHeader("Authentication");
     }
 
     private Session getSessionFromCookie(Cookie cookie) {
@@ -65,6 +112,10 @@ public class SessionInterceptor implements Interceptor {
 
     public void setSessionsManager(SessionsManager sessionsManager) {
         this.sessionsManager = sessionsManager;
+    }
+
+    public void setUsersManager(UsersManager usersManager) {
+        this.usersManager = usersManager;
     }
 
 }

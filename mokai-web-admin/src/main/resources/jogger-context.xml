@@ -58,6 +58,7 @@
     <!-- Interceptors -->
     <bean id="sessionInterceptor" class="org.mokai.web.admin.jogger.interceptors.SessionInterceptor">
         <property name="sessionsManager" ref="sessionsManager"/>
+        <property name="usersManager" ref="usersManager"/>
     </bean>
     <bean id="securityInterceptor" class="org.mokai.web.admin.jogger.interceptors.SecurityInterceptor"></bean>
     <bean id="noCacheInterceptor" class="org.mokai.web.admin.jogger.interceptors.NoCacheInterceptor"></bean>

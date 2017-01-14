@@ -18,7 +18,7 @@ public class UsersManager {
 
     private Map<String, String> initUsers() {
         Map<String, String> temp = new HashMap<String, String>();
-        temp.put("admin", "kcwAE%745");
+        temp.put("admin", "wAEcs745%");
         return Collections.unmodifiableMap(temp);
     }
 

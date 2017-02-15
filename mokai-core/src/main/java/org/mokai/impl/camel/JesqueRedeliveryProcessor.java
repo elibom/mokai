@@ -39,7 +39,7 @@ public class JesqueRedeliveryProcessor implements Processor {
     public void triggerDelayedJob(String jobName, long delay, Object[] args) {
         net.greghaines.jesque.Job job = new net.greghaines.jesque.Job(jobName, args);
         long future = System.currentTimeMillis() + delay;
-        jesqueClient.delayedEnqueue(jobName, job, future);
+        jesqueClient.delayedEnqueue(jobName+"-DELAYED", job, future);
         log.info("Succesfully enqueued job {} to be executed in {}", new Object[]{jobName, new Date(future)});
     }
 

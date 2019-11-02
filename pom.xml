@@ -120,7 +120,7 @@
 
 	<properties>
 		<spring.version>3.2.16.RELEASE</spring.version>
-		<camel.version>2.10.7</camel.version>
+		<camel.version>2.24.2</camel.version>
 		<activemq.version>5.13.2</activemq.version>
 		<jpf.version>1.5</jpf.version>
 		<testng.version>6.9.10</testng.version>
